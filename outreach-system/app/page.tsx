@@ -1,0 +1,186 @@
+import Link from "next/link";
+import { Heart, Activity, Brain, ArrowRight, MessageCircle, Mail, Phone, ChevronDown } from "lucide-react";
+
+export default function Home() {
+  return (
+    <div className="min-h-screen bg-brand-cream font-sans text-brand-dark flex flex-col">
+      {/* Header */}
+      <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 transition-all duration-300">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 bg-brand-dark text-brand-gold rounded-lg flex items-center justify-center font-serif text-2xl font-boldshadow-sm">M</div>
+            <span className="text-xl font-bold font-serif tracking-tight text-brand-dark">MedOutreach</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <Link href="/login" className="text-sm font-medium hover:text-brand-gold transition-colors">
+              Sign In
+            </Link>
+            <Link href="/signup" className="px-5 py-2.5 bg-brand-dark text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-all shadow-[0_4px_14px_0_rgba(15,23,42,0.39)]">
+              Get Started
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      {/* Main */}
+      <main className="flex-1 pt-32 pb-20 px-6">
+        {/* Hero */}
+        <div className="max-w-4xl mx-auto text-center mb-24 animate-in fade-in slide-in-from-bottom-8 duration-700">
+          <div className="inline-block px-4 py-1.5 rounded-full bg-slate-100 text-slate-600 text-xs font-bold uppercase tracking-widest mb-6">
+            Redefining Healthcare Management
+          </div>
+          <h1 className="text-5xl md:text-7xl font-bold font-serif mb-8 leading-tight text-brand-dark">
+            Professional Medical <br />
+            <span className="text-slate-400 italic">Outreach Analytics</span>
+          </h1>
+          <p className="text-lg md:text-xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+            Empower your medical missions with AI-driven insights, dynamic data collection, and clinic-grade security.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link href="/signup" className="px-8 py-4 bg-brand-dark text-white rounded-lg hover:shadow-xl hover:shadow-slate-200 transition-all font-medium text-lg flex items-center gap-2 shadow-[0_4px_14px_0_rgba(15,23,42,0.39)]">
+              Launch Platform <ArrowRight size={18} />
+            </Link>
+            <Link href="/login" className="px-8 py-4 bg-white border border-slate-200 text-slate-700 rounded-lg hover:border-brand-gold hover:text-brand-dark transition-all font-medium text-lg hover:shadow-md">
+              Access Portal
+            </Link>
+          </div>
+        </div>
+
+        {/* Features */}
+        <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-8">
+          <div className="bg-white p-8 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all hover:-translate-y-1 duration-300">
+            <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center mb-6 text-brand-dark">
+              <Brain size={28} />
+            </div>
+            <h3 className="text-2xl font-serif font-bold mb-3 text-brand-dark">AI Chief Medical Officer</h3>
+            <p className="text-slate-500 leading-relaxed">
+              Instantly analyze aggregate patient data to identify trends, outbreaks, and intervention opportunities using advanced AI models.
+            </p>
+          </div>
+
+          <div className="bg-white p-8 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all hover:-translate-y-1 duration-300">
+            <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center mb-6 text-brand-dark">
+              <Activity size={28} />
+            </div>
+            <h3 className="text-2xl font-serif font-bold mb-3 text-brand-dark">Dynamic Analytics</h3>
+            <p className="text-slate-500 leading-relaxed">
+              Visualize health metrics with professional charts. Track patient volume, disease prevalence, and completion rates in real-time.
+            </p>
+          </div>
+
+          <div className="bg-white p-8 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all hover:-translate-y-1 duration-300">
+            <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center mb-6 text-brand-dark">
+              <Heart size={28} />
+            </div>
+            <h3 className="text-2xl font-serif font-bold mb-3 text-brand-dark">Custom Form Builder</h3>
+            <p className="text-slate-500 leading-relaxed">
+              Design tailored data collection forms for any medical specialty. Drag-and-drop interface with validation and security built-in.
+            </p>
+          </div>
+        </div>
+
+        {/* FAQ Section */}
+        <div className="max-w-3xl mx-auto mt-32">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-brand-dark mb-4">Frequently Asked Questions</h2>
+            <p className="text-slate-500">Everything you need to know about MedOutreach.</p>
+          </div>
+
+          <div className="space-y-4">
+            <details className="group bg-white rounded-xl shadow-sm border border-slate-100 open:border-brand-gold/30 transition-all">
+              <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
+                <h3 className="font-bold text-slate-800 group-hover:text-brand-gold transition-colors">Does it work offline?</h3>
+                <ChevronDown className="text-slate-400 group-open:rotate-180 transition-transform" />
+              </summary>
+              <div className="px-6 pb-6 text-slate-600 leading-relaxed animate-in fade-in slide-in-from-top-2">
+                Yes! MedOutreach is a Progressive Web App (PWA). You can continue entering patient records even without an internet connection. The data is saved locally and automatically syncs to the cloud once you're back online.
+              </div>
+            </details>
+
+            <details className="group bg-white rounded-xl shadow-sm border border-slate-100 open:border-brand-gold/30 transition-all">
+              <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
+                <h3 className="font-bold text-slate-800 group-hover:text-brand-gold transition-colors">Is my data secure?</h3>
+                <ChevronDown className="text-slate-400 group-open:rotate-180 transition-transform" />
+              </summary>
+              <div className="px-6 pb-6 text-slate-600 leading-relaxed animate-in fade-in slide-in-from-top-2">
+                Security is our top priority. All data is encrypted in transit and at rest. Access is strictly controlled via role-based permissions (Admins vs. Volunteers), and we provide audit logs for all administrative actions.
+              </div>
+            </details>
+
+            <details className="group bg-white rounded-xl shadow-sm border border-slate-100 open:border-brand-gold/30 transition-all">
+              <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
+                <h3 className="font-bold text-slate-800 group-hover:text-brand-gold transition-colors">Can I export my data?</h3>
+                <ChevronDown className="text-slate-400 group-open:rotate-180 transition-transform" />
+              </summary>
+              <div className="px-6 pb-6 text-slate-600 leading-relaxed animate-in fade-in slide-in-from-top-2">
+                Absolutely. Admins can export all event data and patient records to CSV format at any time for further analysis in Excel or other tools.
+              </div>
+            </details>
+            <details className="group bg-white rounded-xl shadow-sm border border-slate-100 open:border-brand-gold/30 transition-all">
+              <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
+                <h3 className="font-bold text-slate-800 group-hover:text-brand-gold transition-colors">How do I track inventory?</h3>
+                <ChevronDown className="text-slate-400 group-open:rotate-180 transition-transform" />
+              </summary>
+              <div className="px-6 pb-6 text-slate-600 leading-relaxed animate-in fade-in slide-in-from-top-2">
+                When creating an event, you can define your starting stock for items like test strips or gloves. The system automatically deducts from this stock for every patient record submitted, giving you real-time visibility into your supplies.
+              </div>
+            </details>
+          </div>
+        </div>
+
+        {/* Contact Section */}
+        <div className="max-w-4xl mx-auto mt-32 bg-brand-dark rounded-3xl p-8 md:p-12 text-center text-white relative overflow-hidden shadow-2xl">
+          <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+            <div className="absolute -top-24 -left-24 w-64 h-64 bg-brand-gold rounded-full filter blur-3xl"></div>
+            <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-blue-500 rounded-full filter blur-3xl"></div>
+          </div>
+
+          <div className="relative z-10">
+            <h2 className="text-3xl md:text-4xl font-serif font-bold mb-6">Ready to Transform Your Outreach?</h2>
+            <p className="text-slate-300 text-lg mb-10 max-w-2xl mx-auto">
+              Get in touch with our team to schedule a demo or discuss your specific needs.
+            </p>
+
+            <div className="flex flex-col md:flex-row items-center justify-center gap-6">
+              <a href="mailto:contact@medoutreach.com" className="flex items-center gap-3 px-6 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/10 rounded-xl transition-all group">
+                <div className="p-2 bg-brand-gold text-brand-dark rounded-lg group-hover:scale-110 transition-transform">
+                  <Mail size={20} />
+                </div>
+                <div className="text-left">
+                  <p className="text-xs text-slate-400 uppercase tracking-wider font-bold">Email Us</p>
+                  <p className="font-medium">contact@medoutreach.com</p>
+                </div>
+              </a>
+
+              <a href="tel:+1234567890" className="flex items-center gap-3 px-6 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/10 rounded-xl transition-all group">
+                <div className="p-2 bg-brand-gold text-brand-dark rounded-lg group-hover:scale-110 transition-transform">
+                  <Phone size={20} />
+                </div>
+                <div className="text-left">
+                  <p className="text-xs text-slate-400 uppercase tracking-wider font-bold">Call Us</p>
+                  <p className="font-medium">+234 (0) 123 456 7890</p>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* WhatsApp Floating Button */}
+        <a
+          href="https://wa.me/+2349126461386"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-8 right-8 z-50 p-4 bg-[#25D366] text-white rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all hover:bg-[#20bd5a] flex items-center justify-center"
+          aria-label="Chat on WhatsApp"
+        >
+          <MessageCircle size={28} fill="white" className="text-white" />
+        </a>
+
+        {/* Footer */}
+        <div className="mt-32 border-t border-slate-200 py-8 text-center text-slate-400 text-sm">
+          <p>MedOutreach © {new Date().getFullYear()}. Designed for Excellence.</p>
+        </div>
+      </main>
+    </div>
+  );
+}

@@ -1,0 +1,118 @@
+'use client';
+
+import { useState } from 'react';
+import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { AlertCircle, LogIn } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+
+export default function LoginPage() {
+    const router = useRouter();
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setIsLoading(true);
+        setError('');
+
+        const formData = new FormData(e.currentTarget);
+        const email = formData.get('email') as string;
+        const password = formData.get('password') as string;
+
+        try {
+            const result = await signIn('credentials', {
+                email,
+                password,
+                redirect: false,
+            });
+
+            if (result?.error) {
+                setError('Invalid credentials or account not approved yet.');
+            } else {
+                router.push('/dashboard');
+                router.refresh();
+            }
+        } catch (err) {
+            setError('An error occurred. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <div className="min-h-screen flex items-center justify-center p-4">
+            <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <div className="text-center mb-8">
+                    <div className="inline-block p-4 bg-brand-dark rounded-xl mb-4 shadow-lg">
+                        <span className="text-3xl font-serif font-bold text-brand-gold">M</span>
+                    </div>
+                    <h1 className="text-4xl font-serif font-bold text-brand-dark mb-2">MedOutreach</h1>
+                    <p className="text-slate-500">Secure Professional Access</p>
+                </div>
+
+                <div className="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8">
+                    <h2 className="text-2xl font-serif font-bold text-brand-dark mb-6">Sign In</h2>
+
+                    {error && (
+                        <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-lg flex items-start gap-3">
+                            <AlertCircle size={20} className="flex-shrink-0 mt-0.5" />
+                            <p className="text-sm font-medium">{error}</p>
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                        <div>
+                            <label htmlFor="email" className="block text-sm font-bold text-slate-700 mb-1">
+                                Email Address
+                            </label>
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                required
+                                className="w-full px-4 py-3 bg-slate-50 rounded-lg focus:ring-2 focus:ring-brand-gold/50 outline-none transition-all placeholder:text-slate-400"
+                                placeholder="name@clinic.com"
+                            />
+                        </div>
+
+                        <div>
+                            <div className="flex justify-between items-center mb-1">
+                                <label htmlFor="password" className="block text-sm font-bold text-slate-700">
+                                    Password
+                                </label>
+                                <a href="#" className="text-xs text-slate-400 hover:text-brand-dark">Forgot?</a>
+                            </div>
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                required
+                                className="w-full px-4 py-3 bg-slate-50 rounded-lg focus:ring-2 focus:ring-brand-gold/50 outline-none transition-all placeholder:text-slate-400"
+                                placeholder="••••••••"
+                            />
+                        </div>
+
+                        <Button
+                            type="submit"
+                            isLoading={isLoading}
+                            className="w-full py-3"
+                        >
+                            {!isLoading && <LogIn size={18} />} Sign In
+                        </Button>
+                    </form>
+
+                    <div className="mt-8 text-center pt-6 border-t border-slate-50">
+                        <p className="text-sm text-slate-500">
+                            No account yet?{' '}
+                            <Link href="/signup" className="text-brand-dark font-bold hover:text-brand-gold transition-colors">
+                                Apply for Access
+                            </Link>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
