@@ -130,7 +130,7 @@ export default async function UsersPage() {
                                                         await deleteUser(user._id.toString());
                                                     }}>
                                                         <SubmitButton
-                                                            className="text-slate-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors shadow-none bg-transparent hover:shadow-none"
+                                                            className="text-slate-600 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors shadow-none bg-transparent hover:shadow-none"
                                                             spinnerClassName="text-red-500"
                                                         >
                                                             <Trash2 size={16} />

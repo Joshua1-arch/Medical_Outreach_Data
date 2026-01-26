@@ -5,6 +5,7 @@ import { Users, Clock, Calendar, Activity, X } from "lucide-react";
 import Link from "next/link";
 import ExportDataButton from "./ExportDataButton";
 import AuditLogFeed from "./AuditLogFeed";
+import InvitationCodeManager from "./InvitationCodeManager";
 
 export const dynamic = 'force-dynamic';
 
@@ -87,10 +88,8 @@ export default async function AdminDashboardPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <AuditLogFeed />
 
-                    {/* Placeholder for future analytics chart or other widgets */}
-                    <div className="bg-slate-50 rounded-xl border border-slate-200 border-dashed flex items-center justify-center p-12 text-slate-400 font-medium">
-                        Additional System Analytics Coming Soon
-                    </div>
+                    {/* Invitation Code Manager */}
+                    <InvitationCodeManager />
                 </div>
 
             </div>

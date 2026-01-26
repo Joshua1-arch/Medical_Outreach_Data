@@ -2,8 +2,8 @@ import { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
     return {
-        name: 'MedOutreach',
-        short_name: 'MedOutreach',
+        name: 'ReachPoint',
+        short_name: 'ReachPoint',
         description: 'Professional medical outreach management system',
         start_url: '/',
         display: 'standalone',

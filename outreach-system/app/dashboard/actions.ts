@@ -36,8 +36,8 @@ export async function createEvent(formData: FormData) {
             return { success: false, message: 'Missing required fields' };
         }
 
-        // Logic: If createdBy is Admin, status is 'approved' automatically. Otherwise 'pending'.
-        const status = user.role === 'admin' ? 'approved' : 'pending';
+        // Logic: If createdBy is Admin OR Trusted user, status is 'approved' automatically. Otherwise 'pending'.
+        const status = (user.role === 'admin' || user.isTrusted) ? 'approved' : 'pending';
 
         const event = await Event.create({
             title,

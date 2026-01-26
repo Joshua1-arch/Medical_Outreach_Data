@@ -172,7 +172,7 @@ export default function PublicEventClient({ event }: { event: any }) {
             </div>
 
             <div className="mt-12 text-center text-slate-400 text-sm">
-                Powered by MedOutreach
+                Powered by ReachPoint
             </div>
         </div>
     );

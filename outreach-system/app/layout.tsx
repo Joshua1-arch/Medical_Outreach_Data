@@ -15,8 +15,11 @@ const lato = Lato({
 });
 
 export const metadata: Metadata = {
-  title: "MedOutreach",
+  title: "ReachPoint",
   description: "Professional medical outreach management system",
+  icons: {
+    icon: "/Reach.png",
+  },
 };
 
 export default function RootLayout({

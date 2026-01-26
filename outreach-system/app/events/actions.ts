@@ -4,12 +4,46 @@ import dbConnect from "@/lib/db";
 import Record from "@/models/Record";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
+import crypto from "crypto";
 
 import Event from "@/models/Event";
 
 function generateRetrievalCode() {
     // Generate a 6-character alphanumeric code (e.g., A7X92B)
     return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
+
+/**
+ * Generate a patient hash from identifying information.
+ * Uses Name + Phone + Gender to create a unique identifier.
+ * This allows tracking the same patient across different events.
+ */
+function generatePatientHash(data: Record<string, any>): string | null {
+    // Try to extract identifying fields (case-insensitive key matching)
+    const findField = (patterns: string[]): string => {
+        for (const [key, value] of Object.entries(data)) {
+            const lowerKey = key.toLowerCase();
+            for (const pattern of patterns) {
+                if (lowerKey.includes(pattern.toLowerCase())) {
+                    return String(value || '').trim().toLowerCase();
+                }
+            }
+        }
+        return '';
+    };
+
+    const name = findField(['name', 'patient name', 'full name', 'fullname']);
+    const phone = findField(['phone', 'mobile', 'telephone', 'contact']);
+    const gender = findField(['gender', 'sex']);
+
+    // Need at least name and one other identifier
+    if (!name || (!phone && !gender)) {
+        return null;
+    }
+
+    // Create a hash from the combined values
+    const combined = `${name}|${phone}|${gender}`.toLowerCase();
+    return crypto.createHash('sha256').update(combined).digest('hex').substring(0, 32);
 }
 
 export async function submitRecord(eventId: string, data: Record<string, any>) {
@@ -33,12 +67,14 @@ export async function submitRecord(eventId: string, data: Record<string, any>) {
         }
 
         const retrievalCode = generateRetrievalCode();
+        const patientHash = generatePatientHash(data);
 
         await Record.create({
             eventId,
             data,
             recordedBy,
-            retrievalCode
+            retrievalCode,
+            patientHash
         });
 
         revalidatePath(`/events/${eventId}/enter-data`);
@@ -48,6 +84,92 @@ export async function submitRecord(eventId: string, data: Record<string, any>) {
     } catch (error) {
         console.error('Failed to submit record:', error);
         return { success: false, message: 'Failed to save record' };
+    }
+}
+
+/**
+ * Search for patient history by computing the hash from current input.
+ * Returns previous records for the same patient from different events.
+ */
+export async function searchPatientHistory(data: Record<string, any>, currentEventId: string) {
+    try {
+        await dbConnect();
+
+        const patientHash = generatePatientHash(data);
+        if (!patientHash) {
+            return { success: false, found: false, message: 'Insufficient data for patient lookup' };
+        }
+
+        // Find previous records with this hash, excluding current event
+        const previousRecords = await Record.find({
+            patientHash,
+            eventId: { $ne: currentEventId }
+        })
+            .populate('eventId', 'title location date')
+            .sort({ createdAt: -1 })
+            .limit(5)
+            .lean();
+
+        if (!previousRecords || previousRecords.length === 0) {
+            return { success: true, found: false, message: 'No previous records found' };
+        }
+
+        // Format the history for display
+        const history = previousRecords.map((record: any) => {
+            const eventTitle = record.eventId?.title || 'Unknown Event';
+            const eventDate = record.eventId?.date ? new Date(record.eventId.date) : new Date(record.createdAt);
+            const recordDate = new Date(record.createdAt);
+
+            // Calculate time ago
+            const monthsAgo = Math.floor((Date.now() - recordDate.getTime()) / (1000 * 60 * 60 * 24 * 30));
+            const timeAgo = monthsAgo < 1 ? 'Less than a month ago' :
+                monthsAgo === 1 ? '1 month ago' :
+                    `${monthsAgo} months ago`;
+
+            // Extract key vitals from previous record data
+            const prevData = record.data || {};
+            const vitals: Record<string, string> = {};
+
+            // Try to find common vital fields
+            const vitalPatterns = [
+                { patterns: ['bp', 'blood pressure'], label: 'BP' },
+                { patterns: ['weight'], label: 'Weight' },
+                { patterns: ['bmi'], label: 'BMI' },
+                { patterns: ['blood sugar', 'glucose', 'fbs', 'rbs'], label: 'Blood Sugar' },
+                { patterns: ['pcv', 'hematocrit'], label: 'PCV' },
+            ];
+
+            for (const { patterns, label } of vitalPatterns) {
+                for (const [key, value] of Object.entries(prevData)) {
+                    const lowerKey = key.toLowerCase();
+                    for (const pattern of patterns) {
+                        if (lowerKey.includes(pattern) && value) {
+                            vitals[label] = String(value);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return {
+                _id: record._id.toString(),
+                eventTitle,
+                eventDate: eventDate.toISOString(),
+                recordDate: recordDate.toISOString(),
+                timeAgo,
+                vitals
+            };
+        });
+
+        return {
+            success: true,
+            found: true,
+            history,
+            message: `Found ${history.length} previous record(s)`
+        };
+    } catch (error) {
+        console.error('Failed to search patient history:', error);
+        return { success: false, found: false, message: 'Error searching patient history' };
     }
 }
 

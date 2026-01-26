@@ -11,8 +11,8 @@ export default function Sidebar({ user, onSignOut }: { user: any, onSignOut: () 
             {/* Mobile Header Trigger */}
             <div className="md:hidden fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md border-b border-slate-200 p-4 z-40 flex items-center justify-between h-16 shadow-sm">
                 <div className="flex items-center gap-2 font-bold text-brand-dark">
-                    <span className="w-8 h-8 bg-brand-dark rounded-lg flex items-center justify-center text-brand-gold text-lg font-serif">M</span>
-                    MedOutreach
+                    <span className="w-8 h-8 bg-brand-dark rounded-lg flex items-center justify-center text-brand-gold text-lg font-serif">R</span>
+                    ReachPoint
                 </div>
                 <button onClick={() => setIsOpen(!isOpen)} className="text-slate-600 p-1">
                     {isOpen ? <X /> : <Menu />}
@@ -28,8 +28,8 @@ export default function Sidebar({ user, onSignOut }: { user: any, onSignOut: () 
                 <div className="p-6 border-b border-slate-100 flex justify-between items-center h-[88px] md:h-auto">
                     <div>
                         <h1 className="text-xl font-bold text-brand-dark flex items-center gap-2 font-serif">
-                            <span className="w-8 h-8 bg-brand-dark rounded-lg flex items-center justify-center text-brand-gold text-lg">M</span>
-                            MedOutreach
+                            <span className="w-8 h-8 bg-brand-dark rounded-lg flex items-center justify-center text-brand-gold text-lg">R</span>
+                            ReachPoint
                         </h1>
                         <p className="text-xs text-brand-gold mt-1 uppercase tracking-wider font-bold">User Portal</p>
                         <p className="text-xs text-slate-400 mt-2 truncate max-w-[200px]">{user?.email}</p>

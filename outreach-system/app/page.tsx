@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Heart, Activity, Brain, ArrowRight, MessageCircle, Mail, Phone, ChevronDown } from "lucide-react";
+import Image from "next/image";
+import { Heart, Activity, Brain, ArrowRight, MessageCircle, Mail, Phone, ChevronDown, LogIn, Sparkles } from "lucide-react";
 
 export default function Home() {
   return (
@@ -7,15 +8,24 @@ export default function Home() {
       {/* Header */}
       <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-brand-dark text-brand-gold rounded-lg flex items-center justify-center font-serif text-2xl font-boldshadow-sm">M</div>
-            <span className="text-xl font-bold font-serif tracking-tight text-brand-dark">MedOutreach</span>
+          <div className="flex items-center gap-3">
+            {/* LOGO ONLY - No wrapper, specific width/height to prevent cropping */}
+             <Image 
+               src="/Reach.png" 
+               alt="ReachPoint Logo" 
+               width={50}
+               height={50}
+               className="object-contain" // Ensures the full logo is visible
+               priority
+             />
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/login" className="text-sm font-medium hover:text-brand-gold transition-colors">
+            <Link href="/login" className="flex items-center gap-2 text-sm font-bold text-slate-600 hover:text-brand-dark transition-colors px-3 py-2 rounded-lg hover:bg-slate-50">
+              <LogIn size={18} className="text-brand-gold" />
               Sign In
             </Link>
-            <Link href="/signup" className="px-5 py-2.5 bg-brand-dark text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-all shadow-[0_4px_14px_0_rgba(15,23,42,0.39)]">
+            <Link href="/signup" className="flex items-center gap-2 px-5 py-2.5 bg-brand-dark text-white rounded-lg text-sm font-bold hover:bg-slate-800 hover:shadow-lg transition-all shadow-[0_4px_14px_0_rgba(15,23,42,0.39)] group">
+              <Sparkles size={16} className="text-brand-gold group-hover:animate-pulse" />
               Get Started
             </Link>
           </div>
@@ -30,17 +40,18 @@ export default function Home() {
             Redefining Healthcare Management
           </div>
           <h1 className="text-5xl md:text-7xl font-bold font-serif mb-8 leading-tight text-brand-dark">
-            Professional Medical <br />
-            <span className="text-slate-400 italic">Outreach Analytics</span>
+            Welcome to <br />
+            <span className="text-brand-gold italic">ReachPoint</span>
           </h1>
           <p className="text-lg md:text-xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
             Empower your medical missions with AI-driven insights, dynamic data collection, and clinic-grade security.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/signup" className="px-8 py-4 bg-brand-dark text-white rounded-lg hover:shadow-xl hover:shadow-slate-200 transition-all font-medium text-lg flex items-center gap-2 shadow-[0_4px_14px_0_rgba(15,23,42,0.39)]">
-              Launch Platform <ArrowRight size={18} />
+            <Link href="/signup" className="px-8 py-4 bg-brand-dark text-white rounded-lg hover:shadow-xl hover:shadow-slate-200 transition-all font-bold text-lg flex items-center gap-2 shadow-[0_4px_14px_0_rgba(15,23,42,0.39)] group">
+              Launch Platform <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </Link>
-            <Link href="/login" className="px-8 py-4 bg-white border border-slate-200 text-slate-700 rounded-lg hover:border-brand-gold hover:text-brand-dark transition-all font-medium text-lg hover:shadow-md">
+            <Link href="/login" className="px-8 py-4 bg-white border border-slate-200 text-slate-700 rounded-lg hover:border-brand-gold hover:text-brand-dark transition-all font-bold text-lg hover:shadow-md flex items-center gap-2">
+              <LogIn size={18} className="text-slate-400" />
               Access Portal
             </Link>
           </div>
@@ -83,7 +94,7 @@ export default function Home() {
         <div className="max-w-3xl mx-auto mt-32">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-serif font-bold text-brand-dark mb-4">Frequently Asked Questions</h2>
-            <p className="text-slate-500">Everything you need to know about MedOutreach.</p>
+            <p className="text-slate-500">Everything you need to know about ReachPoint.</p>
           </div>
 
           <div className="space-y-4">
@@ -93,7 +104,7 @@ export default function Home() {
                 <ChevronDown className="text-slate-400 group-open:rotate-180 transition-transform" />
               </summary>
               <div className="px-6 pb-6 text-slate-600 leading-relaxed animate-in fade-in slide-in-from-top-2">
-                Yes! MedOutreach is a Progressive Web App (PWA). You can continue entering patient records even without an internet connection. The data is saved locally and automatically syncs to the cloud once you're back online.
+                Yes! ReachPoint is a Progressive Web App (PWA). You can continue entering patient records even without an internet connection. The data is saved locally and automatically syncs to the cloud once you're back online.
               </div>
             </details>
 
@@ -148,7 +159,7 @@ export default function Home() {
                 </div>
                 <div className="text-left">
                   <p className="text-xs text-slate-400 uppercase tracking-wider font-bold">Email Us</p>
-                  <p className="font-medium">contact@medoutreach.com</p>
+                  <p className="font-medium">contact@reachpoint.com</p>
                 </div>
               </a>
 
@@ -158,7 +169,7 @@ export default function Home() {
                 </div>
                 <div className="text-left">
                   <p className="text-xs text-slate-400 uppercase tracking-wider font-bold">Call Us</p>
-                  <p className="font-medium">+234 (0) 123 456 7890</p>
+                  <p className="font-medium">+234 9126461386</p>
                 </div>
               </a>
             </div>
@@ -178,7 +189,7 @@ export default function Home() {
 
         {/* Footer */}
         <div className="mt-32 border-t border-slate-200 py-8 text-center text-slate-400 text-sm">
-          <p>MedOutreach © {new Date().getFullYear()}. Designed for Excellence.</p>
+          <p>&copy; 2026 ReachPoint. Designed for Excellence.</p>
         </div>
       </main>
     </div>

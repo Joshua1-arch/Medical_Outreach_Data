@@ -16,7 +16,7 @@ export function SubmitButton({ children, className, spinnerClassName, ...props }
         <button
             type="submit"
             disabled={pending}
-            className={`flex items-center justify-center gap-2 bg-brand-dark text-white rounded-lg hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold shadow-md ${className || ''}`}
+            className={className || `flex items-center justify-center gap-2 bg-brand-dark text-white rounded-lg hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold shadow-md`}
             {...props}
         >
             {pending ? <Spinner size={18} className={spinnerClassName || "text-white"} /> : children}

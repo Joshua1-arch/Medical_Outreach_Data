@@ -16,9 +16,9 @@ export default function LoginPage() {
             <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <div className="text-center mb-8">
                     <div className="inline-block p-4 bg-brand-dark rounded-xl mb-4 shadow-lg">
-                        <span className="text-3xl font-serif font-bold text-brand-gold">M</span>
+                        <span className="text-3xl font-serif font-bold text-brand-gold">R</span>
                     </div>
-                    <h1 className="text-4xl font-serif font-bold text-brand-dark mb-2">MedOutreach</h1>
+                    <h1 className="text-4xl font-serif font-bold text-brand-dark mb-2">ReachPoint</h1>
                     <p className="text-slate-500">Secure Professional Access</p>
                 </div>
 
@@ -87,8 +87,8 @@ export default function LoginPage() {
                             />
                         </div>
 
-                        <SubmitButton className="w-full py-3">
-                            <LogIn size={18} /> Sign In
+                        <SubmitButton className="w-full py-3.5 flex items-center justify-center gap-3 bg-brand-dark text-white rounded-xl hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-bold shadow-[0_4px_14px_0_rgba(15,23,42,0.39)] hover:shadow-[0_6px_20px_rgba(15,23,42,0.23)] hover:-translate-y-0.5 active:translate-y-0 text-base">
+                            <LogIn size={20} className="text-brand-gold" /> Sign In
                         </SubmitButton>
                     </form>
 

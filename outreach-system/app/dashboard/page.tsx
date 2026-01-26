@@ -2,7 +2,8 @@ import { auth } from "@/auth";
 import dbConnect from "@/lib/db";
 import Event from "@/models/Event";
 import Record from "@/models/Record";
-import { Calendar, FileText, Activity, X } from "lucide-react";
+import User from "@/models/User";
+import { Calendar, FileText, Activity, X, Zap, Shield } from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = 'force-dynamic';
@@ -14,7 +15,12 @@ async function getUserStats(userId: string) {
     const pendingEvents = await Event.countDocuments({ createdBy: userId, status: 'pending' });
     const totalRecords = await Record.countDocuments({ recordedBy: userId });
 
-    return { myEvents, approvedEvents, pendingEvents, totalRecords };
+    // Get user's trusted status
+    const user = await User.findById(userId).select('isTrusted role').lean();
+    const isTrusted = user?.isTrusted || false;
+    const isAdmin = user?.role === 'admin';
+
+    return { myEvents, approvedEvents, pendingEvents, totalRecords, isTrusted, isAdmin };
 }
 
 export default async function DashboardPage() {
@@ -31,8 +37,28 @@ export default async function DashboardPage() {
         return (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <div>
-                    <h1 className="text-3xl font-serif font-bold text-brand-dark">Welcome back, {session?.user?.name}!</h1>
+                    <div className="flex items-center gap-3 mb-1">
+                        <h1 className="text-3xl font-serif font-bold text-brand-dark">Welcome back, {session?.user?.name}!</h1>
+                        {stats.isAdmin && (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-bold">
+                                <Shield size={14} />
+                                Admin
+                            </span>
+                        )}
+                        {stats.isTrusted && !stats.isAdmin && (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-700 rounded-full text-sm font-bold border border-amber-200 shadow-sm">
+                                <Zap size={14} className="text-amber-500" />
+                                Trusted Creator
+                            </span>
+                        )}
+                    </div>
                     <p className="text-slate-500 mt-1">Manage your outreach events and data collection.</p>
+                    {stats.isTrusted && !stats.isAdmin && (
+                        <p className="text-sm text-amber-600 mt-2 flex items-center gap-1">
+                            <Zap size={14} />
+                            <span>Auto-Approval Enabled — Your events are published instantly</span>
+                        </p>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -84,7 +110,11 @@ export default async function DashboardPage() {
                 <div className="bg-brand-dark rounded-xl shadow-lg p-8 text-white relative overflow-hidden">
                     <div className="relative z-10">
                         <h2 className="text-2xl font-serif font-bold mb-2 text-brand-gold">Ready to plan your next outreach?</h2>
-                        <p className="text-slate-300 mb-6 max-w-xl">Create a new event and define what data you need to collect. Once approved by the admin, you can start recording patient information.</p>
+                        <p className="text-slate-300 mb-6 max-w-xl">
+                            {stats.isTrusted || stats.isAdmin
+                                ? 'Create a new event and start collecting data immediately. Your events are auto-approved!'
+                                : 'Create a new event and define what data you need to collect. Once approved by the admin, you can start recording patient information.'}
+                        </p>
                         <Link href="/dashboard/create-event" className="inline-block px-6 py-3 bg-white text-brand-dark rounded-lg font-semibold hover:bg-brand-gold hover:text-white transition-colors shadow-md">
                             Create New Event
                         </Link>

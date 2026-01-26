@@ -14,6 +14,10 @@ const UserSchema = new Schema({
         enum: ['pending', 'active', 'rejected'],
         default: 'pending'
     },
+    isTrusted: {
+        type: Boolean,
+        default: false
+    },
 }, { timestamps: true });
 
 const User = models.User || model('User', UserSchema);

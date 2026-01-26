@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { submitRecord } from '../../actions';
-import { CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { submitRecord, searchPatientHistory } from '../../actions';
+import { CheckCircle, AlertCircle, RefreshCw, History, Clock, AlertTriangle } from 'lucide-react';
 import { SubmitButton } from '@/components/ui/SubmitButton';
+import { Spinner } from '@/components/ui/Spinner';
 
 type FormField = {
     label: string;
@@ -11,6 +12,15 @@ type FormField = {
     options?: string[];
     required: boolean;
     width?: 'full' | 'half';
+};
+
+type PatientHistory = {
+    _id: string;
+    eventTitle: string;
+    eventDate: string;
+    recordDate: string;
+    timeAgo: string;
+    vitals: Record<string, string>;
 };
 
 type Props = {
@@ -28,12 +38,58 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
     const [retrievalCode, setRetrievalCode] = useState('');
     const [formData, setFormData] = useState<Record<string, any>>(initialData);
 
+    // Patient history tracking
+    const [patientHistory, setPatientHistory] = useState<PatientHistory[] | null>(null);
+    const [isSearchingHistory, setIsSearchingHistory] = useState(false);
+    const [historySearched, setHistorySearched] = useState(false);
+
     // Update formData if initialData changes (e.g. after fetch)
     useEffect(() => {
         if (Object.keys(initialData).length > 0) {
             setFormData(initialData);
         }
     }, [initialData]);
+
+    // Debounced patient history search
+    const searchHistory = useCallback(async () => {
+        // Check if we have enough identifying info
+        const hasName = Object.entries(formData).some(([key, value]) =>
+            key.toLowerCase().includes('name') && value && String(value).trim().length > 2
+        );
+        const hasPhone = Object.entries(formData).some(([key, value]) =>
+            (key.toLowerCase().includes('phone') || key.toLowerCase().includes('mobile')) && value
+        );
+        const hasGender = Object.entries(formData).some(([key, value]) =>
+            (key.toLowerCase().includes('gender') || key.toLowerCase().includes('sex')) && value
+        );
+
+        if (hasName && (hasPhone || hasGender)) {
+            setIsSearchingHistory(true);
+            try {
+                const result = await searchPatientHistory(formData, eventId);
+                if (result.success && result.found && result.history) {
+                    setPatientHistory(result.history as PatientHistory[]);
+                } else {
+                    setPatientHistory(null);
+                }
+                setHistorySearched(true);
+            } catch (err) {
+                console.error('History search error:', err);
+            }
+            setIsSearchingHistory(false);
+        }
+    }, [formData, eventId]);
+
+    // Trigger history search when identifying fields change
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (!historySearched && Object.keys(formData).length > 0) {
+                searchHistory();
+            }
+        }, 800); // Debounce 800ms
+
+        return () => clearTimeout(timer);
+    }, [formData, searchHistory, historySearched]);
 
 
     // Auto-calculate BMI
@@ -111,6 +167,13 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
 
     const handleInputChange = (label: string, value: any) => {
         setFormData(prev => ({ ...prev, [label]: value }));
+        // Reset history search when identifying fields change
+        if (label.toLowerCase().includes('name') ||
+            label.toLowerCase().includes('phone') ||
+            label.toLowerCase().includes('gender')) {
+            setHistorySearched(false);
+            setPatientHistory(null);
+        }
     };
 
     const handleAction = async () => {
@@ -159,6 +222,8 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
             if (!onSubmit) {
                 // Default behavior: reset
                 setFormData({});
+                setPatientHistory(null);
+                setHistorySearched(false);
             }
         } else {
             setError(result.message);
@@ -280,6 +345,61 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
                             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3 text-red-800">
                                 <AlertCircle size={20} className="flex-shrink-0 mt-0.5" />
                                 <p>{error}</p>
+                            </div>
+                        )}
+
+                        {/* Patient History Card */}
+                        {isSearchingHistory && (
+                            <div className="mb-6 p-4 bg-slate-50 border border-slate-200 rounded-lg flex items-center gap-3">
+                                <Spinner size={18} className="text-slate-500" />
+                                <span className="text-slate-600 text-sm">Checking for patient history...</span>
+                            </div>
+                        )}
+
+                        {patientHistory && patientHistory.length > 0 && (
+                            <div className="mb-6 p-5 bg-amber-50 border-2 border-amber-200 rounded-xl animate-in fade-in slide-in-from-top-2">
+                                <div className="flex items-start gap-3 mb-4">
+                                    <div className="p-2 bg-amber-100 rounded-lg">
+                                        <AlertTriangle size={20} className="text-amber-600" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-amber-800">⚠️ Patient History Found</h3>
+                                        <p className="text-sm text-amber-700">
+                                            This patient was seen {patientHistory.length} time{patientHistory.length > 1 ? 's' : ''} before
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    {patientHistory.map((record, index) => (
+                                        <div key={record._id} className="bg-white/80 rounded-lg p-4 border border-amber-100">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <Clock size={14} className="text-amber-600" />
+                                                <span className="text-sm font-semibold text-slate-700">{record.timeAgo}</span>
+                                                <span className="text-slate-400">•</span>
+                                                <span className="text-sm text-slate-600">{record.eventTitle}</span>
+                                            </div>
+
+                                            {Object.keys(record.vitals).length > 0 && (
+                                                <div className="flex flex-wrap gap-2">
+                                                    {Object.entries(record.vitals).map(([label, value]) => (
+                                                        <span
+                                                            key={label}
+                                                            className="px-2 py-1 bg-amber-100/50 border border-amber-200 rounded text-xs font-medium text-amber-800"
+                                                        >
+                                                            <strong>{label}:</strong> {value}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <p className="text-xs text-amber-600 mt-3 flex items-center gap-1">
+                                    <History size={12} />
+                                    Compare with today's readings to track progress
+                                </p>
                             </div>
                         )}
 

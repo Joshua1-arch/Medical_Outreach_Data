@@ -1,6 +1,6 @@
 import dbConnect from "@/lib/db";
 import Event from "@/models/Event";
-import { approveEvent } from "../actions";
+import { approveEvent, rejectEvent } from "../actions";
 import { Check, Calendar, MapPin, CheckCircle, Image as ImageIcon, X } from "lucide-react";
 import Image from "next/image";
 import RefreshButton from "@/components/ui/RefreshButton";
@@ -87,19 +87,35 @@ export default async function PendingEventsPage() {
                             {/* Actions Column */}
                             <div className="flex-shrink-0 flex flex-col items-end justify-between gap-4 border-l border-slate-50 pl-4 min-w-[140px]">
                                 {event.status === 'pending' ? (
-                                    <form action={async () => {
-                                        'use server';
-                                        await approveEvent(event._id.toString());
-                                    }} className="w-full">
-                                        <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-brand-dark text-white rounded-lg hover:bg-brand-gold transition-colors font-bold shadow-sm text-sm">
-                                            <Check size={16} />
-                                            Approve
-                                        </button>
-                                    </form>
-                                ) : (
+                                    <div className="w-full space-y-2">
+                                        <form action={async () => {
+                                            'use server';
+                                            await approveEvent(event._id.toString());
+                                        }} className="w-full">
+                                            <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-brand-dark text-white rounded-lg hover:bg-brand-gold transition-colors font-bold shadow-sm text-sm">
+                                                <Check size={16} />
+                                                Approve
+                                            </button>
+                                        </form>
+                                        <form action={async () => {
+                                            'use server';
+                                            await rejectEvent(event._id.toString());
+                                        }} className="w-full">
+                                            <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors font-bold shadow-sm text-sm">
+                                                <X size={16} />
+                                                Reject
+                                            </button>
+                                        </form>
+                                    </div>
+                                ) : event.status === 'approved' ? (
                                     <div className="w-full flex items-center justify-center text-green-600 gap-2 font-bold px-4 py-2 bg-green-50 rounded-lg border border-green-100">
                                         <CheckCircle size={18} />
                                         <span className="text-sm">Approved</span>
+                                    </div>
+                                ) : (
+                                    <div className="w-full flex items-center justify-center text-red-600 gap-2 font-bold px-4 py-2 bg-red-50 rounded-lg border border-red-100">
+                                        <X size={18} />
+                                        <span className="text-sm">Rejected</span>
                                     </div>
                                 )}
 
