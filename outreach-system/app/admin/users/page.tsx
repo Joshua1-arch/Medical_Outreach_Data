@@ -3,6 +3,7 @@ import User from "@/models/User";
 import { approveUser, rejectUser, deleteUser } from "../actions";
 import { Check, X, Shield, Users as UsersIcon, Trash2 } from "lucide-react";
 import UserStatusToggle from "./UserStatusToggle";
+import { SubmitButton } from "@/components/ui/SubmitButton";
 
 export const dynamic = 'force-dynamic';
 
@@ -60,17 +61,20 @@ export default async function UsersPage() {
                                                             'use server';
                                                             await approveUser(user._id.toString());
                                                         }}>
-                                                            <button className="flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white hover:bg-green-700 rounded-lg transition-all text-xs font-bold shadow-sm">
+                                                            <SubmitButton className="flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white hover:bg-green-700 rounded-lg transition-all text-xs font-bold shadow-sm">
                                                                 <Check size={14} /> Approve
-                                                            </button>
+                                                            </SubmitButton>
                                                         </form>
                                                         <form action={async () => {
                                                             'use server';
                                                             await rejectUser(user._id.toString());
                                                         }}>
-                                                            <button className="flex items-center gap-2 px-3 py-1.5 bg-white text-red-600 border border-slate-200 hover:bg-red-50 hover:border-red-200 rounded-lg transition-all text-xs font-bold">
+                                                            <SubmitButton
+                                                                className="flex items-center gap-2 px-3 py-1.5 bg-white text-red-600 border border-slate-200 hover:bg-red-50 hover:border-red-200 rounded-lg transition-all text-xs font-bold"
+                                                                spinnerClassName="text-red-600"
+                                                            >
                                                                 <X size={14} /> Reject
-                                                            </button>
+                                                            </SubmitButton>
                                                         </form>
                                                     </div>
                                                 </td>
@@ -125,12 +129,12 @@ export default async function UsersPage() {
                                                         'use server';
                                                         await deleteUser(user._id.toString());
                                                     }}>
-                                                        <button
-                                                            className="text-slate-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors"
-                                                            title="Delete User"
+                                                        <SubmitButton
+                                                            className="text-slate-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors shadow-none bg-transparent hover:shadow-none"
+                                                            spinnerClassName="text-red-500"
                                                         >
                                                             <Trash2 size={16} />
-                                                        </button>
+                                                        </SubmitButton>
                                                     </form>
                                                 )}
                                             </td>

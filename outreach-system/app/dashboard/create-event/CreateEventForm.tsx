@@ -3,15 +3,14 @@
 import { useState } from 'react';
 import { createEvent } from '../actions';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, Loader2, ArrowLeft, Calendar, MapPin, Target, Image as ImageIcon, Package, Plus, Trash2 } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Calendar, MapPin, Target, Image as ImageIcon, Package, Plus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { CldUploadWidget } from 'next-cloudinary';
 import Image from 'next/image';
-import { Button } from '@/components/ui/Button';
+import { SubmitButton } from '@/components/ui/SubmitButton';
 
 export default function CreateEventForm() {
     const router = useRouter();
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [coverImage, setCoverImage] = useState('');
@@ -34,32 +33,6 @@ export default function CreateEventForm() {
         setInventoryItems(newItems);
     };
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        setIsSubmitting(true);
-        setError('');
-        setSuccess('');
-
-        const formData = new FormData(e.currentTarget);
-        formData.append('coverImage', coverImage);
-
-        // Filter out empty items
-        const validInventory = inventoryItems.filter(i => i.itemName.trim() !== '');
-        formData.append('inventory', JSON.stringify(validInventory));
-
-        const result = await createEvent(formData);
-
-        if (result.success) {
-            setSuccess(result.message);
-            setTimeout(() => {
-                router.push('/dashboard/my-events');
-            }, 1500);
-        } else {
-            setError(result.message);
-        }
-
-        setIsSubmitting(false);
-    };
 
     return (
         <div className="max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -95,7 +68,28 @@ export default function CreateEventForm() {
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+
+                <form action={async (formData) => {
+                    setError('');
+                    setSuccess('');
+
+                    formData.append('coverImage', coverImage);
+
+                    // Filter out empty items
+                    const validInventory = inventoryItems.filter(i => i.itemName.trim() !== '');
+                    formData.append('inventory', JSON.stringify(validInventory));
+
+                    const result = await createEvent(formData);
+
+                    if (result.success) {
+                        setSuccess(result.message);
+                        setTimeout(() => {
+                            router.push('/dashboard/my-events');
+                        }, 1500);
+                    } else {
+                        setError(result.message);
+                    }
+                }} className="space-y-6">
                     {/* Cloudinary Widget */}
                     <div>
                         <label className="block text-sm font-bold text-brand-dark mb-2">Event Cover Image</label>
@@ -335,12 +329,9 @@ export default function CreateEventForm() {
                         >
                             Cancel
                         </Link>
-                        <Button
-                            type="submit"
-                            isLoading={isSubmitting}
-                        >
-                            {!isSubmitting && <Target size={18} />} Submit Proposal
-                        </Button>
+                        <SubmitButton>
+                            <Target size={18} /> Submit Proposal
+                        </SubmitButton>
                     </div>
                 </form>
             </div>

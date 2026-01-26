@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Cloud, CloudOff, RefreshCw, Loader2 } from 'lucide-react';
+import { Cloud, CloudOff, RefreshCw } from 'lucide-react';
 import { submitRecord } from '@/app/events/actions';
+import { Spinner } from '@/components/ui/Spinner';
 
 export default function SyncManager() {
     const [isOnline, setIsOnline] = useState(true);
@@ -122,7 +123,7 @@ export default function SyncManager() {
     if (isSyncing) {
         return (
             <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2 px-4 py-3 bg-blue-100 text-blue-700 rounded-full shadow-lg border border-blue-200 animate-in fade-in slide-in-from-bottom-2">
-                <Loader2 size={20} className="animate-spin" />
+                <Spinner size={20} className="text-blue-700" />
                 <span className="font-bold text-sm">Syncing...</span>
             </div>
         );

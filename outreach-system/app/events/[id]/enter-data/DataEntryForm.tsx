@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { submitRecord } from '../../actions';
-import { Loader2, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { SubmitButton } from '@/components/ui/SubmitButton';
 
 type FormField = {
     label: string;
@@ -22,7 +23,6 @@ type Props = {
 };
 
 export default function DataEntryForm({ eventId, eventTitle, formFields, initialData = {}, onSubmit, submitButtonText = "Submit Record" }: Props) {
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [retrievalCode, setRetrievalCode] = useState('');
@@ -35,10 +35,11 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
         }
     }, [initialData]);
 
+
     // Auto-calculate BMI
     useEffect(() => {
-        const weight = parseFloat(formData['Weight (kg)']);
-        const height = parseFloat(formData['Height (cm)']);
+        const weight = parseFloat(formData['Weight (kg)'] || formData['Weight']);
+        const height = parseFloat(formData['Height (cm)'] || formData['Height']);
 
         if (!isNaN(weight) && !isNaN(height) && height > 0) {
             const heightInMeters = height / 100;
@@ -49,25 +50,78 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
                 setFormData(prev => ({ ...prev, 'BMI': bmi }));
             }
         }
-    }, [formData['Weight (kg)'], formData['Height (cm)'], formData['BMI']]);
+    }, [formData]);
+
+    // Blood Donation Compatibility Logic
+    const [compatibility, setCompatibility] = useState<{ fit: boolean | null, recipients: string[] } | null>(null);
+
+    useEffect(() => {
+        const group = formData['Blood Group'];
+        const rh = formData['Rhesus'];
+
+        if (group && rh) {
+            // Calculate Recipients
+            const isRhPos = rh === 'Positive';
+            let recipients: string[] = [];
+
+            // Logic:
+            // O- : Universal -> All
+            // O+ : O+, A+, B+, AB+
+            // A- : A-, A+, AB-, AB+
+            // A+ : A+, AB+
+            // B- : B-, B+, AB-, AB+
+            // B+ : B+, AB+
+            // AB- : AB-, AB+
+            // AB+ : AB+ Only
+
+            if (group === 'O') {
+                if (!isRhPos) recipients = ['O-', 'O+', 'A-', 'A+', 'B-', 'B+', 'AB-', 'AB+'];
+                else recipients = ['O+', 'A+', 'B+', 'AB+'];
+            } else if (group === 'A') {
+                if (!isRhPos) recipients = ['A-', 'A+', 'AB-', 'AB+'];
+                else recipients = ['A+', 'AB+'];
+            } else if (group === 'B') {
+                if (!isRhPos) recipients = ['B-', 'B+', 'AB-', 'AB+'];
+                else recipients = ['B+', 'AB+'];
+            } else if (group === 'AB') {
+                if (!isRhPos) recipients = ['AB-', 'AB+'];
+                else recipients = ['AB+'];
+            }
+
+            // Check Fitness (Basic checks if fields exist)
+            let fit = true;
+            const pcv = parseFloat(formData['PCV']);
+            const weight = parseFloat(formData['Weight (kg)'] || formData['Weight']);
+            const hiv = formData['HIV'];
+            const hbsag = formData['HBsAg'];
+
+            // Only mark as strictly UNFIT if we know for sure.
+            // If fields are missing, we can't say for sure, but prompt asks "Fit to Donate? [Check other fields]"
+
+            if (!isNaN(pcv) && pcv < 38) fit = false;
+            if (!isNaN(weight) && weight < 50) fit = false;
+            if (hiv === 'Reactive') fit = false;
+            if (hbsag === 'Reactive') fit = false;
+
+            setCompatibility({ fit, recipients });
+        } else {
+            setCompatibility(null);
+        }
+    }, [formData]);
 
     const handleInputChange = (label: string, value: any) => {
         setFormData(prev => ({ ...prev, [label]: value }));
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsSubmitting(true);
+    const handleAction = async () => {
         setError('');
         setSuccess('');
         setRetrievalCode('');
 
         // Validate required fields
-        // Note: For Update mode, maybe we relax this? But for now stick to schema.
         const missingFields = formFields.filter(f => f.required && !formData[f.label]);
         if (missingFields.length > 0) {
             setError(`Please fill in all required fields: ${missingFields.map(f => f.label).join(', ')}`);
-            setIsSubmitting(false);
             return;
         }
 
@@ -102,25 +156,13 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
             setSuccess(result.message);
             if (result.code) setRetrievalCode(result.code);
 
-            if (!result.code) {
-                // Only clear format if it's a fresh submit (not updating) mechanism, 
-                // OR if we want to reset. 
-                // But specifically for public "NEW", we show code then reset.
-                // For "UPDATE", we might just show success.
-                // Let's rely on the parent or user action.
-                // Actually, if it's NEW (has code), we keep the code on screen.
-            }
-
             if (!onSubmit) {
                 // Default behavior: reset
                 setFormData({});
-                (e.target as HTMLFormElement).reset();
             }
         } else {
             setError(result.message);
         }
-
-        setIsSubmitting(false);
     };
 
     const renderField = (field: FormField) => {
@@ -131,6 +173,7 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
             case 'textarea':
                 return (
                     <textarea
+                        name={label}
                         rows={3}
                         required={required}
                         className={commonClasses}
@@ -141,6 +184,7 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
             case 'select':
                 return (
                     <select
+                        name={label}
                         required={required}
                         className={commonClasses}
                         onChange={(e) => handleInputChange(label, e.target.value)}
@@ -155,6 +199,7 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
             case 'number':
                 return (
                     <input
+                        name={label}
                         type="number"
                         required={required}
                         className={commonClasses}
@@ -165,6 +210,7 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
             case 'date':
                 return (
                     <input
+                        name={label}
                         type="date"
                         required={required}
                         className={commonClasses}
@@ -175,6 +221,7 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
             default:
                 return (
                     <input
+                        name={label}
                         type="text"
                         required={required}
                         className={commonClasses}
@@ -236,7 +283,7 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
                             </div>
                         )}
 
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                        <form action={handleAction} className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 {formFields.map((field, index) => (
                                     <div
@@ -251,26 +298,50 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
                                 ))}
                             </div>
 
+                            {/* Compatibility Card - Real-time Feedback */}
+                            {compatibility && (
+                                <div className={`mt-8 p-6 rounded-xl border-2 transition-all animate-in fade-in slide-in-from-bottom-4 ${compatibility.fit ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100'}`}>
+                                    <div className="flex items-start gap-4">
+                                        <div className={`p-3 rounded-full flex items-center justify-center shrink-0 ${compatibility.fit ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
+                                            {compatibility.fit ? <CheckCircle size={28} /> : <AlertCircle size={28} />}
+                                        </div>
+                                        <div className="flex-1">
+                                            <h3 className={`text-lg font-bold mb-1 ${compatibility.fit ? 'text-emerald-800' : 'text-red-800'}`}>
+                                                {compatibility.fit ? 'Likely Fit to Donate' : 'Check Deferral Criteria'}
+                                            </h3>
+                                            <p className={`text-sm mb-4 ${compatibility.fit ? 'text-emerald-700' : 'text-red-700'}`}>
+                                                {compatibility.fit
+                                                    ? 'Based on current entries, this donor meets the basic criteria.'
+                                                    : 'Warning: One or more vitals or screening results indicate the donor may be unfit.'}
+                                            </p>
+
+                                            <div className="bg-white/60 rounded-lg p-4 border border-black/5">
+                                                <div className="flex items-center gap-2 mb-2 font-semibold text-slate-700">
+                                                    <span className="text-xl">🩸</span>
+                                                    <span>Compatible Recipients</span>
+                                                </div>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {compatibility.recipients.map((r, i) => (
+                                                        <span key={i} className="px-3 py-1 bg-white border border-slate-200 shadow-sm rounded-full text-sm font-bold text-slate-700">
+                                                            {r}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="pt-6 border-t border-slate-200">
-                                <button
-                                    type="submit"
-                                    disabled={isSubmitting}
-                                    className="w-full px-6 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 disabled:bg-slate-400 disabled:cursor-not-allowed font-semibold transition-colors flex items-center justify-center gap-2 shadow-md"
-                                >
-                                    {isSubmitting ? (
-                                        <>
-                                            <Loader2 size={18} className="animate-spin" />
-                                            Processing...
-                                        </>
-                                    ) : (
-                                        submitButtonText
-                                    )}
-                                </button>
+                                <SubmitButton className="w-full px-6 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 disabled:bg-slate-400 disabled:cursor-not-allowed font-semibold transition-colors flex items-center justify-center gap-2 shadow-md">
+                                    {submitButtonText}
+                                </SubmitButton>
                             </div>
                         </form>
                     </>
                 )}
             </div>
-        </div>
+        </div >
     );
 }

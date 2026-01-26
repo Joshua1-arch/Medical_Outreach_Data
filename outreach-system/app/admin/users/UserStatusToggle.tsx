@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { toggleUserStatus } from '../actions';
-import { Loader2, ShieldAlert } from 'lucide-react';
+import { ShieldAlert } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
 
 interface UserStatusToggleProps {
     userId: string;
@@ -44,7 +45,7 @@ export default function UserStatusToggle({ userId, currentStatus }: UserStatusTo
         <div className="relative inline-block">
             {isLoading && (
                 <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                    <Loader2 size={12} className="animate-spin text-slate-400" />
+                    <Spinner size={12} className="text-slate-400" />
                 </div>
             )}
             <select

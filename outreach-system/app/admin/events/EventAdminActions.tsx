@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { deleteEvent } from '../actions'; // We'll assume update isn't needed inline for now, or we can add a modal later
-import { Trash2, Edit, MoreHorizontal, AlertTriangle, Loader2 } from 'lucide-react';
+import { Trash2, Edit, MoreHorizontal, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Spinner } from '@/components/ui/Spinner';
 
 interface EventAdminActionsProps {
     eventId: string;
@@ -40,7 +41,7 @@ export default function EventAdminActions({ eventId, eventTitle }: EventAdminAct
                     disabled={isDeleting}
                     className="px-3 py-1 bg-red-600 text-white rounded text-xs font-bold hover:bg-red-700 transition-colors flex items-center gap-1"
                 >
-                    {isDeleting ? <Loader2 size={12} className="animate-spin" /> : "Yes, Delete"}
+                    {isDeleting ? <Spinner size={12} className="text-white" /> : "Yes, Delete"}
                 </button>
                 <button
                     onClick={() => setShowConfirm(false)}

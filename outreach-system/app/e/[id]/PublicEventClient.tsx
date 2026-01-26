@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import DataEntryForm from '@/app/events/[id]/enter-data/DataEntryForm';
-import { Lock, ArrowRight, ShieldCheck, UserPlus, RefreshCw, Search, Loader2 } from 'lucide-react';
+import { Lock, ArrowRight, ShieldCheck, UserPlus, RefreshCw, Search } from 'lucide-react';
 import { getRecordByCode, updateRecordByCode } from '@/app/events/actions';
+import { Spinner } from '@/components/ui/Spinner';
 
 export default function PublicEventClient({ event }: { event: any }) {
     const hasPassword = !!event.accessCode;
@@ -139,7 +140,7 @@ export default function PublicEventClient({ event }: { event: any }) {
                                         disabled={isFetchingInfo}
                                         className="w-full py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-bold disabled:opacity-50 flex items-center justify-center gap-2"
                                     >
-                                        {isFetchingInfo ? <Loader2 className="animate-spin" /> : 'Find Record'}
+                                        {isFetchingInfo ? <Spinner className="text-white" /> : 'Find Record'}
                                     </button>
                                 </form>
                             </div>

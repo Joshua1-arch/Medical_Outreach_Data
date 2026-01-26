@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AlertCircle, UserPlus, CheckCircle } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { SubmitButton } from '@/components/ui/SubmitButton';
 
 export default function SignupPage() {
     const router = useRouter();
@@ -99,7 +99,43 @@ export default function SignupPage() {
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
+
+                    <form action={async (formData) => {
+                        setError('');
+
+                        const name = formData.get('name') as string;
+                        const email = formData.get('email') as string;
+                        const password = formData.get('password') as string;
+                        const confirmPassword = formData.get('confirmPassword') as string;
+
+                        if (password !== confirmPassword) {
+                            setError('Passwords do not match');
+                            return;
+                        }
+
+                        if (password.length < 6) {
+                            setError('Password must be at least 6 characters');
+                            return;
+                        }
+
+                        try {
+                            const response = await fetch('/api/auth/register', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ name, email, password }),
+                            });
+
+                            const data = await response.json();
+
+                            if (response.ok) {
+                                setSuccess(true);
+                            } else {
+                                setError(data.message || 'Registration failed');
+                            }
+                        } catch (err) {
+                            setError('An error occurred. Please try again.');
+                        }
+                    }} className="space-y-4">
                         <div>
                             <label htmlFor="name" className="block text-sm font-bold text-slate-700 mb-1">
                                 Full Name
@@ -156,13 +192,9 @@ export default function SignupPage() {
                             />
                         </div>
 
-                        <Button
-                            type="submit"
-                            isLoading={isLoading}
-                            className="w-full py-3 mt-4"
-                        >
-                            {!isLoading && <UserPlus size={18} />} Sign Up
-                        </Button>
+                        <SubmitButton className="w-full py-3 mt-4">
+                            <UserPlus size={18} /> Sign Up
+                        </SubmitButton>
                     </form>
 
                     <div className="mt-8 text-center pt-6 border-t border-slate-50">

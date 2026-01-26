@@ -1,5 +1,7 @@
-import { Loader2 } from 'lucide-react';
+import { Loader2, LucideProps } from 'lucide-react';
 
-export function Spinner({ className }: { className?: string }) {
-    return <Loader2 className={`animate-spin ${className || ''}`} />;
+interface SpinnerProps extends LucideProps { }
+
+export function Spinner({ className, ...props }: SpinnerProps) {
+    return <Loader2 className={`animate-spin ${className || ''}`} {...props} />;
 }

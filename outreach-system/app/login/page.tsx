@@ -5,41 +5,11 @@ import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AlertCircle, LogIn } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { SubmitButton } from '@/components/ui/SubmitButton';
 
 export default function LoginPage() {
     const router = useRouter();
-    const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
-
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        setIsLoading(true);
-        setError('');
-
-        const formData = new FormData(e.currentTarget);
-        const email = formData.get('email') as string;
-        const password = formData.get('password') as string;
-
-        try {
-            const result = await signIn('credentials', {
-                email,
-                password,
-                redirect: false,
-            });
-
-            if (result?.error) {
-                setError('Invalid credentials or account not approved yet.');
-            } else {
-                router.push('/dashboard');
-                router.refresh();
-            }
-        } catch (err) {
-            setError('An error occurred. Please try again.');
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     return (
         <div className="min-h-screen flex items-center justify-center p-4">
@@ -62,7 +32,30 @@ export default function LoginPage() {
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-5">
+
+                    <form action={async (formData) => {
+                        setError('');
+
+                        const email = formData.get('email') as string;
+                        const password = formData.get('password') as string;
+
+                        try {
+                            const result = await signIn('credentials', {
+                                email,
+                                password,
+                                redirect: false,
+                            });
+
+                            if (result?.error) {
+                                setError('Invalid credentials or account not approved yet.');
+                            } else {
+                                router.push('/dashboard');
+                                router.refresh();
+                            }
+                        } catch (err) {
+                            setError('An error occurred. Please try again.');
+                        }
+                    }} className="space-y-5">
                         <div>
                             <label htmlFor="email" className="block text-sm font-bold text-slate-700 mb-1">
                                 Email Address
@@ -94,13 +87,9 @@ export default function LoginPage() {
                             />
                         </div>
 
-                        <Button
-                            type="submit"
-                            isLoading={isLoading}
-                            className="w-full py-3"
-                        >
-                            {!isLoading && <LogIn size={18} />} Sign In
-                        </Button>
+                        <SubmitButton className="w-full py-3">
+                            <LogIn size={18} /> Sign In
+                        </SubmitButton>
                     </form>
 
                     <div className="mt-8 text-center pt-6 border-t border-slate-50">
