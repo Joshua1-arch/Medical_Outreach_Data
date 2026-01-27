@@ -7,10 +7,14 @@ import { Button } from '@/components/ui/Button';
 import {
     Users, Activity, Clock, Info, Loader2, AlertCircle, Sparkles, Bot, Download
 } from 'lucide-react';
-import {
-    PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer
-} from 'recharts';
 import ReactMarkdown from 'react-markdown';
+import dynamic from 'next/dynamic';
+
+const AnalyticsPieChart = dynamic(() => import('./AnalyticsPieChart'), {
+    loading: () => <div className="h-[200px] flex items-center justify-center text-slate-400">Loading Chart...</div>,
+    ssr: false
+});
+
 
 export default function AnalyticsClient({ eventId }: { eventId: string }) {
     const [data, setData] = useState<any>(null);
@@ -203,25 +207,7 @@ export default function AnalyticsClient({ eventId }: { eventId: string }) {
 
                         <div className="p-6 flex-1 flex items-center justify-center min-h-[200px]">
                             {field.type === 'categorical' ? (
-                                <div className="w-full h-[200px]">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <PieChart>
-                                            <Pie
-                                                data={field.data}
-                                                innerRadius={50}
-                                                outerRadius={70}
-                                                paddingAngle={5}
-                                                dataKey="value"
-                                            >
-                                                {field.data.map((entry: any, index: number) => (
-                                                    <Cell key={`cell-${index}`} fill={getColor(entry.name, index)} />
-                                                ))}
-                                            </Pie>
-                                            <Tooltip />
-                                            <Legend verticalAlign="bottom" height={36} />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                </div>
+                                <AnalyticsPieChart data={field.data} />
                             ) : (
                                 <div className="text-center w-full">
                                     {field.stats ? (
