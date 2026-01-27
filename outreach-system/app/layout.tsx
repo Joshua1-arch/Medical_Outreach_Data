@@ -19,7 +19,9 @@ export const metadata: Metadata = {
   title: "ReachPoint",
   description: "Professional medical outreach management system",
   icons: {
-    icon: "/Reach.png",
+    icon: "/Reach.png?v=3",    // <--- The ?v=3 forces the browser to re-download
+    shortcut: "/Reach.png?v=3",
+    apple: "/Reach.png?v=3",
   },
 };
 
