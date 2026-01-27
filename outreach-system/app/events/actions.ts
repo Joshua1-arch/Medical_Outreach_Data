@@ -1,6 +1,7 @@
 'use server';
 
 import dbConnect from "@/lib/db";
+import { sendMedicalResultEmail } from "@/lib/medical-email";
 import Record from "@/models/Record";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
@@ -257,3 +258,65 @@ export async function updateRecordById(recordId: string, data: Record<string, an
         return { success: false, message: 'Update failed' };
     }
 }
+
+export async function sendResultEmail(recordId: string) {
+    try {
+        const session = await auth();
+        if (!session?.user) return { success: false, message: 'Unauthorized' };
+
+        await dbConnect();
+
+        const record = await Record.findById(recordId).populate('eventId');
+
+        if (!record) {
+            return { success: false, message: 'Record not found' };
+        }
+
+        const data = record.data || {};
+
+        // precise extraction of email and name
+        // Keys might be case-insensitive, so we search
+        const findValue = (keys: string[]) => {
+            for (const key of Object.keys(data)) {
+                if (keys.includes(key.toLowerCase())) return data[key];
+            }
+            return null;
+        };
+
+        const email = findValue(['email', 'patient email', 'e-mail']);
+        const name = findValue(['name', 'patient name', 'fullname', 'full name', 'patientname']) || 'Patient';
+
+        if (!email) {
+            return { success: false, message: 'No email address found for this patient' };
+        }
+
+        const eventName = record.eventId?.title || 'Medical Outreach';
+
+        // Send the email
+        // We pass the entire data object as 'vitals' (the template filters out internal keys)
+        const emailResult = await sendMedicalResultEmail(
+            email,
+            name,
+            eventName,
+            data, // vitals
+            {}    // tests (merged anyway)
+        );
+
+        if (!emailResult.success) {
+            return { success: false, message: 'Failed to send email: ' + emailResult.message };
+        }
+
+        // Update record status
+        record.resultEmailSent = true;
+        await record.save();
+
+        revalidatePath(`/dashboard/event/${record.eventId._id || record.eventId}/builder`);
+
+        return { success: true, message: 'Result sent to ' + email };
+
+    } catch (error) {
+        console.error('Error sending result email:', error);
+        return { success: false, message: 'Server error sending email' };
+    }
+}
+

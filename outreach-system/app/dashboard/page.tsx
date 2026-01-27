@@ -52,11 +52,11 @@ export default async function DashboardPage() {
                             </span>
                         )}
                     </div>
-                    <p className="text-slate-500 mt-1">Manage your outreach events and data collection.</p>
+                    <p className="text-slate-500 mt-1">Manage your research projects and data collection.</p>
                     {stats.isTrusted && !stats.isAdmin && (
                         <p className="text-sm text-amber-600 mt-2 flex items-center gap-1">
                             <Zap size={14} />
-                            <span>Auto-Approval Enabled — Your events are published instantly</span>
+                            <span>Auto-Approval Enabled — Your projects are published instantly</span>
                         </p>
                     )}
                 </div>
@@ -69,7 +69,7 @@ export default async function DashboardPage() {
                             </div>
                             <span className="text-2xl font-bold text-brand-dark">{stats.myEvents}</span>
                         </div>
-                        <h3 className="text-slate-500 font-medium">My Events</h3>
+                        <h3 className="text-slate-500 font-medium">My Projects</h3>
                         <p className="text-xs text-slate-400 mt-1">Total Created</p>
                     </div>
 
@@ -80,7 +80,7 @@ export default async function DashboardPage() {
                             </div>
                             <span className="text-2xl font-bold text-brand-dark">{stats.approvedEvents}</span>
                         </div>
-                        <h3 className="text-slate-500 font-medium">Active Events</h3>
+                        <h3 className="text-slate-500 font-medium">Active Projects</h3>
                         <p className="text-xs text-brand-gold mt-1 font-medium">Approved & Ready</p>
                     </div>
 
@@ -91,7 +91,7 @@ export default async function DashboardPage() {
                             </div>
                             <span className="text-2xl font-bold text-brand-dark">{stats.pendingEvents}</span>
                         </div>
-                        <h3 className="text-slate-500 font-medium">Pending Events</h3>
+                        <h3 className="text-slate-500 font-medium">Pending Projects</h3>
                         <p className="text-xs text-orange-500 mt-1 font-medium">Awaiting Approval</p>
                     </div>
 
@@ -109,14 +109,14 @@ export default async function DashboardPage() {
 
                 <div className="bg-brand-dark rounded-xl shadow-lg p-8 text-white relative overflow-hidden">
                     <div className="relative z-10">
-                        <h2 className="text-2xl font-serif font-bold mb-2 text-brand-gold">Ready to plan your next outreach?</h2>
+                        <h2 className="text-2xl font-serif font-bold mb-2 text-brand-gold">Ready to plan your next project?</h2>
                         <p className="text-slate-300 mb-6 max-w-xl">
                             {stats.isTrusted || stats.isAdmin
-                                ? 'Create a new event and start collecting data immediately. Your events are auto-approved!'
-                                : 'Create a new event and define what data you need to collect. Once approved by the admin, you can start recording patient information.'}
+                                ? 'Create a new project and start collecting data immediately. Your projects are auto-approved!'
+                                : 'Create a new project and define what data you need to collect. Once approved by the admin, you can start recording participant information.'}
                         </p>
                         <Link href="/dashboard/create-event" className="inline-block px-6 py-3 bg-white text-brand-dark rounded-lg font-semibold hover:bg-brand-gold hover:text-white transition-colors shadow-md">
-                            Create New Event
+                            Create New Project
                         </Link>
                     </div>
                 </div>

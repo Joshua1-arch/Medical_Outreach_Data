@@ -66,7 +66,7 @@ export default function Sidebar({ user, onSignOut }: { user: any, onSignOut: () 
                         className="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-brand-dark rounded-md transition-colors font-medium"
                     >
                         <PlusCircle size={18} />
-                        Create Event
+                        Create Project
                     </Link>
 
                     <Link
@@ -75,7 +75,7 @@ export default function Sidebar({ user, onSignOut }: { user: any, onSignOut: () 
                         className="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-brand-dark rounded-md transition-colors font-medium"
                     >
                         <CalendarCheck size={18} />
-                        My Events
+                        My Projects
                     </Link>
 
                     <Link

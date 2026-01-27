@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateEventSchema, updateEventSettings } from '@/app/dashboard/actions';
-import { deleteRecord, updateRecordById } from '@/app/events/actions';
+import { deleteRecord, updateRecordById, sendResultEmail } from '@/app/events/actions';
 import {
     LayoutTemplate, Settings, Share2, MessageSquare, Activity,
-    PlusCircle, Trash2, Save, Copy, Eye, Lock, Globe, AlertCircle, Edit, X, RotateCw, Download, Package
+    PlusCircle, Trash2, Save, Copy, Eye, Lock, Globe, AlertCircle, Edit, X, RotateCw, Download, Package, Mail
 } from 'lucide-react';
 import Link from 'next/link';
 import { Spinner } from '@/components/ui/Spinner';
@@ -33,6 +33,7 @@ export default function EventBuilderClient({ event, records }: { event: any, rec
     // Record Editing Logic
     const [editingRecord, setEditingRecord] = useState<any>(null);
     const [isUpdatingRecord, setIsUpdatingRecord] = useState(false);
+    const [sendingIds, setSendingIds] = useState<Set<string>>(new Set());
 
     const handleUpdateRecord = async () => {
         if (!editingRecord) return;
@@ -55,6 +56,23 @@ export default function EventBuilderClient({ event, records }: { event: any, rec
             window.location.reload();
         } else {
             alert('Failed to delete');
+        }
+    };
+
+    const handleSendResult = async (recordId: string) => {
+        setSendingIds(prev => { const n = new Set(prev); n.add(recordId); return n; });
+        try {
+            const result = await sendResultEmail(recordId);
+            if (result.success) {
+                alert(result.message);
+                router.refresh();
+            } else {
+                alert('Error: ' + result.message);
+            }
+        } catch (err) {
+            alert('Failed to send');
+        } finally {
+            setSendingIds(prev => { const n = new Set(prev); n.delete(recordId); return n; });
         }
     };
 
@@ -638,6 +656,18 @@ export default function EventBuilderClient({ event, records }: { event: any, rec
                                                 </td>
                                                 <td className="px-4 py-3 text-right">
                                                     <div className="flex items-center justify-end gap-2">
+                                                        <button
+                                                            onClick={() => handleSendResult(rec._id)}
+                                                            disabled={sendingIds.has(rec._id)}
+                                                            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-bold transition-colors border ${rec.resultEmailSent
+                                                                    ? 'bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100'
+                                                                    : 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100'
+                                                                }`}
+                                                            title={rec.resultEmailSent ? "Result already sent. Click to re-send." : "Send Result Email"}
+                                                        >
+                                                            {sendingIds.has(rec._id) ? <Spinner size={12} className={rec.resultEmailSent ? "text-slate-400" : "text-emerald-600"} /> : <Mail size={12} />}
+                                                            {rec.resultEmailSent ? 'Re-send' : 'Send Result'}
+                                                        </button>
                                                         <button
                                                             onClick={() => setEditingRecord(JSON.parse(JSON.stringify(rec)))}
                                                             className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"

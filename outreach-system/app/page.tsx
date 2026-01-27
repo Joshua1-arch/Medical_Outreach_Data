@@ -10,14 +10,14 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* LOGO ONLY - No wrapper, specific width/height to prevent cropping */}
-             <Image 
-               src="/Reach.png" 
-               alt="ReachPoint Logo" 
-               width={50}
-               height={50}
-               className="object-contain" // Ensures the full logo is visible
-               priority
-             />
+            <Image
+              src="/Reach.png"
+              alt="ReachPoint Logo"
+              width={50}
+              height={50}
+              className="object-contain" // Ensures the full logo is visible
+              priority
+            />
           </div>
           <div className="flex items-center gap-4">
             <Link href="/login" className="flex items-center gap-2 text-sm font-bold text-slate-600 hover:text-brand-dark transition-colors px-3 py-2 rounded-lg hover:bg-slate-50">
@@ -37,14 +37,14 @@ export default function Home() {
         {/* Hero */}
         <div className="max-w-4xl mx-auto text-center mb-24 animate-in fade-in slide-in-from-bottom-8 duration-700">
           <div className="inline-block px-4 py-1.5 rounded-full bg-slate-100 text-slate-600 text-xs font-bold uppercase tracking-widest mb-6">
-            Redefining Healthcare Management
+            The Unified Platform for Field Data Collection & Clinical Research
           </div>
           <h1 className="text-5xl md:text-7xl font-bold font-serif mb-8 leading-tight text-brand-dark">
             Welcome to <br />
             <span className="text-brand-gold italic">ReachPoint</span>
           </h1>
           <p className="text-lg md:text-xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Empower your medical missions with AI-driven insights, dynamic data collection, and clinic-grade security.
+            Deploy custom data modules, manage multi-site projects, and visualize health analytics in real-time.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/signup" className="px-8 py-4 bg-brand-dark text-white rounded-lg hover:shadow-xl hover:shadow-slate-200 transition-all font-bold text-lg flex items-center gap-2 shadow-[0_4px_14px_0_rgba(15,23,42,0.39)] group">
@@ -104,36 +104,57 @@ export default function Home() {
                 <ChevronDown className="text-slate-400 group-open:rotate-180 transition-transform" />
               </summary>
               <div className="px-6 pb-6 text-slate-600 leading-relaxed animate-in fade-in slide-in-from-top-2">
-                Yes! ReachPoint is a Progressive Web App (PWA). You can continue entering patient records even without an internet connection. The data is saved locally and automatically syncs to the cloud once you're back online.
+                Yes! ReachPoint is built as a Progressive Web App (PWA). You can collect data in remote areas with zero internet. The system automatically syncs your records to the secure cloud the moment you regain connectivity.
               </div>
             </details>
 
             <details className="group bg-white rounded-xl shadow-sm border border-slate-100 open:border-brand-gold/30 transition-all">
               <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
-                <h3 className="font-bold text-slate-800 group-hover:text-brand-gold transition-colors">Is my data secure?</h3>
+                <h3 className="font-bold text-slate-800 group-hover:text-brand-gold transition-colors">Can I customize the medical forms?</h3>
                 <ChevronDown className="text-slate-400 group-open:rotate-180 transition-transform" />
               </summary>
               <div className="px-6 pb-6 text-slate-600 leading-relaxed animate-in fade-in slide-in-from-top-2">
-                Security is our top priority. All data is encrypted in transit and at rest. Access is strictly controlled via role-based permissions (Admins vs. Volunteers), and we provide audit logs for all administrative actions.
+                Absolutely. Our Dynamic Form Builder allows you to create specific data modules for any project—whether it's a Malaria Survey, a Blood Drive, or a Thesis Questionnaire. You define the variables; we handle the data structure.
               </div>
             </details>
 
             <details className="group bg-white rounded-xl shadow-sm border border-slate-100 open:border-brand-gold/30 transition-all">
               <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
-                <h3 className="font-bold text-slate-800 group-hover:text-brand-gold transition-colors">Can I export my data?</h3>
+                <h3 className="font-bold text-slate-800 group-hover:text-brand-gold transition-colors">Is my patient data secure?</h3>
                 <ChevronDown className="text-slate-400 group-open:rotate-180 transition-transform" />
               </summary>
               <div className="px-6 pb-6 text-slate-600 leading-relaxed animate-in fade-in slide-in-from-top-2">
-                Absolutely. Admins can export all event data and patient records to CSV format at any time for further analysis in Excel or other tools.
+                Security is our foundation. All data is encrypted in transit and at rest. We use strict Role-Based Access Control (RBAC), ensuring that volunteers only see what they need to see, while sensitive admin data remains protected.
               </div>
             </details>
+
             <details className="group bg-white rounded-xl shadow-sm border border-slate-100 open:border-brand-gold/30 transition-all">
               <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
-                <h3 className="font-bold text-slate-800 group-hover:text-brand-gold transition-colors">How do I track inventory?</h3>
+                <h3 className="font-bold text-slate-800 group-hover:text-brand-gold transition-colors">How do I add my team members?</h3>
                 <ChevronDown className="text-slate-400 group-open:rotate-180 transition-transform" />
               </summary>
               <div className="px-6 pb-6 text-slate-600 leading-relaxed animate-in fade-in slide-in-from-top-2">
-                When creating an event, you can define your starting stock for items like test strips or gloves. The system automatically deducts from this stock for every patient record submitted, giving you real-time visibility into your supplies.
+                You can generate secure "Invitation Codes" from your Admin Dashboard. Send these to your data collectors or students. This allows them to sign up and join your project instantly without waiting for manual approval.
+              </div>
+            </details>
+
+            <details className="group bg-white rounded-xl shadow-sm border border-slate-100 open:border-brand-gold/30 transition-all">
+              <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
+                <h3 className="font-bold text-slate-800 group-hover:text-brand-gold transition-colors">Can I export data for analysis?</h3>
+                <ChevronDown className="text-slate-400 group-open:rotate-180 transition-transform" />
+              </summary>
+              <div className="px-6 pb-6 text-slate-600 leading-relaxed animate-in fade-in slide-in-from-top-2">
+                Yes. ReachPoint features a "Research-Ready" export engine. You can download your entire dataset as a clean CSV/Excel file, pre-formatted for immediate analysis in tools like SPSS, Python (Pandas), or R.
+              </div>
+            </details>
+
+            <details className="group bg-white rounded-xl shadow-sm border border-slate-100 open:border-brand-gold/30 transition-all">
+              <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
+                <h3 className="font-bold text-slate-800 group-hover:text-brand-gold transition-colors">What devices are supported?</h3>
+                <ChevronDown className="text-slate-400 group-open:rotate-180 transition-transform" />
+              </summary>
+              <div className="px-6 pb-6 text-slate-600 leading-relaxed animate-in fade-in slide-in-from-top-2">
+                ReachPoint works on any device with a browser. It is optimized for mobile phones (Android/iOS) for field data collection, and offers a rich dashboard experience on laptops and tablets for project administration.
               </div>
             </details>
           </div>

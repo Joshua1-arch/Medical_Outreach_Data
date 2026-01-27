@@ -20,8 +20,8 @@ export default async function MyEventsPage() {
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h2 className="text-3xl font-serif font-bold text-brand-dark">My Events</h2>
-                        <p className="text-slate-500 mt-1">View and manage your outreach missions.</p>
+                        <h2 className="text-3xl font-serif font-bold text-brand-dark">My Projects</h2>
+                        <p className="text-slate-500 mt-1">View and manage your research initiatives.</p>
                     </div>
                     <div className="flex items-center gap-3">
                         <RefreshButton />
@@ -30,7 +30,7 @@ export default async function MyEventsPage() {
                             className="px-5 py-2.5 bg-brand-dark text-white rounded-lg hover:bg-slate-800 transition-colors font-medium shadow-lg flex items-center gap-2"
                         >
                             <PlusCircle size={18} />
-                            Create New Event
+                            Create New Project
                         </Link>
                     </div>
                 </div>
@@ -146,7 +146,7 @@ export default async function MyEventsPage() {
                                         <div>
                                             <h4 className="text-sm font-bold text-amber-900">Awaiting Analysis</h4>
                                             <p className="text-sm text-amber-800/80 mt-1">
-                                                This event proposal is currently under review. Automated or Admin approval is required before data collection can begin.
+                                                This project proposal is currently under review. Automated or Admin approval is required before data collection can begin.
                                             </p>
                                         </div>
                                     </div>
@@ -161,13 +161,13 @@ export default async function MyEventsPage() {
                         <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
                             <Calendar size={32} />
                         </div>
-                        <h3 className="text-xl font-bold font-serif text-brand-dark mb-2">No missions yet</h3>
-                        <p className="text-slate-500 mb-8 max-w-md mx-auto">Create your first outreach mission to start collecting vital health data.</p>
+                        <h3 className="text-xl font-bold font-serif text-brand-dark mb-2">No projects yet</h3>
+                        <p className="text-slate-500 mb-8 max-w-md mx-auto">Create your first research project to start collecting vital health data.</p>
                         <Link
                             href="/dashboard/create-event"
                             className="inline-block px-8 py-3 bg-brand-dark text-white rounded-lg hover:bg-slate-800 transition-colors font-medium shadow-lg"
                         >
-                            Create First Mission
+                            Create First Project
                         </Link>
                     </div>
                 )}
