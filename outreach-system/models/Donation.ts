@@ -1,5 +1,26 @@
-import mongoose, { Schema, model, models } from 'mongoose';
+import { Schema, model, models, Document } from 'mongoose';
 import { getCompatibleRecipients, BloodGroup, RhFactor } from '@/lib/blood-utils';
+
+interface IDonation extends Document {
+    isFitToDonate: boolean;
+    donorVitals?: {
+        weight: number;
+        bloodPressure: string;
+        pcv: number;
+        age: number;
+    };
+    serology?: {
+        hiv: boolean;
+        hbsag: boolean;
+        hcv: boolean;
+        vdrl: boolean;
+    };
+    bloodGroup?: {
+        group: string;
+        rh: string;
+    };
+    compatibleRecipients: string[];
+}
 
 const DonationSchema = new Schema({
     eventId: { type: Schema.Types.ObjectId, ref: 'Event', required: true },
@@ -17,8 +38,8 @@ const DonationSchema = new Schema({
         vdrl: { type: Boolean, required: true }
     },
     bloodGroup: {
-        group: { type: String, enum: ['A', 'B', 'AB', 'O'], required: function (this: any) { return this.isFitToDonate; } },
-        rh: { type: String, enum: ['Positive', 'Negative'], required: function (this: any) { return this.isFitToDonate; } }
+        group: { type: String, enum: ['A', 'B', 'AB', 'O'], required: function (this: IDonation) { return this.isFitToDonate; } },
+        rh: { type: String, enum: ['Positive', 'Negative'], required: function (this: IDonation) { return this.isFitToDonate; } }
     },
     isFitToDonate: { type: Boolean, default: false },
     compatibleRecipients: { type: [String], default: [] }

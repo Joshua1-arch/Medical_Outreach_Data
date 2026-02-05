@@ -37,9 +37,14 @@ export default function PublicEventClient({ event }: { event: any }) {
         setRetrievalError('');
         setRecordToUpdate(null);
 
-        const result = await getRecordByCode(retrievalCodeInput.trim().toUpperCase());
+        const result = await getRecordByCode(retrievalCodeInput.trim());
+
+        console.log('🔍 Client - Search result:', result);
+        console.log('🔍 Client - Result data:', result.data);
+        console.log('🔍 Client - Data.data fields:', result.data?.data ? Object.keys(result.data.data) : 'No data.data');
 
         if (result.success) {
+            console.log('✅ Client - Setting recordToUpdate with keys:', Object.keys(result.data || {}));
             setRecordToUpdate(result.data);
         } else {
             setRetrievalError(result.message || 'Record not found. Check the code.');
@@ -129,9 +134,9 @@ export default function PublicEventClient({ event }: { event: any }) {
                                         <input
                                             type="text"
                                             value={retrievalCodeInput}
-                                            onChange={(e) => setRetrievalCodeInput(e.target.value.toUpperCase())}
-                                            className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none uppercase font-mono tracking-widest text-lg"
-                                            placeholder="ENTER CODE (e.g. A7X92B)"
+                                            onChange={(e) => setRetrievalCodeInput(e.target.value)}
+                                            className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                                            placeholder="Enter Patient Code or Phone Number"
                                         />
                                     </div>
                                     {retrievalError && <p className="text-red-500 text-sm font-medium">{retrievalError}</p>}
@@ -155,14 +160,18 @@ export default function PublicEventClient({ event }: { event: any }) {
                                 </div>
                                 <div className="p-2 md:p-0"> {/* Padding adjustment */}
                                     <DataEntryForm
+                                        key={recordToUpdate._id} // Force re-render when record changes
                                         eventId={event._id}
                                         eventTitle={event.title}
                                         formFields={event.formFields || []}
                                         initialData={recordToUpdate.data}
                                         submitButtonText="Update Record"
                                         onSubmit={async (data) => {
+                                            console.log('📝 Submitting update with data:', data);
+                                            console.log('📝 Original recordToUpdate.data:', recordToUpdate.data);
                                             return await updateRecordByCode(recordToUpdate.retrievalCode, data);
-                                        }}
+                                        }
+                                        }
                                     />
                                 </div>
                             </div>

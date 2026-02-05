@@ -4,7 +4,7 @@ export interface IAuditLog extends Document {
     action: string;
     performedBy: mongoose.Types.ObjectId;
     targetResource?: string; // e.g., "User: 12345" or "Event: 67890"
-    details?: any; // JSON object with changes or snapshot
+    details?: Record<string, unknown>; // JSON object with changes or snapshot
     createdAt: Date;
 }
 

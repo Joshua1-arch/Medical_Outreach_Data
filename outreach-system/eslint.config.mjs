@@ -1,6 +1,6 @@
-import { defineConfig, globalIgnores } from "eslint/config";
-import nextVitals from "eslint-config-next/core-web-vitals";
-import nextTs from "eslint-config-next/typescript";
+import { defineConfig, globalIgnores } from 'eslint/config';
+import nextVitals from 'eslint-config-next/core-web-vitals';
+import nextTs from 'eslint-config-next/typescript';
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -8,11 +8,131 @@ const eslintConfig = defineConfig([
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
+    '.next/**',
+    'out/**',
+    'build/**',
+    'next-env.d.ts',
   ]),
+  // Disable ALL formatting rules to avoid conflicts with Biome
+  {
+    rules: {
+      // Disable all formatting rules that might conflict with Biome
+      'prettier/prettier': 'off',
+      'arrow-body-style': 'off',
+      'prefer-arrow-callback': 'off',
+
+      // Spacing & Layout (delegated to Biome)
+      'indent': 'off',
+      'linebreak-style': 'off',
+      'quotes': 'off',
+      'semi': 'off',
+      'comma-dangle': 'off',
+      'comma-spacing': 'off',
+      'comma-style': 'off',
+      'computed-property-spacing': 'off',
+      'func-call-spacing': 'off',
+      'key-spacing': 'off',
+      'keyword-spacing': 'off',
+      'no-trailing-spaces': 'off',
+      'no-multi-spaces': 'off',
+      'object-curly-spacing': 'off',
+      'array-bracket-spacing': 'off',
+      'space-before-blocks': 'off',
+      'space-before-function-paren': 'off',
+      'space-in-parens': 'off',
+      'space-infix-ops': 'off',
+      'space-unary-ops': 'off',
+      'arrow-spacing': 'off',
+      'template-curly-spacing': 'off',
+      'template-tag-spacing': 'off',
+      'rest-spread-spacing': 'off',
+      'block-spacing': 'off',
+
+      // Line Breaks (delegated to Biome)
+      'array-bracket-newline': 'off',
+      'array-element-newline': 'off',
+      'object-curly-newline': 'off',
+      'object-property-newline': 'off',
+      'function-paren-newline': 'off',
+      'function-call-argument-newline': 'off',
+      'newline-per-chained-call': 'off',
+      'padding-line-between-statements': 'off',
+      'lines-between-class-members': 'off',
+      'lines-around-comment': 'off',
+      'newline-after-var': 'off',
+      'newline-before-return': 'off',
+
+      // Code Style (delegated to Biome)
+      'brace-style': 'off',
+      'curly': 'off',
+      'dot-location': 'off',
+      'eol-last': 'off',
+      'generator-star-spacing': 'off',
+      'implicit-arrow-linebreak': 'off',
+      'jsx-quotes': 'off',
+      'max-len': 'off',
+      'max-statements-per-line': 'off',
+      'multiline-ternary': 'off',
+      'new-parens': 'off',
+      'no-confusing-arrow': 'off',
+      'no-extra-parens': 'off',
+      'no-extra-semi': 'off',
+      'no-floating-decimal': 'off',
+      'no-mixed-operators': 'off',
+      'no-mixed-spaces-and-tabs': 'off',
+      'no-multiple-empty-lines': 'off',
+      'no-tabs': 'off',
+      'no-whitespace-before-property': 'off',
+      'nonblock-statement-body-position': 'off',
+      'one-var-declaration-per-line': 'off',
+      'operator-linebreak': 'off',
+      'padded-blocks': 'off',
+      'quote-props': 'off',
+      'semi-spacing': 'off',
+      'semi-style': 'off',
+      'switch-colon-spacing': 'off',
+      'wrap-iife': 'off',
+      'wrap-regex': 'off',
+      'yield-star-spacing': 'off',
+
+      // TypeScript formatting rules (delegated to Biome)
+      '@typescript-eslint/indent': 'off',
+      '@typescript-eslint/quotes': 'off',
+      '@typescript-eslint/semi': 'off',
+      '@typescript-eslint/comma-dangle': 'off',
+      '@typescript-eslint/comma-spacing': 'off',
+      '@typescript-eslint/func-call-spacing': 'off',
+      '@typescript-eslint/keyword-spacing': 'off',
+      '@typescript-eslint/member-delimiter-style': 'off',
+      '@typescript-eslint/no-extra-parens': 'off',
+      '@typescript-eslint/no-extra-semi': 'off',
+      '@typescript-eslint/object-curly-spacing': 'off',
+      '@typescript-eslint/space-before-blocks': 'off',
+      '@typescript-eslint/space-before-function-paren': 'off',
+      '@typescript-eslint/space-infix-ops': 'off',
+      '@typescript-eslint/type-annotation-spacing': 'off',
+      '@typescript-eslint/brace-style': 'off',
+      '@typescript-eslint/lines-between-class-members': 'off',
+      '@typescript-eslint/padding-line-between-statements': 'off',
+
+      // React/JSX formatting rules (delegated to Biome)
+      'react/jsx-child-element-spacing': 'off',
+      'react/jsx-closing-bracket-location': 'off',
+      'react/jsx-closing-tag-location': 'off',
+      'react/jsx-curly-newline': 'off',
+      'react/jsx-curly-spacing': 'off',
+      'react/jsx-equals-spacing': 'off',
+      'react/jsx-first-prop-new-line': 'off',
+      'react/jsx-indent': 'off',
+      'react/jsx-indent-props': 'off',
+      'react/jsx-max-props-per-line': 'off',
+      'react/jsx-newline': 'off',
+      'react/jsx-one-expression-per-line': 'off',
+      'react/jsx-props-no-multi-spaces': 'off',
+      'react/jsx-tag-spacing': 'off',
+      'react/jsx-wrap-multilines': 'off',
+    },
+  },
 ]);
 
 export default eslintConfig;

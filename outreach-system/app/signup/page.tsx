@@ -7,6 +7,7 @@ import { AlertCircle, UserPlus, CheckCircle, Ticket } from 'lucide-react';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 
 export default function SignupPage() {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const router = useRouter();
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
@@ -102,6 +103,7 @@ export default function SignupPage() {
                             } else {
                                 setError(data.message || 'Registration failed');
                             }
+                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         } catch (err) {
                             setError('An error occurred. Please try again.');
                         }

@@ -3,7 +3,7 @@
 
 import { useState, use } from 'react';
 import { SubmitButton } from '@/components/ui/SubmitButton';
-import { Lock, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
+import { Lock, CheckCircle, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ResetPasswordPage({ params }: { params: Promise<{ token: string }> }) {
@@ -48,6 +48,7 @@ export default function ResetPasswordPage({ params }: { params: Promise<{ token:
                 setStatus('error');
                 setMessage(data.message || 'Failed to reset password');
             }
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {
             setStatus('error');
             setMessage('Failed to connect to server');

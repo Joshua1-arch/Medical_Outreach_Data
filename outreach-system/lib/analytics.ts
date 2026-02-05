@@ -1,8 +1,32 @@
-export function generateSmartInsight(data: any) {
+interface CategoricalDataItem {
+    name: string;
+    value: number;
+}
+
+interface CategoricalData {
+    type: 'categorical';
+    label: string;
+    data: CategoricalDataItem[];
+    totalResponses: number;
+}
+
+interface NumericalData {
+    type: 'numerical';
+    label: string;
+    stats?: {
+        average: number;
+        min: number;
+        max: number;
+    };
+}
+
+type AnalyticsData = CategoricalData | NumericalData | null | undefined;
+
+export function generateSmartInsight(data: AnalyticsData) {
     if (!data) return "No data available.";
 
     if (data.type === 'categorical') {
-        const sorted = [...data.data].sort((a: any, b: any) => b.value - a.value);
+        const sorted = [...data.data].sort((a, b) => b.value - a.value);
         if (sorted.length === 0) return "No responses yet.";
 
         const top = sorted[0];

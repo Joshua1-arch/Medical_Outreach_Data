@@ -4,6 +4,7 @@ import dns from 'dns';
 // Fix for Node.js DNS resolution issues (ESERVFAIL)
 try {
   dns.setDefaultResultOrder('ipv4first');
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
 } catch (e) {
   // Ignore if not supported
 }
@@ -20,7 +21,8 @@ if (!MONGODB_URI) {
 // in development. This prevents connections growing exponentially
 // during API Route usage.
 declare global {
-  var mongoose: { conn: any; promise: any } | undefined;
+  // eslint-disable-next-line no-var
+  var mongoose: { conn: typeof mongoose | null; promise: Promise<typeof mongoose> | null } | undefined;
 }
 
 let cached = global.mongoose;

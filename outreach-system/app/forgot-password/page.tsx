@@ -31,6 +31,7 @@ export default function ForgotPasswordPage() {
                 setStatus('error');
                 setMessage(data.message || 'Something went wrong');
             }
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {
             setStatus('error');
             setMessage('Failed to connect to server');

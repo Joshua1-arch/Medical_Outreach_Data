@@ -1,4 +1,4 @@
-import mongoose, { Schema, model, models } from 'mongoose';
+import { Schema, model, models } from 'mongoose';
 
 const RecordSchema = new Schema({
     eventId: { type: Schema.Types.ObjectId, ref: 'Event', required: true },

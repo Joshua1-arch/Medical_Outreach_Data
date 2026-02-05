@@ -114,7 +114,7 @@ export default function Home() {
                 <ChevronDown className="text-slate-400 group-open:rotate-180 transition-transform" />
               </summary>
               <div className="px-6 pb-6 text-slate-600 leading-relaxed animate-in fade-in slide-in-from-top-2">
-                Absolutely. Our Dynamic Form Builder allows you to create specific data modules for any project—whether it's a Malaria Survey, a Blood Drive, or a Thesis Questionnaire. You define the variables; we handle the data structure.
+                Absolutely. Our Dynamic Form Builder allows you to create specific data modules for any project—whether it&apos;s a Malaria Survey, a Blood Drive, or a Thesis Questionnaire. You define the variables; we handle the data structure.
               </div>
             </details>
 
@@ -134,7 +134,7 @@ export default function Home() {
                 <ChevronDown className="text-slate-400 group-open:rotate-180 transition-transform" />
               </summary>
               <div className="px-6 pb-6 text-slate-600 leading-relaxed animate-in fade-in slide-in-from-top-2">
-                You can generate secure "Invitation Codes" from your Admin Dashboard. Send these to your data collectors or students. This allows them to sign up and join your project instantly without waiting for manual approval.
+                You can generate secure &ldquo;Invitation Codes&rdquo; from your Admin Dashboard. Send these to your data collectors or students. This allows them to sign up and join your project instantly without waiting for manual approval.
               </div>
             </details>
 
@@ -144,7 +144,7 @@ export default function Home() {
                 <ChevronDown className="text-slate-400 group-open:rotate-180 transition-transform" />
               </summary>
               <div className="px-6 pb-6 text-slate-600 leading-relaxed animate-in fade-in slide-in-from-top-2">
-                Yes. ReachPoint features a "Research-Ready" export engine. You can download your entire dataset as a clean CSV/Excel file, pre-formatted for immediate analysis in tools like SPSS, Python (Pandas), or R.
+                Yes. ReachPoint features a &ldquo;Research-Ready&rdquo; export engine. You can download your entire dataset as a clean CSV/Excel file, pre-formatted for immediate analysis in tools like SPSS, Python (Pandas), or R.
               </div>
             </details>
 

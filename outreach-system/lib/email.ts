@@ -43,7 +43,7 @@ export async function sendEmail(options: EmailOptions) {
         }
 
         const info = await transporter.sendMail({
-            from: `"Outreach System" <${process.env.GMAIL_USER}>`,
+            from: `"ReachPoint" <${process.env.GMAIL_USER}>`,
             to: options.to,
             subject: options.subject,
             html: options.html,
@@ -85,7 +85,7 @@ export async function sendUserApprovalEmail(userEmail: string, userName: string)
                 <div class="content">
                     <h2 style="color: #1e293b;">Welcome, ${userName}!</h2>
                     <p>Great news! Your account has been approved by our administrator.</p>
-                    <p>You can now access the Outreach Management System and start creating events, managing records, and contributing to our mission.</p>
+                    <p>You can now access the ReachPoint and start creating events, managing records, and contributing to our mission.</p>
                     <div style="text-align: center;">
                         <a href="${loginUrl}/login" class="button">Login Now</a>
                     </div>
@@ -94,8 +94,8 @@ export async function sendUserApprovalEmail(userEmail: string, userName: string)
                     </p>
                 </div>
                 <div class="footer">
-                    <p>This is an automated message from the Outreach Management System.</p>
-                    <p>© ${new Date().getFullYear()} Outreach System. All rights reserved.</p>
+                    <p>This is an automated message from the ReachPoint.</p>
+                    <p>© ${new Date().getFullYear()} ReachPoint. All rights reserved.</p>
                 </div>
             </div>
         </body>
@@ -134,7 +134,7 @@ export async function sendUserRejectionEmail(userEmail: string, userName: string
                 </div>
                 <div class="content">
                     <h2 style="color: #dc2626;">Hello ${userName},</h2>
-                    <p>Thank you for your interest in the Outreach Management System.</p>
+                    <p>Thank you for your interest in the ReachPoint.</p>
                     <div class="info-box">
                         <p style="margin: 0; color: #991b1b; font-weight: bold;">
                             Unfortunately, your registration could not be approved at this time.
@@ -152,8 +152,8 @@ export async function sendUserRejectionEmail(userEmail: string, userName: string
                     </p>
                 </div>
                 <div class="footer">
-                    <p>This is an automated message from the Outreach Management System.</p>
-                    <p>© ${new Date().getFullYear()} Outreach System. All rights reserved.</p>
+                    <p>This is an automated message from the ReachPoint.</p>
+                    <p>© ${new Date().getFullYear()} ReachPoint. All rights reserved.</p>
                 </div>
             </div>
         </body>
@@ -162,9 +162,9 @@ export async function sendUserRejectionEmail(userEmail: string, userName: string
 
     return sendEmail({
         to: userEmail,
-        subject: 'Registration Update - Outreach System',
+        subject: 'Registration Update - ReachPoint',
         html,
-        text: `Hello ${userName}, Thank you for your interest in the Outreach Management System. Unfortunately, your registration could not be approved at this time. Please contact the administrator for more information.`
+        text: `Hello ${userName}, Thank you for your interest in the ReachPoint. Unfortunately, your registration could not be approved at this time. Please contact the administrator for more information.`
     });
 }
 
@@ -229,8 +229,8 @@ export async function sendWelcomeEmail(userEmail: string, userName: string) {
                     </p>
                 </div>
                 <div class="footer">
-                    <p>This is an automated message from the Outreach Management System.</p>
-                    <p>© ${new Date().getFullYear()} Outreach System. All rights reserved.</p>
+                    <p>This is an automated message from the ReachPoint.</p>
+                    <p>© ${new Date().getFullYear()} ReachPoint. All rights reserved.</p>
                 </div>
             </div>
         </body>
@@ -288,8 +288,8 @@ export async function sendEventApprovalEmail(userEmail: string, userName: string
                     </div>
                 </div>
                 <div class="footer">
-                    <p>This is an automated message from the Outreach Management System.</p>
-                    <p>© ${new Date().getFullYear()} Outreach System. All rights reserved.</p>
+                    <p>This is an automated message from the ReachPoint.</p>
+                    <p>© ${new Date().getFullYear()} ReachPoint. All rights reserved.</p>
                 </div>
             </div>
         </body>
@@ -362,8 +362,8 @@ export async function sendEventRejectionEmail(userEmail: string, userName: strin
                     </p>
                 </div>
                 <div class="footer">
-                    <p>This is an automated message from the Outreach Management System.</p>
-                    <p>© ${new Date().getFullYear()} Outreach System. All rights reserved.</p>
+                    <p>This is an automated message from the ReachPoint.</p>
+                    <p>© ${new Date().getFullYear()} ReachPoint. All rights reserved.</p>
                 </div>
             </div>
         </body>

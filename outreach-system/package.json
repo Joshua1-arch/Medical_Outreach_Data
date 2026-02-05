@@ -6,7 +6,12 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "check": "npm run lint && npm run format:check",
+    "fix": "npm run lint:fix && npm run format",
     "seed-admin": "tsx --env-file=.env.local scripts/seed-admin.ts"
   },
   "dependencies": {
@@ -27,6 +32,7 @@
     "recharts": "^3.7.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.3.14",
     "@tailwindcss/postcss": "^4",
     "@tailwindcss/typography": "^0.5.19",
     "@types/bcryptjs": "^2.4.6",

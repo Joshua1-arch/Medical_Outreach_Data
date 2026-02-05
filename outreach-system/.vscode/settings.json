@@ -1,0 +1,33 @@
+{
+    // Set Biome as the default formatter
+    "editor.defaultFormatter": "biomejs.biome",
+    // Enable format on save
+    "editor.formatOnSave": true,
+    // Enable organize imports on save (Biome handles this)
+    "editor.codeActionsOnSave": {
+        "source.organizeImports.biome": "explicit"
+    },
+    // Disable ESLint auto-fix on save to avoid conflicts
+    "eslint.format.enable": false,
+    // Enable ESLint for linting only
+    "eslint.enable": true,
+    // File associations
+    "[typescript]": {
+        "editor.defaultFormatter": "biomejs.biome"
+    },
+    "[typescriptreact]": {
+        "editor.defaultFormatter": "biomejs.biome"
+    },
+    "[javascript]": {
+        "editor.defaultFormatter": "biomejs.biome"
+    },
+    "[javascriptreact]": {
+        "editor.defaultFormatter": "biomejs.biome"
+    },
+    "[json]": {
+        "editor.defaultFormatter": "biomejs.biome"
+    },
+    "[jsonc]": {
+        "editor.defaultFormatter": "biomejs.biome"
+    }
+}

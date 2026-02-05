@@ -19,7 +19,7 @@ function generateRetrievalCode() {
  * Uses Name + Phone + Gender to create a unique identifier.
  * This allows tracking the same patient across different events.
  */
-function generatePatientHash(data: Record<string, any>): string | null {
+function generatePatientHash(data: Record<string, unknown>): string | null {
     // Try to extract identifying fields (case-insensitive key matching)
     const findField = (patterns: string[]): string => {
         for (const [key, value] of Object.entries(data)) {
@@ -47,7 +47,7 @@ function generatePatientHash(data: Record<string, any>): string | null {
     return crypto.createHash('sha256').update(combined).digest('hex').substring(0, 32);
 }
 
-export async function submitRecord(eventId: string, data: Record<string, any>) {
+export async function submitRecord(eventId: string, data: Record<string, unknown>) {
     try {
         const session = await auth();
         await dbConnect();
@@ -92,7 +92,7 @@ export async function submitRecord(eventId: string, data: Record<string, any>) {
  * Search for patient history by computing the hash from current input.
  * Returns previous records for the same patient from different events.
  */
-export async function searchPatientHistory(data: Record<string, any>, currentEventId: string) {
+export async function searchPatientHistory(data: Record<string, unknown>, currentEventId: string) {
     try {
         await dbConnect();
 
@@ -116,7 +116,7 @@ export async function searchPatientHistory(data: Record<string, any>, currentEve
         }
 
         // Format the history for display
-        const history = previousRecords.map((record: any) => {
+        const history = previousRecords.map((record) => {
             const eventTitle = record.eventId?.title || 'Unknown Event';
             const eventDate = record.eventId?.date ? new Date(record.eventId.date) : new Date(record.createdAt);
             const recordDate = new Date(record.createdAt);
@@ -174,14 +174,71 @@ export async function searchPatientHistory(data: Record<string, any>, currentEve
     }
 }
 
-export async function getRecordByCode(code: string) {
+export async function getRecordByCode(query: string) {
     try {
         await dbConnect();
-        console.log(`🔍 Searching for record with code: "${code}"`); // Debug Log
-        const record = await Record.findOne({ retrievalCode: code });
+
+        // Trim whitespace from query
+        const trimmedQuery = query.trim();
+
+        console.log(`🔍 Searching for record with query: "${trimmedQuery}"`); // Debug Log
+
+        // Normalize phone number by removing all non-digit characters
+        const normalizePhone = (str: string) => str.replace(/\D/g, '');
+        const normalizedQuery = normalizePhone(trimmedQuery);
+
+        // First, try exact code match (case-insensitive)
+        let record = await Record.findOne({
+            retrievalCode: { $regex: new RegExp(`^${trimmedQuery}$`, 'i') }
+        });
+
+        // If not found and query contains digits, search by phone number
+        if (!record && normalizedQuery.length >= 5) {
+            console.log(`📱 Searching by normalized phone: "${normalizedQuery}"`);
+
+            // Get all records and search through data fields
+            const allRecords = await Record.find({}).lean();
+
+            let foundRecordId = null;
+
+            for (const rec of allRecords) {
+                const data = rec.data || {};
+
+                // Check all fields in the data object
+                for (const [key, value] of Object.entries(data)) {
+                    const lowerKey = key.toLowerCase();
+
+                    // If key suggests it's a phone field
+                    if (lowerKey.includes('phone') ||
+                        lowerKey.includes('mobile') ||
+                        lowerKey.includes('telephone') ||
+                        lowerKey.includes('contact')) {
+
+                        // Normalize the stored value and compare
+                        const normalizedValue = normalizePhone(String(value || ''));
+
+                        if (normalizedValue === normalizedQuery ||
+                            normalizedValue.endsWith(normalizedQuery) ||
+                            normalizedQuery.endsWith(normalizedValue)) {
+                            foundRecordId = rec._id;
+                            console.log(`✅ Found by phone in field: ${key}`);
+                            break;
+                        }
+                    }
+                }
+
+                if (foundRecordId) break;
+            }
+
+            // Fetch the complete record from database if found
+            if (foundRecordId) {
+                record = await Record.findById(foundRecordId);
+                console.log('DEBUG Phone search - Found record:', record?._id, 'Data keys:', Object.keys(record?.data || {}));
+            }
+        }
 
         if (!record) {
-            console.log(`❌ Record not found for code: "${code}"`);
+            console.log(`❌ Record not found for query: "${trimmedQuery}"`);
             return { success: false, message: 'Record not found' };
         }
 
@@ -194,7 +251,7 @@ export async function getRecordByCode(code: string) {
     }
 }
 
-export async function updateRecordByCode(code: string, data: Record<string, any>) {
+export async function updateRecordByCode(code: string, data: Record<string, unknown>) {
     try {
         await dbConnect();
 
@@ -244,7 +301,7 @@ export async function deleteRecord(recordId: string) {
     }
 }
 
-export async function updateRecordById(recordId: string, data: Record<string, any>) {
+export async function updateRecordById(recordId: string, data: Record<string, unknown>) {
     try {
         const session = await auth();
         if (!session?.user) return { success: false, message: 'Unauthorized' };
@@ -254,6 +311,7 @@ export async function updateRecordById(recordId: string, data: Record<string, an
 
         revalidatePath(`/dashboard/event/${record.eventId}/builder`);
         return { success: true, message: 'Record updated' };
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
         return { success: false, message: 'Update failed' };
     }
@@ -274,19 +332,33 @@ export async function sendResultEmail(recordId: string) {
 
         const data = record.data || {};
 
-        // precise extraction of email and name
-        // Keys might be case-insensitive, so we search
-        const findValue = (keys: string[]) => {
+        // Debug: Log the data keys to see what fields we have
+        console.log('🔍 Record data keys:', Object.keys(data));
+        console.log('📧 Record data:', data);
+
+        // Flexible extraction of email and name
+        // Check if key contains any of the patterns (case-insensitive)
+        const findValue = (patterns: string[]) => {
             for (const key of Object.keys(data)) {
-                if (keys.includes(key.toLowerCase())) return data[key];
+                const lowerKey = key.toLowerCase();
+                for (const pattern of patterns) {
+                    if (lowerKey.includes(pattern.toLowerCase())) {
+                        console.log(`✅ Found match: "${key}" contains "${pattern}" = ${data[key]}`);
+                        return data[key];
+                    }
+                }
             }
             return null;
         };
 
-        const email = findValue(['email', 'patient email', 'e-mail']);
-        const name = findValue(['name', 'patient name', 'fullname', 'full name', 'patientname']) || 'Patient';
+        const email = findValue(['email', 'e-mail', 'mail']);
+        const name = findValue(['name', 'patient', 'fullname', 'full name']) || 'Patient';
+
+        console.log('📧 Extracted email:', email);
+        console.log('👤 Extracted name:', name);
 
         if (!email) {
+            console.error('❌ No email found. Available keys:', Object.keys(data));
             return { success: false, message: 'No email address found for this patient' };
         }
 
@@ -319,4 +391,3 @@ export async function sendResultEmail(recordId: string) {
         return { success: false, message: 'Server error sending email' };
     }
 }
-

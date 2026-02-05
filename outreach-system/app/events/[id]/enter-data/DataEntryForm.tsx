@@ -27,7 +27,8 @@ type Props = {
     eventId: string;
     eventTitle: string;
     formFields: FormField[];
-    initialData?: Record<string, any>;
+    initialData?: Record<string, unknown>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onSubmit?: (data: any) => Promise<any>;
     submitButtonText?: string;
 };
@@ -36,6 +37,7 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [retrievalCode, setRetrievalCode] = useState('');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [formData, setFormData] = useState<Record<string, any>>(initialData);
 
     // Patient history tracking
@@ -45,9 +47,17 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
 
     // Update formData if initialData changes (e.g. after fetch)
     useEffect(() => {
+        console.log('🔄 DataEntryForm - initialData changed:', initialData);
+        console.log('🔄 DataEntryForm - initialData keys:', Object.keys(initialData));
+        console.log('🔄 DataEntryForm - Current formData:', formData);
+
         if (Object.keys(initialData).length > 0) {
+            console.log('✅ Setting formData with initialData');
             setFormData(initialData);
+        } else {
+            console.log('❌ Not setting formData - initialData is empty');
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialData]);
 
     // Debounced patient history search
@@ -106,6 +116,7 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
                 setFormData(prev => ({ ...prev, 'BMI': bmi }));
             }
         }
+        // eslint-disable-next-line react-hooks/set-state-in-effect
     }, [formData]);
 
     // Blood Donation Compatibility Logic
@@ -163,8 +174,10 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
         } else {
             setCompatibility(null);
         }
+        // eslint-disable-next-line react-hooks/set-state-in-effect
     }, [formData]);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleInputChange = (label: string, value: any) => {
         setFormData(prev => ({ ...prev, [label]: value }));
         // Reset history search when identifying fields change
@@ -247,13 +260,23 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
                     />
                 );
             case 'select':
+                // Debug: Check if the value exists in formData
+                const selectValue = formData[label] || '';
+                if (label.includes('SEX') || label.includes('Sex')) {
+                    console.log(`🎯 SELECT field "${label}":`, {
+                        formDataValue: formData[label],
+                        selectValue,
+                        formDataKeys: Object.keys(formData)
+                    });
+                }
+
                 return (
                     <select
                         name={label}
                         required={required}
                         className={commonClasses}
                         onChange={(e) => handleInputChange(label, e.target.value)}
-                        value={formData[label] || ''}
+                        value={selectValue}
                     >
                         <option value="">Select...</option>
                         {field.options?.map((opt, i) => (
@@ -371,7 +394,7 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
                                 </div>
 
                                 <div className="space-y-3">
-                                    {patientHistory.map((record, index) => (
+                                    {patientHistory.map((record) => (
                                         <div key={record._id} className="bg-white/80 rounded-lg p-4 border border-amber-100">
                                             <div className="flex items-center gap-2 mb-2">
                                                 <Clock size={14} className="text-amber-600" />
