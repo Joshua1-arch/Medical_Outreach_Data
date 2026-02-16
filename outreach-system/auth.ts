@@ -12,7 +12,6 @@ async function getUser(email: string) {
         const user = await User.findOne({ email });
         return user;
     } catch (error) {
-        console.error('Failed to fetch user:', error);
         throw new Error('Failed to fetch user.');
     }
 }
@@ -60,26 +59,36 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     providers: [
         Credentials({
             async authorize(credentials) {
-                const parsedCredentials = z
-                    .object({ email: z.string().email(), password: z.string().min(6) })
-                    .safeParse(credentials);
+                try {
+                    // Strict Zod Validation (Anti-Injection)
+                    const parsedCredentials = z
+                        .object({
+                            email: z.string().email().regex(/^[^<>\{\}'";]+$/, "Invalid format"),
+                            password: z.string().min(6).regex(/^[^<>\{\}'";]+$/, "Invalid format")
+                        })
+                        .safeParse(credentials);
 
-                if (parsedCredentials.success) {
+                    if (!parsedCredentials.success) {
+                        return null; // Generic "Invalid input"
+                    }
+
                     const { email, password } = parsedCredentials.data;
                     const user = await getUser(email);
 
-                    if (!user) return null;
+                    if (!user) return null; // Generic "Invalid credentials"
 
                     const passwordsMatch = await bcrypt.compare(password, user.password);
-                    if (passwordsMatch) {
-                        // Logic: Users cannot log in if status is 'pending' or 'suspended'
-                        if (user.accountStatus !== 'active') {
-                            return null;
-                        }
-                        return user;
+                    if (!passwordsMatch) return null; // Generic "Invalid credentials"
+
+                    // Logic: Users cannot log in if status is 'pending' or 'suspended'
+                    if (user.accountStatus !== 'active') {
+                        return null; // Access denied
                     }
+
+                    return user;
+                } catch {
+                    return null; // Fallback for any unexpected errors
                 }
-                return null;
             },
         }),
     ],

@@ -111,8 +111,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
             fields: fieldAnalysis
         });
 
-    } catch (error) {
-        console.error('Analytics API Error:', error);
+    } catch {
         return NextResponse.json({ success: false, message: 'Internal Server Error' }, { status: 500 });
     }
 }

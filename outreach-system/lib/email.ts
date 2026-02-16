@@ -4,7 +4,7 @@ import nodemailer from 'nodemailer';
 const createTransporter = () => {
     // Check if email credentials are configured
     if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) {
-        console.warn('Email credentials not configured. Emails will not be sent.');
+
         return null;
     }
 
@@ -34,7 +34,7 @@ export async function sendEmail(options: EmailOptions) {
         const transporter = createTransporter();
 
         if (!transporter) {
-            console.log('Email not sent: Credentials not configured');
+
             return {
                 success: false,
                 message: 'Email credentials not configured',
@@ -50,11 +50,10 @@ export async function sendEmail(options: EmailOptions) {
             text: options.text || options.html.replace(/<[^>]*>/g, '') // Strip HTML for text version
         });
 
-        console.log('Email sent:', info.messageId);
+
         return { success: true, message: 'Email sent successfully', messageId: info.messageId };
-    } catch (error) {
-        console.error('Email sending failed:', error);
-        return { success: false, message: 'Failed to send email', error };
+    } catch {
+        return { success: false, message: 'Failed to send email' };
     }
 }
 

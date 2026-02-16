@@ -12,11 +12,11 @@ export default async function EnterDataPage({ params }: { params: Promise<{ id: 
     await dbConnect();
 
     const { id } = await params;
-    console.log(`[Enter Data Page] Fetching event with ID: ${id}`);
+
 
     // Validate ObjectId format to prevent CastError
     if (!id.match(/^[0-9a-fA-F]{24}$/)) {
-        console.error(`[Enter Data Page] Invalid ID format: ${id}`);
+
         notFound();
     }
 

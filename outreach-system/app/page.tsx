@@ -1,36 +1,14 @@
 import Link from "next/link";
-import Image from "next/image";
-import { Heart, Activity, Brain, ArrowRight, MessageCircle, Mail, Phone, ChevronDown, LogIn, Sparkles } from "lucide-react";
+import { Heart, Activity, Brain, ArrowRight, ChevronDown, LogIn } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import ContactSection from "@/components/ContactSection";
+import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-brand-cream font-sans text-brand-dark flex flex-col">
       {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {/* LOGO ONLY - No wrapper, specific width/height to prevent cropping */}
-            <Image
-              src="/Reach.png"
-              alt="ReachPoint Logo"
-              width={50}
-              height={50}
-              className="object-contain" // Ensures the full logo is visible
-              priority
-            />
-          </div>
-          <div className="flex items-center gap-4">
-            <Link href="/login" className="flex items-center gap-2 text-sm font-bold text-slate-600 hover:text-brand-dark transition-colors px-3 py-2 rounded-lg hover:bg-slate-50">
-              <LogIn size={18} className="text-brand-gold" />
-              Sign In
-            </Link>
-            <Link href="/signup" className="flex items-center gap-2 px-5 py-2.5 bg-brand-dark text-white rounded-lg text-sm font-bold hover:bg-slate-800 hover:shadow-lg transition-all shadow-[0_4px_14px_0_rgba(15,23,42,0.39)] group">
-              <Sparkles size={16} className="text-brand-gold group-hover:animate-pulse" />
-              Get Started
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       {/* Main */}
       <main className="flex-1 pt-32 pb-20 px-6">
@@ -161,52 +139,10 @@ export default function Home() {
         </div>
 
         {/* Contact Section */}
-        <div className="max-w-4xl mx-auto mt-32 bg-brand-dark rounded-3xl p-8 md:p-12 text-center text-white relative overflow-hidden shadow-2xl">
-          <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-            <div className="absolute -top-24 -left-24 w-64 h-64 bg-brand-gold rounded-full filter blur-3xl"></div>
-            <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-blue-500 rounded-full filter blur-3xl"></div>
-          </div>
-
-          <div className="relative z-10">
-            <h2 className="text-3xl md:text-4xl font-serif font-bold mb-6">Ready to Transform Your Outreach?</h2>
-            <p className="text-slate-300 text-lg mb-10 max-w-2xl mx-auto">
-              Get in touch with our team to schedule a demo or discuss your specific needs.
-            </p>
-
-            <div className="flex flex-col md:flex-row items-center justify-center gap-6">
-              <a href="mailto:contact@medoutreach.com" className="flex items-center gap-3 px-6 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/10 rounded-xl transition-all group">
-                <div className="p-2 bg-brand-gold text-brand-dark rounded-lg group-hover:scale-110 transition-transform">
-                  <Mail size={20} />
-                </div>
-                <div className="text-left">
-                  <p className="text-xs text-slate-400 uppercase tracking-wider font-bold">Email Us</p>
-                  <p className="font-medium">contact@reachpoint.com</p>
-                </div>
-              </a>
-
-              <a href="tel:+1234567890" className="flex items-center gap-3 px-6 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/10 rounded-xl transition-all group">
-                <div className="p-2 bg-brand-gold text-brand-dark rounded-lg group-hover:scale-110 transition-transform">
-                  <Phone size={20} />
-                </div>
-                <div className="text-left">
-                  <p className="text-xs text-slate-400 uppercase tracking-wider font-bold">Call Us</p>
-                  <p className="font-medium">+234 9126461386</p>
-                </div>
-              </a>
-            </div>
-          </div>
-        </div>
+        <ContactSection />
 
         {/* WhatsApp Floating Button */}
-        <a
-          href="https://wa.me/+2349126461386"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="fixed bottom-8 right-8 z-50 p-4 bg-[#25D366] text-white rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all hover:bg-[#20bd5a] flex items-center justify-center"
-          aria-label="Chat on WhatsApp"
-        >
-          <MessageCircle size={28} fill="white" className="text-white" />
-        </a>
+        <WhatsAppFloatingButton />
 
         {/* Footer */}
         <div className="mt-32 border-t border-slate-200 py-8 text-center text-slate-400 text-sm">

@@ -39,12 +39,10 @@ export default function PublicEventClient({ event }: { event: any }) {
 
         const result = await getRecordByCode(retrievalCodeInput.trim());
 
-        console.log('🔍 Client - Search result:', result);
-        console.log('🔍 Client - Result data:', result.data);
-        console.log('🔍 Client - Data.data fields:', result.data?.data ? Object.keys(result.data.data) : 'No data.data');
+
 
         if (result.success) {
-            console.log('✅ Client - Setting recordToUpdate with keys:', Object.keys(result.data || {}));
+
             setRecordToUpdate(result.data);
         } else {
             setRetrievalError(result.message || 'Record not found. Check the code.');
@@ -167,8 +165,7 @@ export default function PublicEventClient({ event }: { event: any }) {
                                         initialData={recordToUpdate.data}
                                         submitButtonText="Update Record"
                                         onSubmit={async (data) => {
-                                            console.log('📝 Submitting update with data:', data);
-                                            console.log('📝 Original recordToUpdate.data:', recordToUpdate.data);
+
                                             return await updateRecordByCode(recordToUpdate.retrievalCode, data);
                                         }
                                         }

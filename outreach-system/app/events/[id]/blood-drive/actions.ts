@@ -22,7 +22,6 @@ export async function submitDonation(eventId: string, formData: any) {
 
         return { success: true, message: 'Donation record created successfully.', donationId: newDonation._id.toString() };
     } catch (error: any) {
-        console.error('Error submitting donation:', error);
         return { success: false, message: error.message || 'Failed to submit donation.' };
     }
 }

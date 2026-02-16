@@ -50,6 +50,7 @@ export default function Sidebar({ user, onSignOut }: { user: any, onSignOut: () 
                     </Link>
 
                     {user?.role === 'admin' && (
+                        <>
                         <Link
                             onClick={() => setIsOpen(false)}
                             href="/admin"
@@ -58,6 +59,16 @@ export default function Sidebar({ user, onSignOut }: { user: any, onSignOut: () 
                             <ShieldAlert size={18} />
                             Admin Portal
                         </Link>
+                        
+                        <Link
+                            onClick={() => setIsOpen(false)}
+                            href="/admin/settings/site-appearance"
+                            className="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-brand-dark rounded-md transition-colors font-medium"
+                        >
+                            <Settings size={18} />
+                            Site Appearance
+                        </Link>
+                        </>
                     )}
 
                     <Link

@@ -39,6 +39,13 @@ export default function LoginPage() {
                         const email = formData.get('email') as string;
                         const password = formData.get('password') as string;
 
+                        // Strict Email Validation (Anti-Injection)
+                        const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+                        if (!emailRegex.test(email)) {
+                            setError('Invalid email format. Please check for typos.');
+                            return;
+                        }
+
                         try {
                             const result = await signIn('credentials', {
                                 email,

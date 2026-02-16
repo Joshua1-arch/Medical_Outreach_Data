@@ -1,12 +1,11 @@
 import mongoose from 'mongoose';
 import dns from 'dns';
 
-// Fix for Node.js DNS resolution issues (ESERVFAIL)
+
 try {
   dns.setDefaultResultOrder('ipv4first');
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 } catch (e) {
-  // Ignore if not supported
 }
 
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -17,18 +16,20 @@ if (!MONGODB_URI) {
   );
 }
 
-// Global is used here to maintain a cached connection across hot reloads
-// in development. This prevents connections growing exponentially
-// during API Route usage.
-declare global {
-  // eslint-disable-next-line no-var
-  var mongoose: { conn: typeof mongoose | null; promise: Promise<typeof mongoose> | null } | undefined;
+
+interface MongooseCache {
+  conn: typeof mongoose | null;
+  promise: Promise<typeof mongoose> | null;
 }
 
-let cached = global.mongoose;
+declare global {
+  var mongooseCache: MongooseCache | undefined;
+}
+
+let cached = global.mongooseCache;
 
 if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
+  cached = global.mongooseCache = { conn: null, promise: null };
 }
 
 async function dbConnect() {
@@ -50,12 +51,6 @@ async function dbConnect() {
     cached!.conn = await cached!.promise;
   } catch (e) {
     cached!.promise = null;
-    console.error("❌ MONGODB CONNECTION ERROR ❌");
-    console.error("---------------------------------------------------");
-    console.error("The application could not connect to MongoDB Atlas.");
-    console.error("Common Cause: Your IP address is not whitelisted.");
-    console.error("SOLUTION: Go to MongoDB Atlas -> Network Access -> Add IP Address -> Allow Access from Anywhere (0.0.0.0/0)");
-    console.error("---------------------------------------------------");
     throw e;
   }
 

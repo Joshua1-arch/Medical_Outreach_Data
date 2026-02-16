@@ -73,6 +73,13 @@ export default function SignupPage() {
                         const confirmPassword = formData.get('confirmPassword') as string;
                         const invitationCode = formData.get('invitationCode') as string;
 
+                        // Strict Email Validation (Anti-Injection)
+                        const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+                        if (!emailRegex.test(email)) {
+                            setError('Invalid email format. Please check for typos.');
+                            return;
+                        }
+
                         if (password !== confirmPassword) {
                             setError('Passwords do not match');
                             return;
@@ -164,7 +171,7 @@ export default function SignupPage() {
                             />
                         </div>
 
-                        {/* Invitation Code Field */}
+
                         <div className="pt-2 border-t border-slate-100">
                             <label htmlFor="invitationCode" className="block text-sm font-bold text-slate-700 mb-1 flex items-center gap-2">
                                 <Ticket size={14} className="text-brand-gold" />

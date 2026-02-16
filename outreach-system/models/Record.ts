@@ -6,11 +6,14 @@ const RecordSchema = new Schema({
     recordedBy: { type: Schema.Types.ObjectId, ref: 'User' }, // Optional for public submissions
     retrievalCode: { type: String, unique: true, sparse: true }, // For retrieving/updating records
     patientHash: { type: String, index: true }, // Hash of Name + Phone + Gender for patient tracking
+    patientPhone: { type: String, index: true },
+    projectID: { type: Schema.Types.ObjectId, ref: 'Event', index: true },
     resultEmailSent: { type: Boolean, default: false }, // Track if result email has been sent
 }, { timestamps: true });
 
 // Index for efficient patient history lookups
 RecordSchema.index({ patientHash: 1, createdAt: -1 });
+RecordSchema.index({ projectID: 1, createdAt: -1 });
 
 const Record = models.Record || model('Record', RecordSchema);
 

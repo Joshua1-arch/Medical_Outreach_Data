@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import bcrypt from "bcryptjs";
+import nodeCrypto from "crypto";
 
 export async function createEvent(formData: FormData) {
     try {
@@ -39,6 +40,15 @@ export async function createEvent(formData: FormData) {
         // Logic: If createdBy is Admin OR Trusted user, status is 'approved' automatically. Otherwise 'pending'.
         const status = (user.role === 'admin' || user.isTrusted) ? 'approved' : 'pending';
 
+        // Generate a 6-character unique code for the event
+        let code = nodeCrypto.randomBytes(3).toString('hex').toUpperCase();
+        let isUnique = false;
+        while (!isUnique) {
+            const existing = await Event.findOne({ code });
+            if (!existing) isUnique = true;
+            else code = nodeCrypto.randomBytes(3).toString('hex').toUpperCase();
+        }
+
         const event = await Event.create({
             title,
             description,
@@ -49,6 +59,7 @@ export async function createEvent(formData: FormData) {
             coverImage,
             createdBy: session.user.id,
             status,
+            code, // Add the unique join code
             formFields: [], // Initialize empty, managed in Builder later
             inventory, // Save inventory
         });
@@ -63,8 +74,7 @@ export async function createEvent(formData: FormData) {
                 : 'Event proposal submitted! Pending admin approval.',
             eventId: event._id.toString()
         };
-    } catch (error) {
-        console.error('Failed to create event:', error);
+    } catch {
         return { success: false, message: 'Failed to create event' };
     }
 }
@@ -91,8 +101,7 @@ export async function updateEventSchema(eventId: string, formFields: any[]) {
         revalidatePath('/dashboard/my-events');
 
         return { success: true, message: 'Form updated successfully' };
-    } catch (error) {
-        console.error('Failed to update schema:', error);
+    } catch {
         return { success: false, message: 'Failed to update form' };
     }
 }
@@ -142,18 +151,18 @@ export async function generateMedicalReport(stats: any) {
 
         for (const modelName of models) {
             try {
-                console.log(`[AI] Attempting model: ${modelName}`);
+
                 const model = genAI.getGenerativeModel({ model: modelName });
                 const result = await model.generateContent(prompt);
                 const response = await result.response;
                 report = response.text();
 
                 if (report) {
-                    console.log(`[AI] Success with ${modelName}`);
+
                     break;
                 }
             } catch (e: any) {
-                console.warn(`[AI] Model ${modelName} failed:`, e.toString());
+
                 lastError = e;
             }
         }
@@ -164,7 +173,7 @@ export async function generateMedicalReport(stats: any) {
 
         return { success: true, report };
     } catch (error: any) {
-        console.error('AI Error:', error);
+
         if (error.message?.includes('404') || error.toString().includes('404')) {
             return {
                 success: false,
@@ -205,8 +214,7 @@ export async function changePassword(prevState: any, formData: FormData) {
         await user.save();
 
         return { success: true, message: 'Password changed successfully' };
-    } catch (error) {
-        console.error(error);
+    } catch {
         return { success: false, message: 'Failed to update password' };
     }
 }

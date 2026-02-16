@@ -79,10 +79,8 @@ export default function SyncManager() {
                     successCount++;
                 } else {
                     failedRecords.push(record);
-                    console.error("Sync failed for record:", result.message);
                 }
-            } catch (error) {
-                console.error("Sync error:", error);
+            } catch {
                 failedRecords.push(record);
             }
         }
@@ -94,7 +92,7 @@ export default function SyncManager() {
 
         if (successCount > 0) {
             // Optional: Trigger a toast or some feedback
-            console.log(`Synced ${successCount} records.`);
+
         }
     };
 

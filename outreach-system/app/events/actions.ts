@@ -47,6 +47,17 @@ function generatePatientHash(data: Record<string, unknown>): string | null {
     return crypto.createHash('sha256').update(combined).digest('hex').substring(0, 32);
 }
 
+function extractPatientPhone(data: Record<string, unknown>): string | undefined {
+    for (const [key, value] of Object.entries(data)) {
+        const lowerKey = key.toLowerCase();
+        if (lowerKey.includes('phone') || lowerKey.includes('mobile') || lowerKey.includes('contact')) {
+            // Found a phone-like key. Return as string.
+            if (value) return String(value);
+        }
+    }
+    return undefined;
+}
+
 export async function submitRecord(eventId: string, data: Record<string, unknown>) {
     try {
         const session = await auth();
@@ -69,21 +80,23 @@ export async function submitRecord(eventId: string, data: Record<string, unknown
 
         const retrievalCode = generateRetrievalCode();
         const patientHash = generatePatientHash(data);
+        const patientPhone = extractPatientPhone(data);
 
         await Record.create({
             eventId,
+            projectID: eventId, // Map eventId to projectID for the new index
             data,
             recordedBy,
             retrievalCode,
-            patientHash
+            patientHash,
+            patientPhone
         });
 
         revalidatePath(`/events/${eventId}/enter-data`);
         revalidatePath(`/e/${eventId}`);
 
         return { success: true, message: 'Record saved successfully!', code: retrievalCode };
-    } catch (error) {
-        console.error('Failed to submit record:', error);
+    } catch {
         return { success: false, message: 'Failed to save record' };
     }
 }
@@ -168,8 +181,7 @@ export async function searchPatientHistory(data: Record<string, unknown>, curren
             history,
             message: `Found ${history.length} previous record(s)`
         };
-    } catch (error) {
-        console.error('Failed to search patient history:', error);
+    } catch {
         return { success: false, found: false, message: 'Error searching patient history' };
     }
 }
@@ -181,7 +193,7 @@ export async function getRecordByCode(query: string) {
         // Trim whitespace from query
         const trimmedQuery = query.trim();
 
-        console.log(`🔍 Searching for record with query: "${trimmedQuery}"`); // Debug Log
+
 
         // Normalize phone number by removing all non-digit characters
         const normalizePhone = (str: string) => str.replace(/\D/g, '');
@@ -194,7 +206,7 @@ export async function getRecordByCode(query: string) {
 
         // If not found and query contains digits, search by phone number
         if (!record && normalizedQuery.length >= 5) {
-            console.log(`📱 Searching by normalized phone: "${normalizedQuery}"`);
+
 
             // Get all records and search through data fields
             const allRecords = await Record.find({}).lean();
@@ -221,7 +233,7 @@ export async function getRecordByCode(query: string) {
                             normalizedValue.endsWith(normalizedQuery) ||
                             normalizedQuery.endsWith(normalizedValue)) {
                             foundRecordId = rec._id;
-                            console.log(`✅ Found by phone in field: ${key}`);
+
                             break;
                         }
                     }
@@ -233,20 +245,19 @@ export async function getRecordByCode(query: string) {
             // Fetch the complete record from database if found
             if (foundRecordId) {
                 record = await Record.findById(foundRecordId);
-                console.log('DEBUG Phone search - Found record:', record?._id, 'Data keys:', Object.keys(record?.data || {}));
+
             }
         }
 
         if (!record) {
-            console.log(`❌ Record not found for query: "${trimmedQuery}"`);
+
             return { success: false, message: 'Record not found' };
         }
 
-        console.log(`✅ Record found: ${record._id}`);
+
         // Return clear data
         return { success: true, data: JSON.parse(JSON.stringify(record)) };
-    } catch (error) {
-        console.error('Failed to fetch record:', error);
+    } catch {
         return { success: false, message: 'Error fetching record' };
     }
 }
@@ -276,8 +287,7 @@ export async function updateRecordByCode(code: string, data: Record<string, unkn
         revalidatePath(`/e/${record.eventId}`);
 
         return { success: true, message: 'Record updated successfully!' };
-    } catch (error) {
-        console.error('Failed to update record:', error);
+    } catch {
         return { success: false, message: 'Update failed' };
     }
 }
@@ -295,8 +305,7 @@ export async function deleteRecord(recordId: string) {
         revalidatePath(`/dashboard/event/${record.eventId}/builder`);
 
         return { success: true, message: 'Record deleted' };
-    } catch (error) {
-        console.error('Failed to delete record:', error);
+    } catch {
         return { success: false, message: 'Delete failed' };
     }
 }
@@ -332,9 +341,7 @@ export async function sendResultEmail(recordId: string) {
 
         const data = record.data || {};
 
-        // Debug: Log the data keys to see what fields we have
-        console.log('🔍 Record data keys:', Object.keys(data));
-        console.log('📧 Record data:', data);
+
 
         // Flexible extraction of email and name
         // Check if key contains any of the patterns (case-insensitive)
@@ -343,7 +350,7 @@ export async function sendResultEmail(recordId: string) {
                 const lowerKey = key.toLowerCase();
                 for (const pattern of patterns) {
                     if (lowerKey.includes(pattern.toLowerCase())) {
-                        console.log(`✅ Found match: "${key}" contains "${pattern}" = ${data[key]}`);
+
                         return data[key];
                     }
                 }
@@ -354,11 +361,10 @@ export async function sendResultEmail(recordId: string) {
         const email = findValue(['email', 'e-mail', 'mail']);
         const name = findValue(['name', 'patient', 'fullname', 'full name']) || 'Patient';
 
-        console.log('📧 Extracted email:', email);
-        console.log('👤 Extracted name:', name);
+
 
         if (!email) {
-            console.error('❌ No email found. Available keys:', Object.keys(data));
+
             return { success: false, message: 'No email address found for this patient' };
         }
 
@@ -386,8 +392,7 @@ export async function sendResultEmail(recordId: string) {
 
         return { success: true, message: 'Result sent to ' + email };
 
-    } catch (error) {
-        console.error('Error sending result email:', error);
+    } catch {
         return { success: false, message: 'Server error sending email' };
     }
 }

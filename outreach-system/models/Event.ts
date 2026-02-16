@@ -40,6 +40,7 @@ const EventSchema = new Schema({
     // Public Access Settings
     isPublic: { type: Boolean, default: false },
     accessCode: { type: String }, // Optional password for public access
+    code: { type: String, unique: true, index: true }, // For join code lookup
 }, { timestamps: true });
 
 const Event = models.Event || model('Event', EventSchema);

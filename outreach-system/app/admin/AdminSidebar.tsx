@@ -1,6 +1,6 @@
 'use client';
 import Link from "next/link";
-import { LayoutDashboard, Users, CalendarCheck, LogOut, Menu, X, ArrowLeft } from "lucide-react";
+import { LayoutDashboard, Users, CalendarCheck, LogOut, Menu, X, ArrowLeft, Settings } from "lucide-react";
 import { useState } from "react";
 
 export default function AdminSidebar({ onSignOut }: { onSignOut: () => Promise<void> }) {
@@ -65,6 +65,15 @@ export default function AdminSidebar({ onSignOut }: { onSignOut: () => Promise<v
                     >
                         <CalendarCheck size={18} />
                         All Events
+                    </Link>
+
+                    <Link
+                        onClick={() => setIsOpen(false)}
+                        href="/admin/settings/site-appearance"
+                        className="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-brand-dark rounded-md transition-colors font-medium"
+                    >
+                        <Settings size={18} />
+                        Site Appearance
                     </Link>
 
                     <Link

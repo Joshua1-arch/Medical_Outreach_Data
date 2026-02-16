@@ -2,8 +2,8 @@
 @plugin "@tailwindcss/typography";
 
 @theme {
-  --color-brand-dark: #0F172A;
-  --color-brand-gold: #D4AF37;
+  --color-brand-dark: var(--brand-primary, #0F172A);
+  --color-brand-gold: var(--brand-secondary, #D4AF37);
   --color-brand-cream: #F8FAFC;
 
   --font-serif: var(--font-playfair), serif;

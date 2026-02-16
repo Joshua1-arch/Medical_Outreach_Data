@@ -215,8 +215,7 @@ export async function GET() {
             },
         });
 
-    } catch (error) {
-        console.error("Export error:", error);
+    } catch {
         return new NextResponse("Internal Server Error", { status: 500 });
     }
 }

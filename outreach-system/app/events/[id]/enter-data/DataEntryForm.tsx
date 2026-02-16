@@ -47,15 +47,8 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
 
     // Update formData if initialData changes (e.g. after fetch)
     useEffect(() => {
-        console.log('🔄 DataEntryForm - initialData changed:', initialData);
-        console.log('🔄 DataEntryForm - initialData keys:', Object.keys(initialData));
-        console.log('🔄 DataEntryForm - Current formData:', formData);
-
         if (Object.keys(initialData).length > 0) {
-            console.log('✅ Setting formData with initialData');
             setFormData(initialData);
-        } else {
-            console.log('❌ Not setting formData - initialData is empty');
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialData]);
@@ -83,8 +76,8 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
                     setPatientHistory(null);
                 }
                 setHistorySearched(true);
-            } catch (err) {
-                console.error('History search error:', err);
+            } catch {
+                // Ignore history search errors
             }
             setIsSearchingHistory(false);
         }
@@ -207,9 +200,8 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
         } else {
             try {
                 result = await submitRecord(eventId, formData);
-            } catch (err) {
+            } catch {
                 // Network error or server unreachable
-                console.error("Submission error:", err);
 
                 // Fallback to offline save
                 const unsynced = JSON.parse(localStorage.getItem('unsynced_records') || '[]');
@@ -263,11 +255,7 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
                 // Debug: Check if the value exists in formData
                 const selectValue = formData[label] || '';
                 if (label.includes('SEX') || label.includes('Sex')) {
-                    console.log(`🎯 SELECT field "${label}":`, {
-                        formDataValue: formData[label],
-                        selectValue,
-                        formDataKeys: Object.keys(formData)
-                    });
+
                 }
 
                 return (
