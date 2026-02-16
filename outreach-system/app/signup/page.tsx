@@ -7,7 +7,6 @@ import { AlertCircle, UserPlus, CheckCircle, Ticket } from 'lucide-react';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 
 export default function SignupPage() {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const router = useRouter();
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
@@ -73,7 +72,6 @@ export default function SignupPage() {
                         const confirmPassword = formData.get('confirmPassword') as string;
                         const invitationCode = formData.get('invitationCode') as string;
 
-                        // Strict Email Validation (Anti-Injection)
                         const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
                         if (!emailRegex.test(email)) {
                             setError('Invalid email format. Please check for typos.');
@@ -110,7 +108,6 @@ export default function SignupPage() {
                             } else {
                                 setError(data.message || 'Registration failed');
                             }
-                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         } catch (err) {
                             setError('An error occurred. Please try again.');
                         }

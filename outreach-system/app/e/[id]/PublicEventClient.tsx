@@ -37,7 +37,7 @@ export default function PublicEventClient({ event }: { event: any }) {
         setRetrievalError('');
         setRecordToUpdate(null);
 
-        const result = await getRecordByCode(retrievalCodeInput.trim());
+        const result = await getRecordByCode(retrievalCodeInput.trim(), event._id);
 
 
 

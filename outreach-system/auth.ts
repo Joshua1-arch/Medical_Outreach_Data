@@ -9,8 +9,11 @@ import { authConfig } from "./auth.config"
 async function getUser(email: string) {
     try {
         await dbConnect();
-        const user = await User.findOne({ email });
-        return user;
+        const user = await User.findOne({ email }).lean();
+        if (user) {
+            return { ...user, id: user._id.toString() };
+        }
+        return null;
     } catch (error) {
         throw new Error('Failed to fetch user.');
     }
@@ -21,13 +24,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     callbacks: {
         ...authConfig.callbacks,
         async jwt({ token, user }) {
-            // Initial sign in
             if (user) {
                 token.role = user.role;
                 token.accountStatus = user.accountStatus;
                 token.id = user.id;
             }
-            // Subsequent calls - check DB for status updates
             else if (token?.id) {
                 try {
                     await dbConnect();
@@ -36,13 +37,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                         token.accountStatus = dbUser.accountStatus;
                         token.role = dbUser.role;
                     } else {
-                        // User deleted
                         token.accountStatus = 'rejected';
                     }
                 } catch (error) {
                     console.error("Error fetching user in JWT callback:", error);
-                    // On error, keep existing token data to avoid lockout during blips, 
-                    // or fail safe? Keeping existing is better UX for transient errors.
                 }
             }
             return token;
@@ -60,7 +58,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         Credentials({
             async authorize(credentials) {
                 try {
-                    // Strict Zod Validation (Anti-Injection)
                     const parsedCredentials = z
                         .object({
                             email: z.string().email().regex(/^[^<>\{\}'";]+$/, "Invalid format"),
@@ -69,25 +66,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                         .safeParse(credentials);
 
                     if (!parsedCredentials.success) {
-                        return null; // Generic "Invalid input"
+                        return null; 
                     }
 
                     const { email, password } = parsedCredentials.data;
                     const user = await getUser(email);
 
-                    if (!user) return null; // Generic "Invalid credentials"
+                    if (!user) return null; 
 
                     const passwordsMatch = await bcrypt.compare(password, user.password);
-                    if (!passwordsMatch) return null; // Generic "Invalid credentials"
+                    if (!passwordsMatch) return null; 
 
-                    // Logic: Users cannot log in if status is 'pending' or 'suspended'
                     if (user.accountStatus !== 'active') {
-                        return null; // Access denied
+                        return null; 
                     }
 
                     return user;
                 } catch {
-                    return null; // Fallback for any unexpected errors
+                    return null; 
                 }
             },
         }),

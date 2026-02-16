@@ -20,11 +20,11 @@ const SiteConfigSchema: Schema<ISiteConfig> = new Schema({
     },
     primaryColor: {
         type: String,
-        default: '#0f172a' // Default brand-dark
+        default: '#0f172a' 
     },
     secondaryColor: {
         type: String,
-        default: '#fbbf24' // Default brand-gold
+        default: '#fbbf24' 
     },
     logoUrl: {
         type: String,
@@ -50,7 +50,6 @@ const SiteConfigSchema: Schema<ISiteConfig> = new Schema({
     timestamps: true
 });
 
-// Singleton pattern: Ensure only one config exists
 SiteConfigSchema.statics.getSingleton = async function () {
     const config = await this.findOne();
     if (config) return config;

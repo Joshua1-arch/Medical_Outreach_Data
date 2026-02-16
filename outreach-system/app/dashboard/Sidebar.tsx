@@ -1,6 +1,6 @@
 'use client';
 import Link from "next/link";
-import { LayoutDashboard, PlusCircle, CalendarCheck, LogOut, Menu, X, ShieldAlert, Settings } from "lucide-react";
+import { LayoutDashboard, PlusCircle, CalendarCheck, LogOut, Menu, X, ShieldAlert, Settings, Database } from "lucide-react";
 import { useState } from "react";
 
 export default function Sidebar({ user, onSignOut }: { user: any, onSignOut: () => Promise<void> }) {
@@ -8,7 +8,6 @@ export default function Sidebar({ user, onSignOut }: { user: any, onSignOut: () 
 
     return (
         <>
-            {/* Mobile Header Trigger */}
             <div className="md:hidden fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md border-b border-slate-200 p-4 z-40 flex items-center justify-between h-16 shadow-sm">
                 <div className="flex items-center gap-2 font-bold text-brand-dark">
                     <span className="w-8 h-8 bg-brand-dark rounded-lg flex items-center justify-center text-brand-gold text-lg font-serif">R</span>
@@ -19,7 +18,6 @@ export default function Sidebar({ user, onSignOut }: { user: any, onSignOut: () 
                 </button>
             </div>
 
-            {/* Sidebar Drawer */}
             <aside className={`
                 fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col transition-transform duration-300 ease-in-out
                 ${isOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -58,15 +56,6 @@ export default function Sidebar({ user, onSignOut }: { user: any, onSignOut: () 
                         >
                             <ShieldAlert size={18} />
                             Admin Portal
-                        </Link>
-                        
-                        <Link
-                            onClick={() => setIsOpen(false)}
-                            href="/admin/settings/site-appearance"
-                            className="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-brand-dark rounded-md transition-colors font-medium"
-                        >
-                            <Settings size={18} />
-                            Site Appearance
                         </Link>
                         </>
                     )}
@@ -110,7 +99,6 @@ export default function Sidebar({ user, onSignOut }: { user: any, onSignOut: () 
                 </div>
             </aside>
 
-            {/* Overlay */}
             {isOpen && (
                 <div
                     className="fixed inset-0 bg-black/50 z-40 md:hidden"

@@ -47,20 +47,9 @@ export default async function RootLayout({
     const isMaintenancePage = currentPath === '/maintenance';
     const isLoginPage = currentPath.startsWith('/login') || currentPath.startsWith('/api/auth'); 
     
-    // Allow static assets too? Usually handled by middleware exclusion, but if we are here, we are in layout.
-    // If not admin, and not on safe pages, redirect.
+
     if (!isAdmin && !isMaintenancePage && !isLoginPage) {
-       // redirect('/maintenance'); 
-       // We cannot redirect in RootLayout easily without causing loops if middleware doesn't help.
-       // The best place for this logic IS middleware.
-       // But I can't access DB in middleware.
-       
-       // If I redirect here:
-       // 1. User visits / -> currentPath="/" -> Redirect /maintenance
-       // 2. User visits /maintenance -> currentPath="/maintenance" -> No redirect. Renders children.
-       
-       // Validation of loop prevention:
-       // "if (!isMaintenancePage)" prevents loop.
+
        
        redirect('/maintenance');
     }

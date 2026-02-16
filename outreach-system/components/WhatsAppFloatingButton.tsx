@@ -6,10 +6,6 @@ import { useSiteConfig } from "@/app/context/SiteConfigProvider";
 export default function WhatsAppFloatingButton() {
     const { whatsappNumber } = useSiteConfig();
     
-    // Normalize phone number for link (remove spaces, ensure no + if wa.me handles differently, but wa.me works with +)
-    // Actually wa.me prefers no +.
-    // But let's assume valid link format or user enters valid number.
-    // If whatsappNumber is empty, default is used.
     const cleanNumber = whatsappNumber ? whatsappNumber.replace(/[^\d]/g, '') : '2349126461386';
 
     return (

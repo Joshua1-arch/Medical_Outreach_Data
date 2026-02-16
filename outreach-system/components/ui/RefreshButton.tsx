@@ -11,7 +11,6 @@ export default function RefreshButton() {
     const handleRefresh = () => {
         setIsRefreshing(true);
         router.refresh();
-        // Reset spinner after 750ms for visual feedback
         setTimeout(() => setIsRefreshing(false), 750);
     };
 

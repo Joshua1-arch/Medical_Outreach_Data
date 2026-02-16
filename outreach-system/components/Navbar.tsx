@@ -28,20 +28,20 @@ export default function Navbar() {
                             alt="Logo"
                             width={50}
                             height={50}
-                            className="object-contain" // Ensures the full logo is visible
+                            className="object-contain" 
                             priority
                         />
                     </div>
                     <div className="flex items-center gap-4">
                         <Link href="/login" className="flex items-center gap-2 text-sm font-bold text-slate-600 hover:text-brand-dark transition-colors px-3 py-2 rounded-lg hover:bg-slate-50">
-                            <LogIn size={18} style={{ color: secondaryColor }} /> {/* Dynamic color */}
+                            <LogIn size={18} style={{ color: secondaryColor }} /> 
                             Sign In
                         </Link>
                         <Link href="/signup" 
-                            style={{ backgroundColor: primaryColor }} // Dynamic bg
+                            style={{ backgroundColor: primaryColor }} 
                             className="flex items-center gap-2 px-5 py-2.5 text-white rounded-lg text-sm font-bold hover:bg-slate-800 hover:shadow-lg transition-all shadow-[0_4px_14px_0_rgba(15,23,42,0.39)] group"
                         >
-                            <Sparkles size={16} style={{ color: secondaryColor }} className="group-hover:animate-pulse" /> {/* Dynamic color */}
+                            <Sparkles size={16} style={{ color: secondaryColor }} className="group-hover:animate-pulse" /> 
                             Get Started
                         </Link>
                     </div>

@@ -18,7 +18,7 @@ export async function createEvent(formData: FormData) {
 
         await dbConnect();
 
-        // Get user to check role
+
         const user = await User.findById(session.user.id);
         if (!user) {
             return { success: false, message: 'User not found' };
@@ -37,10 +37,9 @@ export async function createEvent(formData: FormData) {
             return { success: false, message: 'Missing required fields' };
         }
 
-        // Logic: If createdBy is Admin OR Trusted user, status is 'approved' automatically. Otherwise 'pending'.
+
         const status = (user.role === 'admin' || user.isTrusted) ? 'approved' : 'pending';
 
-        // Generate a 6-character unique code for the event
         let code = nodeCrypto.randomBytes(3).toString('hex').toUpperCase();
         let isUnique = false;
         while (!isUnique) {

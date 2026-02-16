@@ -28,7 +28,6 @@ const InvitationCodeSchema = new Schema({
     }
 }, { timestamps: true });
 
-// Index for faster lookups
 InvitationCodeSchema.index({ code: 1, isUsed: 1 });
 
 const InvitationCode = models.InvitationCode || model('InvitationCode', InvitationCodeSchema);

@@ -45,9 +45,7 @@ const DonationSchema = new Schema({
     compatibleRecipients: { type: [String], default: [] }
 }, { timestamps: true });
 
-// Auto-calculate fields before saving
 DonationSchema.pre('save', async function () {
-    // 1. Calculate Fitness
     if (!this.donorVitals || !this.serology) {
         this.isFitToDonate = false;
         return;
@@ -61,7 +59,6 @@ DonationSchema.pre('save', async function () {
 
     this.isFitToDonate = isVitalsGood && isSerologyClean;
 
-    // 2. Calculate Compatible Recipients if Fit and Group is present
     if (this.isFitToDonate && this.bloodGroup && this.bloodGroup.group && this.bloodGroup.rh) {
         this.compatibleRecipients = getCompatibleRecipients(
             this.bloodGroup.group as BloodGroup,

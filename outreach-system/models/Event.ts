@@ -2,8 +2,8 @@ import { Schema, model, models } from 'mongoose';
 
 const FormFieldSchema = new Schema({
     label: { type: String, required: true },
-    type: { type: String, required: true }, // e.g., 'text', 'number', 'date', 'select'
-    options: [String], // for select inputs if applicable
+    type: { type: String, required: true }, 
+    options: [String], 
     required: { type: Boolean, default: false },
     width: { type: String, enum: ['full', 'half'], default: 'full' }
 }, { _id: false });
@@ -16,8 +16,8 @@ const InventoryItemSchema = new Schema({
 const EventSchema = new Schema({
     title: { type: String, required: true },
     description: { type: String },
-    reason: { type: String }, // Rationale for the event
-    purpose: { type: String }, // Goal/Objective
+    reason: { type: String }, 
+    purpose: { type: String }, 
     date: { type: Date, required: true },
     location: { type: String, required: true },
     coverImage: { type: String },
@@ -27,20 +27,18 @@ const EventSchema = new Schema({
         enum: ['pending', 'approved', 'rejected'],
         default: 'pending'
     },
-    // The Form Builder Schema - defaults to empty until User designs it
+    
     formFields: {
         type: [FormFieldSchema],
         default: []
     },
-    // Inventory Management
     inventory: {
         type: [InventoryItemSchema],
         default: []
     },
-    // Public Access Settings
     isPublic: { type: Boolean, default: false },
-    accessCode: { type: String }, // Optional password for public access
-    code: { type: String, unique: true, index: true }, // For join code lookup
+    accessCode: { type: String }, /
+    code: { type: String, unique: true, index: true }, 
 }, { timestamps: true });
 
 const Event = models.Event || model('Event', EventSchema);

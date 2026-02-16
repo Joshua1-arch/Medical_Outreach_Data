@@ -10,17 +10,10 @@ import crypto from "crypto";
 import Event from "@/models/Event";
 
 function generateRetrievalCode() {
-    // Generate a 6-character alphanumeric code (e.g., A7X92B)
     return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
-/**
- * Generate a patient hash from identifying information.
- * Uses Name + Phone + Gender to create a unique identifier.
- * This allows tracking the same patient across different events.
- */
 function generatePatientHash(data: Record<string, unknown>): string | null {
-    // Try to extract identifying fields (case-insensitive key matching)
     const findField = (patterns: string[]): string => {
         for (const [key, value] of Object.entries(data)) {
             const lowerKey = key.toLowerCase();
@@ -37,12 +30,10 @@ function generatePatientHash(data: Record<string, unknown>): string | null {
     const phone = findField(['phone', 'mobile', 'telephone', 'contact']);
     const gender = findField(['gender', 'sex']);
 
-    // Need at least name and one other identifier
     if (!name || (!phone && !gender)) {
         return null;
     }
 
-    // Create a hash from the combined values
     const combined = `${name}|${phone}|${gender}`.toLowerCase();
     return crypto.createHash('sha256').update(combined).digest('hex').substring(0, 32);
 }
@@ -51,7 +42,6 @@ function extractPatientPhone(data: Record<string, unknown>): string | undefined 
     for (const [key, value] of Object.entries(data)) {
         const lowerKey = key.toLowerCase();
         if (lowerKey.includes('phone') || lowerKey.includes('mobile') || lowerKey.includes('contact')) {
-            // Found a phone-like key. Return as string.
             if (value) return String(value);
         }
     }
@@ -63,7 +53,6 @@ export async function submitRecord(eventId: string, data: Record<string, unknown
         const session = await auth();
         await dbConnect();
 
-        // Check if event exists and its public status
         const event = await Event.findById(eventId);
         if (!event) return { success: false, message: 'Event not found' };
 
@@ -82,9 +71,20 @@ export async function submitRecord(eventId: string, data: Record<string, unknown
         const patientHash = generatePatientHash(data);
         const patientPhone = extractPatientPhone(data);
 
+        if (patientPhone) {
+            const existingRecord = await Record.findOne({
+                eventId,
+                patientPhone
+            });
+
+            if (existingRecord) {
+                return { success: false, message: 'Phone number already exists' };
+            }
+        }
+
         await Record.create({
             eventId,
-            projectID: eventId, // Map eventId to projectID for the new index
+            projectID: eventId, 
             data,
             recordedBy,
             retrievalCode,
@@ -101,10 +101,6 @@ export async function submitRecord(eventId: string, data: Record<string, unknown
     }
 }
 
-/**
- * Search for patient history by computing the hash from current input.
- * Returns previous records for the same patient from different events.
- */
 export async function searchPatientHistory(data: Record<string, unknown>, currentEventId: string) {
     try {
         await dbConnect();
@@ -114,7 +110,6 @@ export async function searchPatientHistory(data: Record<string, unknown>, curren
             return { success: false, found: false, message: 'Insufficient data for patient lookup' };
         }
 
-        // Find previous records with this hash, excluding current event
         const previousRecords = await Record.find({
             patientHash,
             eventId: { $ne: currentEventId }
@@ -128,23 +123,19 @@ export async function searchPatientHistory(data: Record<string, unknown>, curren
             return { success: true, found: false, message: 'No previous records found' };
         }
 
-        // Format the history for display
         const history = previousRecords.map((record) => {
             const eventTitle = record.eventId?.title || 'Unknown Event';
             const eventDate = record.eventId?.date ? new Date(record.eventId.date) : new Date(record.createdAt);
             const recordDate = new Date(record.createdAt);
 
-            // Calculate time ago
             const monthsAgo = Math.floor((Date.now() - recordDate.getTime()) / (1000 * 60 * 60 * 24 * 30));
             const timeAgo = monthsAgo < 1 ? 'Less than a month ago' :
                 monthsAgo === 1 ? '1 month ago' :
                     `${monthsAgo} months ago`;
 
-            // Extract key vitals from previous record data
             const prevData = record.data || {};
             const vitals: Record<string, string> = {};
 
-            // Try to find common vital fields
             const vitalPatterns = [
                 { patterns: ['bp', 'blood pressure'], label: 'BP' },
                 { patterns: ['weight'], label: 'Weight' },
@@ -186,47 +177,45 @@ export async function searchPatientHistory(data: Record<string, unknown>, curren
     }
 }
 
-export async function getRecordByCode(query: string) {
+export async function getRecordByCode(query: string, eventId?: string) {
     try {
         await dbConnect();
 
-        // Trim whitespace from query
         const trimmedQuery = query.trim();
 
-
-
-        // Normalize phone number by removing all non-digit characters
         const normalizePhone = (str: string) => str.replace(/\D/g, '');
         const normalizedQuery = normalizePhone(trimmedQuery);
 
-        // First, try exact code match (case-insensitive)
-        let record = await Record.findOne({
+        const codeQuery: any = {
             retrievalCode: { $regex: new RegExp(`^${trimmedQuery}$`, 'i') }
-        });
+        };
+        if (eventId) {
+            codeQuery.eventId = eventId;
+        }
 
-        // If not found and query contains digits, search by phone number
+        let record = await Record.findOne(codeQuery);
+
         if (!record && normalizedQuery.length >= 5) {
+            const filter: any = {};
+            if (eventId) {
+                filter.eventId = eventId;
+            }
 
-
-            // Get all records and search through data fields
-            const allRecords = await Record.find({}).lean();
+            const allRecords = await Record.find(filter).lean();
 
             let foundRecordId = null;
 
             for (const rec of allRecords) {
                 const data = rec.data || {};
 
-                // Check all fields in the data object
                 for (const [key, value] of Object.entries(data)) {
                     const lowerKey = key.toLowerCase();
 
-                    // If key suggests it's a phone field
                     if (lowerKey.includes('phone') ||
                         lowerKey.includes('mobile') ||
                         lowerKey.includes('telephone') ||
                         lowerKey.includes('contact')) {
 
-                        // Normalize the stored value and compare
                         const normalizedValue = normalizePhone(String(value || ''));
 
                         if (normalizedValue === normalizedQuery ||
@@ -242,20 +231,15 @@ export async function getRecordByCode(query: string) {
                 if (foundRecordId) break;
             }
 
-            // Fetch the complete record from database if found
             if (foundRecordId) {
                 record = await Record.findById(foundRecordId);
-
             }
         }
 
         if (!record) {
-
             return { success: false, message: 'Record not found' };
         }
 
-
-        // Return clear data
         return { success: true, data: JSON.parse(JSON.stringify(record)) };
     } catch {
         return { success: false, message: 'Error fetching record' };
@@ -266,21 +250,9 @@ export async function updateRecordByCode(code: string, data: Record<string, unkn
     try {
         await dbConnect();
 
-        // Merge data? Or overwrite? 
-        // User workflow: "Fills missing fields". Usually implies merge.
-        // Mongoose generic update doesn't automatically deep merge map/mixed unless specified.
-        // But for this simple key-value store, we can merge in JS or use $set.
-
-        // Let's fetch first to merge safely or use $set for each key if data is flat.
-        // Since `data` is Mixed, updating `data` usually replaces it unless we dot-walk.
-        // EASIEST: Read, Merge, Save.
-
         const record = await Record.findOne({ retrievalCode: code });
         if (!record) return { success: false, message: 'Invalid code' };
 
-        // Check if event allows updates? (Assuming yes for now)
-
-        // Merge existing data with new data
         record.data = { ...record.data, ...data };
         await record.save();
 
@@ -301,7 +273,6 @@ export async function deleteRecord(recordId: string) {
         const record = await Record.findByIdAndDelete(recordId);
         if (!record) return { success: false, message: 'Record not found' };
 
-        // Revalidate to update UI
         revalidatePath(`/dashboard/event/${record.eventId}/builder`);
 
         return { success: true, message: 'Record deleted' };
@@ -320,7 +291,6 @@ export async function updateRecordById(recordId: string, data: Record<string, un
 
         revalidatePath(`/dashboard/event/${record.eventId}/builder`);
         return { success: true, message: 'Record updated' };
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
         return { success: false, message: 'Update failed' };
     }
@@ -341,16 +311,11 @@ export async function sendResultEmail(recordId: string) {
 
         const data = record.data || {};
 
-
-
-        // Flexible extraction of email and name
-        // Check if key contains any of the patterns (case-insensitive)
         const findValue = (patterns: string[]) => {
             for (const key of Object.keys(data)) {
                 const lowerKey = key.toLowerCase();
                 for (const pattern of patterns) {
                     if (lowerKey.includes(pattern.toLowerCase())) {
-
                         return data[key];
                     }
                 }
@@ -361,30 +326,24 @@ export async function sendResultEmail(recordId: string) {
         const email = findValue(['email', 'e-mail', 'mail']);
         const name = findValue(['name', 'patient', 'fullname', 'full name']) || 'Patient';
 
-
-
         if (!email) {
-
             return { success: false, message: 'No email address found for this patient' };
         }
 
         const eventName = record.eventId?.title || 'Medical Outreach';
 
-        // Send the email
-        // We pass the entire data object as 'vitals' (the template filters out internal keys)
         const emailResult = await sendMedicalResultEmail(
             email,
             name,
             eventName,
-            data, // vitals
-            {}    // tests (merged anyway)
+            data, 
+            {}    
         );
 
         if (!emailResult.success) {
             return { success: false, message: 'Failed to send email: ' + emailResult.message };
         }
 
-        // Update record status
         record.resultEmailSent = true;
         await record.save();
 
