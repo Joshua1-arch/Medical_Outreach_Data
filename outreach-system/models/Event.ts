@@ -37,7 +37,7 @@ const EventSchema = new Schema({
         default: []
     },
     isPublic: { type: Boolean, default: false },
-    accessCode: { type: String }, /
+    accessCode: { type: String },
     code: { type: String, unique: true, index: true }, 
 }, { timestamps: true });
 

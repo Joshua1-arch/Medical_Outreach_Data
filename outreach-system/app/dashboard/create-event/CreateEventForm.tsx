@@ -14,10 +14,12 @@ export default function CreateEventForm() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [coverImage, setCoverImage] = useState('');
-    const [inventoryItems, setInventoryItems] = useState([{ itemName: '', startingStock: 0 }]);
+    const [inventoryItems, setInventoryItems] = useState<{ id: string; itemName: string; startingStock: number }[]>([
+        { id: Math.random().toString(36).substr(2, 9), itemName: '', startingStock: 0 }
+    ]);
 
     const addInventoryItem = () => {
-        setInventoryItems([...inventoryItems, { itemName: '', startingStock: 0 }]);
+        setInventoryItems([...inventoryItems, { id: Math.random().toString(36).substr(2, 9), itemName: '', startingStock: 0 }]);
     };
 
     const removeInventoryItem = (index: number) => {
@@ -26,10 +28,10 @@ export default function CreateEventForm() {
         setInventoryItems(newItems);
     };
 
-    const updateInventoryItem = (index: number, field: string, value: any) => {
+    const updateInventoryItem = (index: number, field: 'itemName' | 'startingStock', value: string | number) => {
         const newItems = [...inventoryItems];
-        // @ts-ignore
-        newItems[index][field] = value;
+        // @ts-ignore - keeping for safety but the types are now stricter
+        newItems[index] = { ...newItems[index], [field]: value };
         setInventoryItems(newItems);
     };
 
@@ -76,7 +78,11 @@ export default function CreateEventForm() {
                     formData.append('coverImage', coverImage);
 
                     // Filter out empty items
-                    const validInventory = inventoryItems.filter(i => i.itemName.trim() !== '');
+                    // Filter out empty items and strip IDs
+                    const validInventory = inventoryItems
+                        .filter(i => i.itemName.trim() !== '')
+                        .map(({ id, ...rest }) => rest);
+                    
                     formData.append('inventory', JSON.stringify(validInventory));
 
                     const result = await createEvent(formData);
@@ -249,7 +255,7 @@ export default function CreateEventForm() {
 
                             <div className="space-y-3">
                                 {inventoryItems.map((item, index) => (
-                                    <div key={index} className="flex gap-4 items-end animate-in fade-in slide-in-from-left-2">
+                                    <div key={item.id} className="flex gap-4 items-end animate-in fade-in slide-in-from-left-2">
                                         <div className="flex-1">
                                             <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Item Name</label>
                                             <input
