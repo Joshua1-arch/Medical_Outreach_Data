@@ -10,13 +10,25 @@ export interface ISiteConfig extends Document {
     whatsappNumber: string;
     isActive: boolean;
     maintenanceMode: boolean;
+    socialMediaLinks?: {
+        email?: { enabled: boolean; url: string };
+        twitter?: { enabled: boolean; url: string };
+        linkedin?: { enabled: boolean; url: string };
+        facebook?: { enabled: boolean; url: string };
+    };
 }
 
 const SiteConfigSchema: Schema<ISiteConfig> = new Schema({
     themeMode: {
         type: String,
-        enum: ['default', 'christmas', 'easter'],
+        enum: ['default', 'christmas', 'easter', 'newyear', 'halloween', 'valentine'],
         default: 'default'
+    },
+    socialMediaLinks: {
+        email: { enabled: Boolean, url: String },
+        twitter: { enabled: Boolean, url: String },
+        linkedin: { enabled: Boolean, url: String },
+        facebook: { enabled: Boolean, url: String }
     },
     primaryColor: {
         type: String,

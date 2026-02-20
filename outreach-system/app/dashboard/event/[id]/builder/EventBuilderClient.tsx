@@ -6,7 +6,7 @@ import { updateEventSchema, updateEventSettings } from '@/app/dashboard/actions'
 import { deleteRecord, updateRecordById, sendResultEmail } from '@/app/events/actions';
 import {
     LayoutTemplate, Settings, Share2, MessageSquare, Activity,
-    PlusCircle, Trash2, Save, Copy, Eye, Lock, Globe, AlertCircle, Edit, X, RotateCw, Download, Package, Mail
+    PlusCircle, Trash2, Save, Copy, Eye, Lock, Globe, AlertCircle, Edit, X, RotateCw, Download, Package, Mail, Printer, FileText
 } from 'lucide-react';
 import Link from 'next/link';
 import { Spinner } from '@/components/ui/Spinner';
@@ -138,6 +138,179 @@ export default function EventBuilderClient({ event, records }: { event: any, rec
         document.body.removeChild(link);
     };
 
+    const handlePrint = () => {
+        if (!records.length) return alert('No records to print');
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            alert('Please allow popups for printing');
+            return;
+        }
+
+        const printContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <title>Print Results - ${event.title}</title>
+            <style>
+                @media print {
+                    @page { size: A4; margin: 10mm; }
+                    body { font-family: system-ui, -apple-system, sans-serif; color: #1e293b; -webkit-print-color-adjust: exact; }
+                    .page-break { page-break-after: always; }
+                    .record-card {
+                        position: relative;
+                        border: 2px solid #cbd5e1;
+                        border-radius: 12px;
+                        padding: 24px;
+                        margin-bottom: 24px;
+                        height: 46vh; /* Fits 2 per A4 page */
+                        box-sizing: border-box;
+                        display: flex;
+                        flex-direction: column;
+                        overflow: hidden;
+                        page-break-inside: avoid;
+                        background: white;
+                    }
+                    .watermark-container {
+                        position: absolute;
+                        inset: 0;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        pointer-events: none;
+                        z-index: 0;
+                        opacity: 0.08;
+                    }
+                    .watermark {
+                        width: 60%;
+                        max-width: 400px;
+                        filter: grayscale(100%);
+                    }
+                    .content {
+                        position: relative;
+                        z-index: 1;
+                        width: 100%;
+                        height: 100%;
+                        display: flex;
+                        flex-direction: column;
+                    }
+                    .header {
+                        display: flex;
+                        justify-content: space-between;
+                        border-bottom: 2px solid #e2e8f0;
+                        padding-bottom: 12px;
+                        margin-bottom: 16px;
+                    }
+                    .field-grid {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 12px 24px;
+                        font-size: 11px;
+                        overflow-y: auto;
+                    }
+                    .field-full { grid-column: span 2; }
+                    .label { font-weight: 700; color: #64748b; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+                    .value { font-weight: 500; color: #0f172a; font-size: 12px; line-height: 1.4; }
+                }
+                body { margin: 0; }
+            </style>
+            </head>
+            <body>
+                ${records.map((rec, i) => `
+                    <div class="record-card">
+                        <div class="watermark-container">
+                            <img src="/Reach.png" class="watermark" />
+                        </div>
+                        <div class="content">
+                            <div class="header">
+                                <div>
+                                    <h2 style="margin:0; font-size:16px; font-weight:800; text-transform: uppercase; letter-spacing: -0.5px;">${event.title}</h2>
+                                    <p style="margin:4px 0 0; font-size:11px; color:#64748b; font-weight: 600;">Response #${i + 1}</p>
+                                </div>
+                                <div style="text-align:right;">
+                                    <div style="font-family:monospace; font-weight:bold; font-size:14px; background: #f1f5f9; padding: 2px 6px; rounded: 4px;">${rec.retrievalCode || 'N/A'}</div>
+                                    <div style="font-size:11px; color:#64748b; margin-top: 4px;">${new Date(rec.createdAt).toLocaleDateString()}</div>
+                                </div>
+                            </div>
+                            <div class="field-grid">
+                                <div class="field-full">
+                                    <div class="label">Date Submitted</div>
+                                    <div class="value">${new Date(rec.createdAt).toLocaleString()}</div>
+                                </div>
+                                ${formFields.map(f => `
+                                    <div class="${f.type === 'textarea' || f.width === 'full' ? 'field-full' : ''}">
+                                        <div class="label">${f.label}</div>
+                                        <div class="value">${(rec.data?.[f.label] || '-').toString().replace(/\n/g, '<br>')}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                    ${(i + 1) % 2 === 0 && i !== records.length - 1 ? '<div class="page-break"></div>' : ''}
+                `).join('')}
+                <script>
+                    window.onload = function() { setTimeout(function() { window.print(); window.close(); }, 500); }
+                </script>
+            </body>
+            </html>
+        `;
+        printWindow.document.open();
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+    };
+
+    const handleDownloadDoc = () => {
+        if (!records.length) return alert('No records to download');
+
+        const content = `
+           <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+           <head>
+               <meta charset="utf-8">
+               <title>${event.title} Results</title>
+               <style>
+                   body { font-family: Arial, sans-serif; }
+                   .record-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; page-break-inside: avoid; border: 1px solid #000; }
+                   .record-table td, .record-table th { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 11pt; }
+                   .header-row { background-color: #f3f4f6; font-weight: bold; }
+                   .label { font-weight: bold; color: #444; width: 30%; background-color: #fafafa; }
+                   h1 { font-size: 16pt; color: #333; }
+               </style>
+           </head>
+           <body>
+               <h1>${event.title} - All Responses</h1>
+               <p>Generated on ${new Date().toLocaleString()}</p>
+               <br/>
+               ${records.map((rec, i) => `
+                   <table class="record-table">
+                       <tr class="header-row">
+                           <td colspan="2" style="background-color: #e5e7eb;">Response #${i + 1} - ${rec.retrievalCode || 'N/A'}</td>
+                       </tr>
+                       <tr>
+                           <td class="label">Date Submitted</td>
+                           <td>${new Date(rec.createdAt).toLocaleString()}</td>
+                       </tr>
+                       ${formFields.map(f => `
+                           <tr>
+                               <td class="label">${f.label}</td>
+                               <td>${rec.data?.[f.label] || '-'}</td>
+                           </tr>
+                       `).join('')}
+                   </table>
+                   <br/>
+               `).join('')}
+           </body>
+           </html>
+        `;
+
+        const blob = new Blob(['\ufeff', content], { type: 'application/msword' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${event.title.replace(/[^a-z0-9]/gi, '_')}_responses.doc`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     const publicUrl = typeof window !== 'undefined' ? `${window.location.origin}/e/${event._id}` : '';
 
     return (
@@ -237,131 +410,107 @@ export default function EventBuilderClient({ event, records }: { event: any, rec
 
                 {/* BUILDER TAB */}
                 {activeTab === 'builder' && (
-                    <div className="flex flex-col-reverse lg:flex-row h-[calc(100vh-250px)] min-h-[600px]">
-                        {/* LEFT SIDEBAR - TOOLBOX */}
-                        <div className="w-full lg:w-64 bg-slate-50 border-t lg:border-t-0 lg:border-r border-slate-200 p-4 overflow-y-auto shrink-0 max-h-[250px] lg:max-h-full">
+                    <div className="flex flex-col lg:flex-row h-[calc(100vh-250px)] min-h-[600px]">
 
+                        {/* LEFT SIDEBAR - TOOLBOX (hidden on mobile, shown on lg+) */}
+                        <div className="hidden lg:flex w-64 bg-slate-50 border-r border-slate-200 flex-col shrink-0">
+                            <div className="flex-1 overflow-y-auto p-4">
 
-                            {/* Template Section */}
-                            <div className="mb-6 pb-6 border-b border-slate-200">
-                                <h3 className="font-bold text-slate-700 mb-3 px-2">Quick Start Templates</h3>
-                                <p className="text-xs text-slate-500 mb-4 px-2">
-                                    Templates are <strong>copied</strong> into this event. Changing proper templates later won't affect this event.
-                                </p>
+                                {/* Template Section */}
+                                <div className="mb-5 pb-5 border-b border-slate-200">
+                                    <h3 className="font-bold text-slate-700 mb-1 text-sm">Quick Start Templates</h3>
+                                    <p className="text-xs text-slate-400 mb-3">Templates are copied into this event.</p>
 
-                                <button
-                                    onClick={async () => {
-                                        setIsRefreshing(true);
-                                        if (records.length > 0) {
-                                            if (!confirm('⚠️ WARNING: This event already has captured data. Changing the form structure now may mismatch old records. Are you sure you want to proceed?')) {
-                                                setIsRefreshing(false);
-                                                return;
-                                            }
-                                        }
+                                    <button
+                                        onClick={async () => {
+                                            setIsRefreshing(true);
+                                            if (records.length > 0 && !confirm('⚠️ This event has captured data. Changing the form may mismatch old records. Proceed?')) { setIsRefreshing(false); return; }
+                                            if (formFields.length > 0 && !confirm('This will replace your current fields. Are you sure?')) { setIsRefreshing(false); return; }
+                                            await new Promise(r => setTimeout(r, 400));
+                                            setFormFields([
+                                                { label: 'Full Name', type: 'text', required: true, width: 'full' },
+                                                { label: 'Age', type: 'number', required: true, width: 'half' },
+                                                { label: 'Sex', type: 'select', options: ['Male', 'Female'], required: true, width: 'half' },
+                                                { label: 'Phone Number', type: 'text', required: false, width: 'full' },
+                                                { label: 'Systolic BP (mmHg)', type: 'number', required: false, width: 'half' },
+                                                { label: 'Diastolic BP (mmHg)', type: 'number', required: false, width: 'half' },
+                                                { label: 'Weight (kg)', type: 'number', required: false, width: 'half' },
+                                                { label: 'Height (cm)', type: 'number', required: false, width: 'half' },
+                                                { label: 'BMI', type: 'number', required: false, width: 'full' },
+                                                { label: 'Temperature (C)', type: 'number', required: false, width: 'half' },
+                                                { label: 'Malaria RDT', type: 'select', options: ['Positive', 'Negative', 'Not Done'], required: false, width: 'half' },
+                                                { label: 'Remarks', type: 'textarea', required: false, width: 'full' }
+                                            ]);
+                                            setIsRefreshing(false);
+                                        }}
+                                        disabled={isRefreshing}
+                                        className="w-full flex items-center gap-2 p-3 bg-brand-cream border border-brand-gold/30 text-brand-dark font-bold rounded-lg hover:bg-brand-gold/10 transition-colors shadow-sm mb-2.5 disabled:opacity-50 text-sm"
+                                    >
+                                        {isRefreshing ? <Spinner size={16} className="text-brand-gold" /> : <LayoutTemplate size={16} className="text-brand-gold" />}
+                                        Medical Template
+                                    </button>
 
-                                        if (formFields.length > 0) {
-                                            if (!confirm('This will replace your current fields. Are you sure?')) {
-                                                setIsRefreshing(false);
-                                                return;
-                                            }
-                                        }
+                                    <button
+                                        onClick={async () => {
+                                            setIsRefreshing(true);
+                                            if (records.length > 0 && !confirm('⚠️ This event has captured data. Changing the form may mismatch old records. Proceed?')) { setIsRefreshing(false); return; }
+                                            if (formFields.length > 0 && !confirm('This will replace your current fields. Are you sure?')) { setIsRefreshing(false); return; }
+                                            await new Promise(r => setTimeout(r, 400));
+                                            setFormFields([
+                                                { label: 'Full Name', type: 'text', required: true, width: 'full' },
+                                                { label: 'Age', type: 'number', required: true, width: 'half' },
+                                                { label: 'Sex', type: 'select', options: ['Male', 'Female'], required: true, width: 'half' },
+                                                { label: 'PCV', type: 'number', required: true, width: 'half' },
+                                                { label: 'Weight (kg)', type: 'number', required: true, width: 'half' },
+                                                { label: 'HBsAg', type: 'select', options: ['Non-Reactive', 'Reactive'], required: true, width: 'half' },
+                                                { label: 'HIV', type: 'select', options: ['Non-Reactive', 'Reactive'], required: true, width: 'half' },
+                                                { label: 'Blood Group', type: 'select', options: ['A', 'B', 'AB', 'O'], required: true, width: 'half' },
+                                                { label: 'Rhesus', type: 'select', options: ['Positive', 'Negative'], required: true, width: 'half' },
+                                                { label: 'Remarks', type: 'textarea', required: false, width: 'full' }
+                                            ]);
+                                            setIsRefreshing(false);
+                                        }}
+                                        disabled={isRefreshing}
+                                        className="w-full flex items-center gap-2 p-3 bg-red-50 border border-red-200 text-red-800 font-bold rounded-lg hover:bg-red-100 transition-colors shadow-sm disabled:opacity-50 text-sm"
+                                    >
+                                        {isRefreshing ? <Spinner size={16} className="text-red-600" /> : <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27" /></svg>}
+                                        Blood Drive Template
+                                    </button>
+                                </div>
 
-                                        // Simulate a small delay for better UX feel (or real async load if needed)
-                                        await new Promise(r => setTimeout(r, 500));
-
-                                        setFormFields([
-                                            { label: 'Full Name', type: 'text', required: true, width: 'full' },
-                                            { label: 'Age', type: 'number', required: true, width: 'half' },
-                                            { label: 'Sex', type: 'select', options: ['Male', 'Female'], required: true, width: 'half' },
-                                            { label: 'Phone Number', type: 'text', required: false, width: 'full' },
-                                            { label: 'Systolic BP (mmHg)', type: 'number', required: false, width: 'half' },
-                                            { label: 'Diastolic BP (mmHg)', type: 'number', required: false, width: 'half' },
-                                            { label: 'Weight (kg)', type: 'number', required: false, width: 'half' },
-                                            { label: 'Height (cm)', type: 'number', required: false, width: 'half' },
-                                            { label: 'BMI', type: 'number', required: false, width: 'full' },
-                                            { label: 'Temperature (C)', type: 'number', required: false, width: 'half' },
-                                            { label: 'Malaria RDT', type: 'select', options: ['Positive', 'Negative', 'Not Done'], required: false, width: 'half' },
-                                            { label: 'Remarks', type: 'textarea', required: false, width: 'full' }
-                                        ]);
-                                        setIsRefreshing(false);
-                                    }}
-                                    disabled={isRefreshing}
-                                    className="w-full flex items-center gap-2 p-3 bg-brand-cream border border-brand-gold/30 text-brand-dark font-serif font-bold rounded-lg hover:bg-brand-gold/10 transition-colors shadow-sm mb-3 disabled:opacity-50"
-                                >
-                                    {isRefreshing ? <Spinner size={18} className="text-brand-gold" /> : <LayoutTemplate size={18} className="text-brand-gold" />}
-                                    {isRefreshing ? 'Loading...' : 'Load Medical Template'}
-                                </button>
-
-                                <button
-                                    onClick={async () => {
-                                        setIsRefreshing(true);
-                                        if (records.length > 0) {
-                                            if (!confirm('⚠️ WARNING: This event already has captured data. Changing the form structure now may mismatch old records. Are you sure you want to proceed?')) {
-                                                setIsRefreshing(false);
-                                                return;
-                                            }
-                                        }
-
-                                        if (formFields.length > 0) {
-                                            if (!confirm('This will replace your current fields. Are you sure?')) {
-                                                setIsRefreshing(false);
-                                                return;
-                                            }
-                                        }
-
-                                        await new Promise(r => setTimeout(r, 500));
-
-                                        setFormFields([
-                                            { label: 'Full Name', type: 'text', required: true, width: 'full' },
-                                            { label: 'Age', type: 'number', required: true, width: 'half' },
-                                            { label: 'Sex', type: 'select', options: ['Male', 'Female'], required: true, width: 'half' },
-                                            { label: 'PCV', type: 'number', required: true, width: 'half' },
-                                            { label: 'Weight (kg)', type: 'number', required: true, width: 'half' },
-                                            { label: 'HBsAg', type: 'select', options: ['Non-Reactive', 'Reactive'], required: true, width: 'half' },
-                                            { label: 'HIV', type: 'select', options: ['Non-Reactive', 'Reactive'], required: true, width: 'half' },
-                                            { label: 'Blood Group', type: 'select', options: ['A', 'B', 'AB', 'O'], required: true, width: 'half' },
-                                            { label: 'Rhesus', type: 'select', options: ['Positive', 'Negative'], required: true, width: 'half' },
-                                            { label: 'Remarks', type: 'textarea', required: false, width: 'full' }
-                                        ]);
-                                        setIsRefreshing(false);
-                                    }}
-                                    disabled={isRefreshing}
-                                    className="w-full flex items-center gap-2 p-3 bg-red-50 border border-red-200 text-red-800 font-serif font-bold rounded-lg hover:bg-red-100 transition-colors shadow-sm disabled:opacity-50"
-                                >
-                                    {isRefreshing ? <Spinner size={18} className="text-red-600" /> : <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27" /></svg>}
-                                    {isRefreshing ? 'Loading...' : 'Load Blood Drive Template'}
-                                </button>
+                                <h3 className="font-bold text-slate-700 mb-3 text-sm">Add Element</h3>
+                                <div className="space-y-2">
+                                    {[
+                                        { label: 'Short Text', type: 'text' },
+                                        { label: 'Number', type: 'number' },
+                                        { label: 'Date', type: 'date' },
+                                        { label: 'Long Text', type: 'textarea' },
+                                        { label: 'Dropdown', type: 'select' },
+                                    ].map(({ label, type }) => (
+                                        <button
+                                            key={type}
+                                            onClick={() => setFormFields([...formFields, {
+                                                label: `New ${label}`,
+                                                type,
+                                                required: false,
+                                                width: 'full',
+                                                ...(type === 'select' ? { options: ['Option 1', 'Option 2'] } : {})
+                                            }])}
+                                            className="w-full flex items-center gap-2.5 py-2.5 px-3 bg-white border border-slate-200 rounded-lg hover:border-brand-gold hover:bg-brand-gold/5 transition-all text-left text-sm font-semibold text-slate-600 hover:text-brand-dark"
+                                        >
+                                            <PlusCircle size={15} className="text-brand-gold shrink-0" />
+                                            {label}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
 
-                            <h3 className="font-bold text-slate-700 mb-4 px-2">Form Elements</h3>
-                            <div className="space-y-3">
-                                <button onClick={() => setFormFields([...formFields, { label: 'New Text Question', type: 'text', required: true }])} className="w-full flex items-center gap-3 p-3 bg-white border border-slate-200 shadow-sm rounded-lg hover:border-brand-gold hover:text-brand-dark transition-all text-left group">
-                                    <div className="p-1.5 bg-brand-cream rounded group-hover:bg-brand-gold group-hover:text-white transition-colors"><LayoutTemplate size={16} /></div>
-                                    <span className="text-sm font-bold text-slate-600 group-hover:text-brand-dark">Short Text</span>
-                                </button>
-                                <button onClick={() => setFormFields([...formFields, { label: 'New Number Question', type: 'number', required: true }])} className="w-full flex items-center gap-3 p-3 bg-white border border-slate-200 shadow-sm rounded-lg hover:border-brand-gold hover:text-brand-dark transition-all text-left group">
-                                    <div className="p-1.5 bg-brand-cream rounded group-hover:bg-brand-gold group-hover:text-white transition-colors"><LayoutTemplate size={16} /></div>
-                                    <span className="text-sm font-bold text-slate-600 group-hover:text-brand-dark">Number</span>
-                                </button>
-                                <button onClick={() => setFormFields([...formFields, { label: 'New Date Field', type: 'date', required: true }])} className="w-full flex items-center gap-3 p-3 bg-white border border-slate-200 shadow-sm rounded-lg hover:border-brand-gold hover:text-brand-dark transition-all text-left group">
-                                    <div className="p-1.5 bg-brand-cream rounded group-hover:bg-brand-gold group-hover:text-white transition-colors"><LayoutTemplate size={16} /></div>
-                                    <span className="text-sm font-bold text-slate-600 group-hover:text-brand-dark">Date</span>
-                                </button>
-                                <button onClick={() => setFormFields([...formFields, { label: 'New Long Text', type: 'textarea', required: false }])} className="w-full flex items-center gap-3 p-3 bg-white border border-slate-200 shadow-sm rounded-lg hover:border-brand-gold hover:text-brand-dark transition-all text-left group">
-                                    <div className="p-1.5 bg-brand-cream rounded group-hover:bg-brand-gold group-hover:text-white transition-colors"><LayoutTemplate size={16} /></div>
-                                    <span className="text-sm font-bold text-slate-600 group-hover:text-brand-dark">Long Text</span>
-                                </button>
-                                <button onClick={() => setFormFields([...formFields, { label: 'New Dropdown', type: 'select', options: ['Option 1', 'Option 2'], required: true }])} className="w-full flex items-center gap-3 p-3 bg-white border border-slate-200 shadow-sm rounded-lg hover:border-brand-gold hover:text-brand-dark transition-all text-left group">
-                                    <div className="p-1.5 bg-brand-cream rounded group-hover:bg-brand-gold group-hover:text-white transition-colors"><LayoutTemplate size={16} /></div>
-                                    <span className="text-sm font-bold text-slate-600 group-hover:text-brand-dark">Dropdown</span>
-                                </button>
-                            </div>
-
-                            <div className="mt-8 pt-6 border-t border-slate-200">
+                            {/* Sticky save button */}
+                            <div className="p-4 border-t border-slate-200 bg-slate-50">
                                 <button
                                     onClick={saveSchema}
                                     disabled={isSaving}
-                                    className="w-full py-2.5 bg-brand-dark text-white rounded-lg hover:bg-slate-800 disabled:opacity-50 transition-colors flex items-center justify-center gap-2 font-bold shadow-md"
+                                    className="w-full py-2.5 bg-brand-dark text-white rounded-lg hover:bg-slate-800 disabled:opacity-50 transition-colors flex items-center justify-center gap-2 font-bold shadow-md text-sm"
                                 >
                                     {isSaving ? <Spinner size={16} className="text-white" /> : <Save size={16} />}
                                     Save Form
@@ -369,161 +518,213 @@ export default function EventBuilderClient({ event, records }: { event: any, rec
                             </div>
                         </div>
 
+                        {/* MAIN CANVAS */}
+                        <div className="flex-1 flex flex-col overflow-hidden">
 
-                        {/* RIGHT MAIN STAGE - CANVAS */}
-                        <div className="flex-1 bg-slate-100 p-4 lg:p-8 overflow-y-auto w-full">
-                            <div className="max-w-3xl mx-auto">
+                            {/* Mobile sticky top bar with quick-add + save */}
+                            <div className="lg:hidden bg-white border-b border-slate-200 sticky top-0 z-10">
+                                <div className="flex gap-1.5 overflow-x-auto px-3 py-2.5 scrollbar-hide">
+                                    {[
+                                        { label: 'Text', type: 'text' },
+                                        { label: 'Number', type: 'number' },
+                                        { label: 'Date', type: 'date' },
+                                        { label: 'Long Text', type: 'textarea' },
+                                        { label: 'Dropdown', type: 'select' },
+                                    ].map(({ label, type }) => (
+                                        <button
+                                            key={type}
+                                            onClick={() => setFormFields([...formFields, {
+                                                label: `New ${label}`,
+                                                type,
+                                                required: false,
+                                                width: 'full',
+                                                ...(type === 'select' ? { options: ['Option 1', 'Option 2'] } : {})
+                                            }])}
+                                            className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold rounded-full hover:bg-brand-gold hover:text-white hover:border-brand-gold transition-all"
+                                        >
+                                            <PlusCircle size={11} /> {label}
+                                        </button>
+                                    ))}
+                                    <button
+                                        onClick={saveSchema}
+                                        disabled={isSaving}
+                                        className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-brand-dark text-white text-xs font-bold rounded-full hover:bg-slate-700 transition-colors disabled:opacity-50 ml-1"
+                                    >
+                                        {isSaving ? <Spinner size={11} className="text-white" /> : <Save size={11} />}
+                                        Save
+                                    </button>
+                                </div>
+                                {/* Template pills */}
+                                <div className="flex gap-1.5 px-3 pb-2">
+                                    <button
+                                        onClick={async () => {
+                                            setIsRefreshing(true);
+                                            if (records.length > 0 && !confirm('⚠️ This event has captured data. Proceed?')) { setIsRefreshing(false); return; }
+                                            if (formFields.length > 0 && !confirm('Replace current fields?')) { setIsRefreshing(false); return; }
+                                            await new Promise(r => setTimeout(r, 400));
+                                            setFormFields([
+                                                { label: 'Full Name', type: 'text', required: true, width: 'full' },
+                                                { label: 'Age', type: 'number', required: true, width: 'half' },
+                                                { label: 'Sex', type: 'select', options: ['Male', 'Female'], required: true, width: 'half' },
+                                                { label: 'Phone Number', type: 'text', required: false, width: 'full' },
+                                                { label: 'Systolic BP (mmHg)', type: 'number', required: false, width: 'half' },
+                                                { label: 'Diastolic BP (mmHg)', type: 'number', required: false, width: 'half' },
+                                                { label: 'Weight (kg)', type: 'number', required: false, width: 'half' },
+                                                { label: 'Height (cm)', type: 'number', required: false, width: 'half' },
+                                                { label: 'BMI', type: 'number', required: false, width: 'full' },
+                                                { label: 'Temperature (C)', type: 'number', required: false, width: 'half' },
+                                                { label: 'Malaria RDT', type: 'select', options: ['Positive', 'Negative', 'Not Done'], required: false, width: 'half' },
+                                                { label: 'Remarks', type: 'textarea', required: false, width: 'full' }
+                                            ]);
+                                            setIsRefreshing(false);
+                                        }}
+                                        className="flex-shrink-0 px-3 py-1 bg-brand-cream border border-brand-gold/30 text-brand-dark text-xs font-bold rounded-full"
+                                    >
+                                        📋 Medical Template
+                                    </button>
+                                    <button
+                                        onClick={async () => {
+                                            setIsRefreshing(true);
+                                            if (records.length > 0 && !confirm('⚠️ This event has captured data. Proceed?')) { setIsRefreshing(false); return; }
+                                            if (formFields.length > 0 && !confirm('Replace current fields?')) { setIsRefreshing(false); return; }
+                                            await new Promise(r => setTimeout(r, 400));
+                                            setFormFields([
+                                                { label: 'Full Name', type: 'text', required: true, width: 'full' },
+                                                { label: 'Age', type: 'number', required: true, width: 'half' },
+                                                { label: 'Sex', type: 'select', options: ['Male', 'Female'], required: true, width: 'half' },
+                                                { label: 'PCV', type: 'number', required: true, width: 'half' },
+                                                { label: 'Weight (kg)', type: 'number', required: true, width: 'half' },
+                                                { label: 'HBsAg', type: 'select', options: ['Non-Reactive', 'Reactive'], required: true, width: 'half' },
+                                                { label: 'HIV', type: 'select', options: ['Non-Reactive', 'Reactive'], required: true, width: 'half' },
+                                                { label: 'Blood Group', type: 'select', options: ['A', 'B', 'AB', 'O'], required: true, width: 'half' },
+                                                { label: 'Rhesus', type: 'select', options: ['Positive', 'Negative'], required: true, width: 'half' },
+                                                { label: 'Remarks', type: 'textarea', required: false, width: 'full' }
+                                            ]);
+                                            setIsRefreshing(false);
+                                        }}
+                                        className="flex-shrink-0 px-3 py-1 bg-red-50 border border-red-200 text-red-700 text-xs font-bold rounded-full"
+                                    >
+                                        🩸 Blood Drive Template
+                                    </button>
+                                </div>
+                            </div>
 
-                                {/* Safety Warning Banner */}
-                                {records.length > 0 && (
-                                    <div className="mb-6 bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-start gap-3">
-                                        <AlertCircle className="text-amber-600 shrink-0 mt-0.5" size={20} />
-                                        <div>
-                                            <h4 className="font-bold text-amber-900 text-sm">Active Event Warning</h4>
-                                            <p className="text-amber-800 text-xs mt-1">
-                                                This event already has <strong>{records.length} collected responses</strong>.
-                                                Editing the form questions now may cause data inconsistency (e.g., old answers may not match new labels).
-                                                Proceed with caution.
-                                            </p>
+                            {/* Scrollable canvas area */}
+                            <div className="flex-1 overflow-y-auto p-4 lg:p-6 bg-slate-100">
+                                <div className="max-w-2xl mx-auto">
+
+                                    {/* Safety Warning Banner */}
+                                    {records.length > 0 && (
+                                        <div className="mb-4 bg-amber-50 border border-amber-200 p-3 rounded-xl flex items-start gap-3">
+                                            <AlertCircle className="text-amber-600 shrink-0 mt-0.5" size={18} />
+                                            <div>
+                                                <h4 className="font-bold text-amber-900 text-sm">Active Event Warning</h4>
+                                                <p className="text-amber-700 text-xs mt-0.5">This event has <strong>{records.length} responses</strong>. Editing may cause data mismatches.</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
 
-                                {formFields.length === 0 ? (
-                                    <div className="text-center py-20 border-2 border-dashed border-slate-300 rounded-xl bg-slate-50">
-                                        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                                            <PlusCircle size={24} className="text-slate-400" />
+                                    {formFields.length === 0 ? (
+                                        <div className="text-center py-16 border-2 border-dashed border-slate-300 rounded-xl bg-white">
+                                            <div className="w-14 h-14 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm">
+                                                <PlusCircle size={26} className="text-slate-400" />
+                                            </div>
+                                            <h3 className="text-base font-bold text-slate-700">Canvas is Empty</h3>
+                                            <p className="text-slate-400 text-xs mt-1">Add elements using the panel or quick-add bar above.</p>
                                         </div>
-                                        <h3 className="text-lg font-semibold text-slate-700">Canvas is Empty</h3>
-                                        <p className="text-slate-500 text-sm mt-1">Click an element on the left (or top on mobile) to add it.</p>
-                                    </div>
-                                ) : (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {formFields.map((field, index) => (
-                                            <div
-                                                key={index}
-                                                className={`bg-white rounded-xl shadow-sm border border-slate-200 p-4 lg:p-5 group hover:border-emerald-400 hover:shadow-md transition-all ${field.width === 'half' ? 'col-span-1' : 'col-span-1 md:col-span-2'}`}
-                                            >
-                                                <div className="flex flex-col lg:flex-row items-start gap-4 h-full">
-
-                                                    {/* Drag Handles / Position Controls - Mobile Optimized */}
-                                                    <div className="flex lg:flex-col gap-1 pt-2 w-full lg:w-auto justify-end lg:justify-start border-b lg:border-b-0 border-slate-100 pb-2 lg:pb-0 mb-2 lg:mb-0">
-                                                        <button
-                                                            disabled={index === 0}
-                                                            onClick={() => {
-                                                                const newFields = [...formFields];
-                                                                [newFields[index - 1], newFields[index]] = [newFields[index], newFields[index - 1]];
-                                                                setFormFields(newFields);
-                                                            }}
-                                                            className="p-1 px-3 lg:px-1 bg-slate-50 lg:bg-transparent rounded lg:rounded-none text-slate-400 hover:text-emerald-600 disabled:opacity-30 transition-colors"
-                                                            title="Move Up"
-                                                        >
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="rotate-270 lg:rotate-0"><path d="m18 15-6-6-6 6" /></svg>
-                                                        </button>
-                                                        <button
-                                                            disabled={index === formFields.length - 1}
-                                                            onClick={() => {
-                                                                const newFields = [...formFields];
-                                                                [newFields[index + 1], newFields[index]] = [newFields[index], newFields[index + 1]];
-                                                                setFormFields(newFields);
-                                                            }}
-                                                            className="p-1 px-3 lg:px-1 bg-slate-50 lg:bg-transparent rounded lg:rounded-none text-slate-400 hover:text-emerald-600 disabled:opacity-30 transition-colors"
-                                                            title="Move Down"
-                                                        >
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="rotate-270 lg:rotate-0"><path d="m6 9 6 6 6-6" /></svg>
-                                                        </button>
+                                    ) : (
+                                        <div className="grid grid-cols-2 gap-2.5">
+                                            {formFields.map((field, index) => (
+                                                <div
+                                                    key={index}
+                                                    className={`bg-white rounded-xl border border-slate-200 shadow-sm hover:border-brand-gold/40 transition-all ${field.width === 'half' ? 'col-span-1' : 'col-span-2'}`}
+                                                >
+                                                    {/* Card top bar */}
+                                                    <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-t-xl border-b border-slate-100">
+                                                        <span className="w-5 h-5 rounded-full bg-brand-gold/20 text-brand-dark text-[10px] font-bold flex items-center justify-center shrink-0">
+                                                            {index + 1}
+                                                        </span>
+                                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex-1">
+                                                            {field.type === 'textarea' ? 'Long Text' : field.type === 'select' ? 'Dropdown' : field.type === 'number' ? 'Number' : field.type === 'date' ? 'Date' : 'Short Text'}
+                                                        </span>
+                                                        <div className="flex items-center gap-0.5">
+                                                            <button disabled={index === 0} onClick={() => { const f = [...formFields]; [f[index - 1], f[index]] = [f[index], f[index - 1]]; setFormFields(f); }} className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 disabled:opacity-20 transition-colors" title="Up">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6" /></svg>
+                                                            </button>
+                                                            <button disabled={index === formFields.length - 1} onClick={() => { const f = [...formFields]; [f[index + 1], f[index]] = [f[index], f[index + 1]]; setFormFields(f); }} className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 disabled:opacity-20 transition-colors" title="Down">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                                                            </button>
+                                                            <button onClick={() => { const f = [...formFields]; const c = JSON.parse(JSON.stringify(f[index])); c.label += ' (Copy)'; f.splice(index + 1, 0, c); setFormFields(f); }} className="p-1 rounded text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-colors" title="Duplicate">
+                                                                <Copy size={13} />
+                                                            </button>
+                                                            <button onClick={() => removeField(index)} className="p-1 rounded text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors" title="Delete">
+                                                                <Trash2 size={13} />
+                                                            </button>
+                                                        </div>
                                                     </div>
 
-                                                    <div className="flex-1 space-y-4 w-full">
-                                                        {/* Label & Type Row */}
-                                                        <div className="flex flex-col lg:flex-row lg:items-center gap-3">
-                                                            <input
-                                                                type="text"
-                                                                value={field.label}
-                                                                onChange={(e) => updateField(index, 'label', e.target.value)}
-                                                                className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-brand-gold outline-none font-bold text-brand-dark transition-colors placeholder:text-slate-400 w-full"
-                                                                placeholder="Enter question title..."
-                                                            />
-                                                            <div className="flex items-center gap-2 p-1 bg-slate-50 rounded-lg border border-slate-200 self-start md:self-auto">
-                                                                <span className="text-xs font-semibold text-slate-500 uppercase px-2">{field.type}</span>
+                                                    {/* Card body */}
+                                                    <div className="p-4 space-y-3">
+                                                        <input
+                                                            type="text"
+                                                            value={field.label}
+                                                            onChange={(e) => updateField(index, 'label', e.target.value)}
+                                                            className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-brand-gold/40 outline-none font-semibold text-slate-800 placeholder:text-slate-400 text-sm transition-all"
+                                                            placeholder="Question label e.g. Full Name"
+                                                        />
+
+                                                        <div className="flex flex-wrap gap-2 items-center">
+                                                            <select
+                                                                value={field.type}
+                                                                onChange={(e) => updateField(index, 'type', e.target.value)}
+                                                                className="flex-1 min-w-[120px] px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 focus:ring-2 focus:ring-brand-gold/40 outline-none"
+                                                            >
+                                                                <option value="text">Short Text</option>
+                                                                <option value="number">Number</option>
+                                                                <option value="date">Date</option>
+                                                                <option value="textarea">Long Text</option>
+                                                                <option value="select">Dropdown</option>
+                                                            </select>
+
+                                                            <div className="flex items-center bg-slate-50 rounded-lg p-0.5 border border-slate-200">
+                                                                <button onClick={() => updateField(index, 'width', 'half')} className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all ${field.width === 'half' ? 'bg-white text-brand-dark shadow-sm' : 'text-slate-400'}`}>½</button>
+                                                                <button onClick={() => updateField(index, 'width', 'full')} className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all ${!field.width || field.width === 'full' ? 'bg-white text-brand-dark shadow-sm' : 'text-slate-400'}`}>Full</button>
                                                             </div>
+
+                                                            <label className="flex items-center gap-1.5 cursor-pointer select-none ml-auto">
+                                                                <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${field.required ? 'bg-brand-dark border-brand-dark' : 'border-slate-300 bg-white'}`}>
+                                                                    {field.required && <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>}
+                                                                </div>
+                                                                <input type="checkbox" checked={field.required} onChange={(e) => updateField(index, 'required', e.target.checked)} className="hidden" />
+                                                                <span className="text-xs font-semibold text-slate-500">Required</span>
+                                                            </label>
                                                         </div>
 
                                                         {field.type === 'select' && (
-                                                            <div className="pl-1">
-                                                                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Options</label>
+                                                            <div>
+                                                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wide block mb-1">Options <span className="font-normal">(comma separated)</span></label>
                                                                 <input
                                                                     type="text"
                                                                     value={field.options?.join(', ') || ''}
                                                                     onChange={(e) => updateField(index, 'options', e.target.value.split(',').map(s => s.trim()))}
-                                                                    className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 rounded-md focus:border-brand-gold outline-none"
-                                                                    placeholder="Option 1, Option 2, Option 3"
+                                                                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:border-brand-gold focus:ring-2 focus:ring-brand-gold/30 outline-none bg-slate-50"
+                                                                    placeholder="Male, Female, Other"
                                                                 />
                                                             </div>
                                                         )}
-
-                                                        <div className="flex flex-wrap items-center justify-between pt-2 gap-4">
-                                                            <div className="flex items-center gap-4">
-                                                                <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none hover:text-brand-dark transition-colors">
-                                                                    <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${field.required ? 'bg-brand-dark border-brand-dark text-white' : 'border-slate-300 bg-white'}`}>
-                                                                        {field.required && <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>}
-                                                                    </div>
-                                                                    <input
-                                                                        type="checkbox"
-                                                                        checked={field.required}
-                                                                        onChange={(e) => updateField(index, 'required', e.target.checked)}
-                                                                        className="hidden"
-                                                                    />
-                                                                    Required
-                                                                </label>
-
-                                                                {/* WIDTH TOGGLE */}
-                                                                <div className="flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200">
-                                                                    <button
-                                                                        onClick={() => updateField(index, 'width', 'half')}
-                                                                        className={`px-2 py-1 text-xs font-medium rounded-md transition-all ${field.width === 'half' ? 'bg-white text-brand-dark shadow-sm ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
-                                                                    >
-                                                                        50%
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() => updateField(index, 'width', 'full')}
-                                                                        className={`px-2 py-1 text-xs font-medium rounded-md transition-all ${!field.width || field.width === 'full' ? 'bg-white text-brand-dark shadow-sm ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
-                                                                    >
-                                                                        100%
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="flex items-center gap-2 ml-auto">
-                                                                <button
-                                                                    onClick={() => {
-                                                                        const newFields = [...formFields];
-                                                                        const fieldToCopy = JSON.parse(JSON.stringify(formFields[index]));
-                                                                        fieldToCopy.label = `${fieldToCopy.label} (Copy)`;
-                                                                        newFields.splice(index + 1, 0, fieldToCopy);
-                                                                        setFormFields(newFields);
-                                                                    }}
-                                                                    className="text-slate-400 hover:text-blue-500 px-2 py-1 transition-colors"
-                                                                    title="Duplicate"
-                                                                >
-                                                                    <Copy size={16} />
-                                                                </button>
-
-                                                                <button
-                                                                    onClick={() => removeField(index)}
-                                                                    className="text-slate-400 hover:text-red-500 px-2 py-1 transition-colors"
-                                                                    title="Remove"
-                                                                >
-                                                                    <Trash2 size={16} />
-                                                                </button>
-                                                            </div>
-                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
+                                            ))}
+
+                                            <button
+                                                onClick={addField}
+                                                className="col-span-2 w-full py-3 border-2 border-dashed border-slate-300 rounded-xl text-slate-400 hover:border-brand-gold hover:text-brand-dark font-semibold text-sm transition-all flex items-center justify-center gap-2 hover:bg-white"
+                                            >
+                                                <PlusCircle size={16} /> Add Field
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -608,11 +809,30 @@ export default function EventBuilderClient({ event, records }: { event: any, rec
                                 >
                                     {isRefreshing ? <Spinner size={18} className="text-brand-gold" /> : <RotateCw size={18} />}
                                 </button>
+                                
+                                <div className="h-6 w-px bg-slate-200 mx-1"></div>
+
+                                <button
+                                    onClick={handlePrint}
+                                    className="text-sm bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:text-brand-dark px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-2"
+                                    title="Print Results (PDF)"
+                                >
+                                    <Printer size={16} /> Print / PDF
+                                </button>
+                                
+                                <button
+                                    onClick={handleDownloadDoc}
+                                    className="text-sm bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-2"
+                                    title="Download Word Doc"
+                                >
+                                    <FileText size={16} /> Doc
+                                </button>
+
                                 <button
                                     onClick={handleDownloadCSV}
                                     className="text-sm bg-brand-cream text-brand-dark border border-brand-gold/30 hover:bg-brand-gold hover:text-white px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-2"
                                 >
-                                    <Download size={16} /> Download CSV
+                                    <Download size={16} /> CSV
                                 </button>
                             </div>
                         </div>

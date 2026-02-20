@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -15,10 +16,9 @@ export default function LoginPage() {
         <div className="min-h-screen flex items-center justify-center p-4">
             <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <div className="text-center mb-8">
-                    <div className="inline-block p-4 bg-brand-dark rounded-xl mb-4 shadow-lg">
-                        <span className="text-3xl font-serif font-bold text-brand-gold">R</span>
+                    <div className="flex justify-center mb-5">
+                        <Image src="/Reach.png" alt="ReachPoint Logo" width={180} height={52} className="object-contain" />
                     </div>
-                    <h1 className="text-4xl font-serif font-bold text-brand-dark mb-2">ReachPoint</h1>
                     <p className="text-slate-500">Secure Professional Access</p>
                 </div>
 
@@ -53,7 +53,12 @@ export default function LoginPage() {
                             });
 
                             if (result?.error) {
-                                setError('Invalid credentials or account not approved yet.');
+                                // Check for specific error messages
+                                if (result.error.includes('Access denied') || result.error.includes('accountStatus') || result.error.includes('pending')) {
+                                    setError('Your account is pending admin approval. Please contact an administrator.');
+                                } else {
+                                    setError('Invalid credentials or account not approved yet.');
+                                }
                             } else {
                                 router.push('/dashboard');
                                 router.refresh();

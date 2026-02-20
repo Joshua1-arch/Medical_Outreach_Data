@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 
 
 interface SiteConfig {
-    themeMode: 'default' | 'christmas' | 'easter';
+    themeMode: 'default' | 'christmas' | 'easter' | 'newyear' | 'halloween' | 'valentine';
     primaryColor: string;
     secondaryColor: string;
     logoUrl: string;

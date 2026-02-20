@@ -78,8 +78,13 @@ export default async function PendingEventsPage() {
                                     <div className="text-slate-400">
                                         Data Collection Fields: <span className="text-slate-700 font-bold">{event.formFields?.length || 0}</span>
                                     </div>
-                                    <div className="text-slate-400 ml-auto">
-                                        Proposed By: <span className="text-brand-dark font-bold">{event.createdBy?.name || "Unknown"}</span>
+                                    <div className="text-slate-400 ml-auto text-right">
+                                        <div>
+                                            Proposed By: <span className="text-brand-dark font-bold">{event.createdBy?.name || "Unknown"}</span>
+                                        </div>
+                                        {event.createdBy?.email && (
+                                            <div className="text-xs text-slate-500 font-medium">{event.createdBy.email}</div>
+                                        )}
                                     </div>
                                 </div>
                             </div>

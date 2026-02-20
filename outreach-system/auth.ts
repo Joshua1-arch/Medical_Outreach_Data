@@ -11,7 +11,9 @@ async function getUser(email: string) {
         await dbConnect();
         const user = await User.findOne({ email }).lean();
         if (user) {
-            return { ...user, id: user._id.toString() };
+            // Ensure all MongoDB specific objects are converted to plain objects
+            const serializedUser = JSON.parse(JSON.stringify({ ...user, id: user._id.toString() }));
+            return serializedUser;
         }
         return null;
     } catch (error) {
@@ -32,7 +34,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             else if (token?.id) {
                 try {
                     await dbConnect();
-                    const dbUser = await User.findById(token.id).select('accountStatus role');
+                    const dbUser = await User.findById(token.id).select('accountStatus role').lean();
                     if (dbUser) {
                         token.accountStatus = dbUser.accountStatus;
                         token.role = dbUser.role;

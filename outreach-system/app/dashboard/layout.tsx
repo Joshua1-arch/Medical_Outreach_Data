@@ -9,7 +9,7 @@ export default async function DashboardLayout({
     const session = await auth();
 
     return (
-        <div className="flex h-screen bg-brand-cream flex-col md:flex-row">
+        <div className="flex h-screen bg-[#F0F2F5] overflow-hidden">
             <Sidebar
                 user={session?.user}
                 onSignOut={async () => {
@@ -19,9 +19,11 @@ export default async function DashboardLayout({
             />
 
             {/* Main Content */}
-            <main className="flex-1 overflow-auto p-4 md:p-8 pt-20 md:pt-8">
-                <div className="max-w-7xl mx-auto">
-                    {children}
+            <main className="flex-1 overflow-y-auto">
+                <div className="min-h-full p-5 pt-20 md:pt-6 md:p-8">
+                    <div className="max-w-6xl mx-auto">
+                        {children}
+                    </div>
                 </div>
             </main>
         </div>

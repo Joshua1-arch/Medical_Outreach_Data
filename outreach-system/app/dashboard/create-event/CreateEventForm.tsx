@@ -14,9 +14,8 @@ export default function CreateEventForm() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [coverImage, setCoverImage] = useState('');
-    const [inventoryItems, setInventoryItems] = useState<{ id: string; itemName: string; startingStock: number }[]>([
-        { id: Math.random().toString(36).substr(2, 9), itemName: '', startingStock: 0 }
-    ]);
+    const [trackInventory, setTrackInventory] = useState(false);
+    const [inventoryItems, setInventoryItems] = useState<{ id: string; itemName: string; startingStock: number }[]>([]);
 
     const addInventoryItem = () => {
         setInventoryItems([...inventoryItems, { id: Math.random().toString(36).substr(2, 9), itemName: '', startingStock: 0 }]);
@@ -244,61 +243,79 @@ export default function CreateEventForm() {
                         </div>
 
                         {/* Inventory Section */}
-                        <div className="bg-slate-50 p-6 rounded-xl border border-slate-200">
-                            <h3 className="text-lg font-bold text-brand-dark mb-4 flex items-center gap-2">
-                                <Package size={20} className="text-brand-gold" />
-                                Inventory Planning
-                            </h3>
-                            <p className="text-sm text-slate-500 mb-4">
-                                Define the starting stock for materials you want to track (e.g., test strips, gloves).
-                            </p>
+                        <div className="rounded-xl border border-slate-200 overflow-hidden">
+                            {/* Toggle Header */}
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setTrackInventory(!trackInventory);
+                                    if (!trackInventory && inventoryItems.length === 0) {
+                                        setInventoryItems([{ id: Math.random().toString(36).substr(2, 9), itemName: '', startingStock: 0 }]);
+                                    }
+                                }}
+                                className="w-full flex items-center justify-between px-6 py-4 bg-slate-50 hover:bg-slate-100 transition-colors text-left"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <Package size={20} className="text-brand-gold" />
+                                    <div>
+                                        <p className="font-bold text-brand-dark">Inventory Planning <span className="text-slate-400 font-normal text-sm">(Optional)</span></p>
+                                        <p className="text-xs text-slate-400">Track starting stock for materials like test strips, gloves, etc.</p>
+                                    </div>
+                                </div>
+                                <div className={`w-11 h-6 rounded-full transition-colors flex-shrink-0 relative ${
+                                    trackInventory ? 'bg-brand-gold' : 'bg-slate-300'
+                                }`}>
+                                    <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                                        trackInventory ? 'translate-x-6' : 'translate-x-1'
+                                    }`} />
+                                </div>
+                            </button>
 
-                            <div className="space-y-3">
-                                {inventoryItems.map((item, index) => (
-                                    <div key={item.id} className="flex gap-4 items-end animate-in fade-in slide-in-from-left-2">
-                                        <div className="flex-1">
-                                            <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Item Name</label>
-                                            <input
-                                                type="text"
-                                                value={item.itemName}
-                                                onChange={(e) => updateInventoryItem(index, 'itemName', e.target.value)}
-                                                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-gold/50 outline-none"
-                                                placeholder="e.g. Malaria Strips"
-                                                required
-                                            />
-                                        </div>
-                                        <div className="w-32">
-                                            <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Quantity</label>
-                                            <input
-                                                type="number"
-                                                value={item.startingStock}
-                                                onChange={(e) => updateInventoryItem(index, 'startingStock', parseInt(e.target.value) || 0)}
-                                                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-gold/50 outline-none"
-                                                min="0"
-                                                required
-                                            />
-                                        </div>
-                                        {inventoryItems.length > 1 && (
+                            {/* Expandable Content */}
+                            {trackInventory && (
+                                <div className="p-6 bg-white border-t border-slate-200 space-y-3">
+                                    {inventoryItems.map((item, index) => (
+                                        <div key={item.id} className="flex gap-4 items-end animate-in fade-in slide-in-from-left-2">
+                                            <div className="flex-1">
+                                                <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Item Name</label>
+                                                <input
+                                                    type="text"
+                                                    value={item.itemName}
+                                                    onChange={(e) => updateInventoryItem(index, 'itemName', e.target.value)}
+                                                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-gold/50 outline-none"
+                                                    placeholder="e.g. Malaria Strips"
+                                                />
+                                            </div>
+                                            <div className="w-32">
+                                                <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Quantity</label>
+                                                <input
+                                                    type="number"
+                                                    value={item.startingStock}
+                                                    onChange={(e) => updateInventoryItem(index, 'startingStock', parseInt(e.target.value) || 0)}
+                                                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-gold/50 outline-none"
+                                                    min="0"
+                                                />
+                                            </div>
                                             <button
                                                 type="button"
                                                 onClick={() => removeInventoryItem(index)}
-                                                className="p-2.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                className="p-2.5 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
                                                 title="Remove Item"
                                             >
                                                 <Trash2 size={18} />
                                             </button>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
+                                        </div>
+                                    ))}
 
-                            <button
-                                type="button"
-                                onClick={addInventoryItem}
-                                className="mt-4 text-sm font-bold text-brand-dark flex items-center gap-2 hover:text-brand-gold transition-colors"
-                            >
-                                <Plus size={16} /> Add Inventory Item
-                            </button>
+                                    <button
+                                        type="button"
+                                        onClick={addInventoryItem}
+                                        className="mt-2 text-sm font-bold text-brand-dark flex items-center gap-2 hover:text-brand-gold transition-colors"
+                                    >
+                                        <Plus size={16} /> Add Another Item
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         <div>

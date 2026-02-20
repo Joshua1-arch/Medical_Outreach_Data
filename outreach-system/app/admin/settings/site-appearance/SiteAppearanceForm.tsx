@@ -50,6 +50,9 @@ export default function SiteAppearanceForm({ initialConfig }: { initialConfig: a
                         <option value="default">Default</option>
                         <option value="christmas">Christmas</option>
                         <option value="easter">Easter</option>
+                        <option value="newyear">New Year</option>
+                        <option value="halloween">Halloween</option>
+                        <option value="valentine">Valentine</option>
                     </select>
                 </div>
 
@@ -114,16 +117,44 @@ export default function SiteAppearanceForm({ initialConfig }: { initialConfig: a
                 </div>
             </div>
 
-            <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">Logo URL</label>
-                <input
-                    type="url"
-                    name="logoUrl"
-                    defaultValue={initialConfig.logoUrl || '/Reach.png'}
-                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-gold/50 outline-none placeholder:text-slate-400"
-                    placeholder="https://example.com/logo.png"
-                />
-                <p className="text-xs text-slate-500">Enter a public URL for your logo image.</p>
+            <div className="space-y-4">
+                <label className="text-sm font-bold text-slate-700">Company Logo</label>
+                
+                <div className="grid md:grid-cols-2 gap-6 items-start">
+                    <div className="space-y-2">
+                        <label className="text-xs font-semibold text-slate-500 uppercase">Upload Image</label>
+                        <input
+                            type="file"
+                            name="logoFile"
+                            accept="image/*"
+                            className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-cream file:text-brand-dark hover:file:bg-brand-gold/20"
+                        />
+                        <p className="text-xs text-slate-400">Recommended size: 200x50px. Max 2MB.</p>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-xs font-semibold text-slate-500 uppercase">Or Image URL</label>
+                        <input
+                            type="url"
+                            name="logoUrl"
+                            defaultValue={initialConfig.logoUrl || '/Reach.png'}
+                            className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-gold/50 outline-none placeholder:text-slate-400 text-sm"
+                            placeholder="https://example.com/logo.png"
+                        />
+                    </div>
+                </div>
+
+                {initialConfig.logoUrl && (
+                    <div className="mt-2 p-4 bg-slate-50 rounded-lg border border-slate-200 inline-block">
+                        <p className="text-xs text-slate-500 mb-2">Current Logo Preview:</p>
+                        <img 
+                            src={initialConfig.logoUrl} 
+                            alt="Current Logo" 
+                            className="h-12 object-contain"
+                            onError={(e) => (e.currentTarget.style.display = 'none')} 
+                        />
+                    </div>
+                )}
             </div>
 
             <div className="space-y-2">
@@ -137,14 +168,151 @@ export default function SiteAppearanceForm({ initialConfig }: { initialConfig: a
                 />
             </div>
 
-            <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">Announcement Banner</label>
-                <textarea
-                    name="announcementBanner"
-                    defaultValue={initialConfig.announcementBanner}
-                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-gold/50 outline-none h-24 resize-none"
-                    placeholder="Enter an optional announcement message to display at the top of the site..."
-                />
+            <div className="space-y-4 pt-6 border-t border-slate-100">
+                <h3 className="text-lg font-bold text-slate-800">Social Media Links</h3>
+                <p className="text-sm text-slate-500 mb-4">Toggle on/off the social icons you want to display on the homepage.</p>
+
+                <div className="grid grid-cols-1 gap-4">
+                    {/* Email */}
+                    <div className="p-4 border rounded-xl bg-slate-50 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <span className="text-xl">📧</span>
+                                <span className="font-bold text-slate-700">Email Contact</span>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    name="social_email_enabled"
+                                    defaultChecked={initialConfig.socialMediaLinks?.email?.enabled}
+                                    className="sr-only peer"
+                                    onChange={(e) => {
+                                        const input = document.getElementById('email-url-input');
+                                        if (input) {
+                                            if (e.target.checked) input.classList.remove('hidden');
+                                            else input.classList.add('hidden');
+                                        }
+                                    }}
+                                />
+                                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-gold/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                            </label>
+                        </div>
+                        <div id="email-url-input" className={initialConfig.socialMediaLinks?.email?.enabled ? '' : 'hidden'}>
+                            <input
+                                type="text"
+                                name="social_email_url"
+                                defaultValue={initialConfig.socialMediaLinks?.email?.url}
+                                placeholder="mailto:contact@example.com"
+                                className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 outline-none text-sm"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Twitter / X */}
+                    <div className="p-4 border rounded-xl bg-slate-50 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <span className="text-xl">𝕏</span>
+                                <span className="font-bold text-slate-700">X (Twitter)</span>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    name="social_twitter_enabled"
+                                    defaultChecked={initialConfig.socialMediaLinks?.twitter?.enabled}
+                                    className="sr-only peer"
+                                    onChange={(e) => {
+                                        const input = document.getElementById('twitter-url-input');
+                                        if (input) {
+                                            if (e.target.checked) input.classList.remove('hidden');
+                                            else input.classList.add('hidden');
+                                        }
+                                    }}
+                                />
+                                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-gold/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                            </label>
+                        </div>
+                        <div id="twitter-url-input" className={initialConfig.socialMediaLinks?.twitter?.enabled ? '' : 'hidden'}>
+                            <input
+                                type="url"
+                                name="social_twitter_url"
+                                defaultValue={initialConfig.socialMediaLinks?.twitter?.url}
+                                placeholder="https://x.com/username"
+                                className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 outline-none text-sm"
+                            />
+                        </div>
+                    </div>
+
+                    {/* LinkedIn */}
+                    <div className="p-4 border rounded-xl bg-slate-50 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <span className="text-xl text-blue-700">in</span>
+                                <span className="font-bold text-slate-700">LinkedIn</span>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    name="social_linkedin_enabled"
+                                    defaultChecked={initialConfig.socialMediaLinks?.linkedin?.enabled}
+                                    className="sr-only peer"
+                                    onChange={(e) => {
+                                        const input = document.getElementById('linkedin-url-input');
+                                        if (input) {
+                                            if (e.target.checked) input.classList.remove('hidden');
+                                            else input.classList.add('hidden');
+                                        }
+                                    }}
+                                />
+                                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-gold/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                            </label>
+                        </div>
+                        <div id="linkedin-url-input" className={initialConfig.socialMediaLinks?.linkedin?.enabled ? '' : 'hidden'}>
+                            <input
+                                type="url"
+                                name="social_linkedin_url"
+                                defaultValue={initialConfig.socialMediaLinks?.linkedin?.url}
+                                placeholder="https://linkedin.com/in/username"
+                                className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 outline-none text-sm"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Facebook */}
+                    <div className="p-4 border rounded-xl bg-slate-50 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <span className="text-xl text-blue-600">f</span>
+                                <span className="font-bold text-slate-700">Facebook</span>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    name="social_facebook_enabled"
+                                    defaultChecked={initialConfig.socialMediaLinks?.facebook?.enabled}
+                                    className="sr-only peer"
+                                    onChange={(e) => {
+                                        const input = document.getElementById('facebook-url-input');
+                                        if (input) {
+                                            if (e.target.checked) input.classList.remove('hidden');
+                                            else input.classList.add('hidden');
+                                        }
+                                    }}
+                                />
+                                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-gold/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                            </label>
+                        </div>
+                        <div id="facebook-url-input" className={initialConfig.socialMediaLinks?.facebook?.enabled ? '' : 'hidden'}>
+                            <input
+                                type="url"
+                                name="social_facebook_url"
+                                defaultValue={initialConfig.socialMediaLinks?.facebook?.url}
+                                placeholder="https://facebook.com/username"
+                                className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 outline-none text-sm"
+                            />
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div className="pt-4">

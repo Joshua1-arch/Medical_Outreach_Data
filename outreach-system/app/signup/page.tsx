@@ -1,5 +1,5 @@
 'use client';
-
+import Image from "next/image";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -46,8 +46,8 @@ export default function SignupPage() {
         <div className="min-h-screen flex items-center justify-center p-4">
             <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <div className="text-center mb-8">
-                    <div className="inline-block p-4 bg-brand-dark rounded-xl mb-4 shadow-lg">
-                        <span className="text-3xl font-serif font-bold text-brand-gold">R</span>
+                    <div className="flex justify-center mb-5">
+                        <Image src="/Reach.png" alt="ReachPoint Logo" width={180} height={52} className="object-contain" />
                     </div>
                     <h1 className="text-4xl font-serif font-bold text-brand-dark mb-2">Create Account</h1>
                     <p className="text-slate-500">Join the ReachPoint platform</p>
