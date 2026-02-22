@@ -1,8 +1,10 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, Suspense, useEffect } from 'react';
+import { signIn } from 'next-auth/react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import {
     AlertCircle, CheckCircle, UserCircle, Mail, Lock,
     ShieldCheck, ChevronDown, Ticket, UserPlus, HeartPulse,
@@ -18,9 +20,27 @@ const PERKS = [
 ];
 
 export default function SignupPage() {
+    return (
+        <Suspense fallback={<div className="h-screen w-full flex items-center justify-center">Loading...</div>}>
+            <SignupPageContent />
+        </Suspense>
+    );
+}
+
+function SignupPageContent() {
     const [error, setError]               = useState('');
     const [success, setSuccess]           = useState(false);
     const [autoApproved, setAutoApproved] = useState(false);
+
+    const searchParams = useSearchParams();
+    const googleSuccess = searchParams.get('success') === 'google';
+
+    useEffect(() => {
+        if (googleSuccess) {
+            setSuccess(true);
+            setAutoApproved(false);
+        }
+    }, [googleSuccess]);
 
     /* ── Success screen ─────────────────────────────────────── */
     if (success) {
@@ -327,6 +347,28 @@ export default function SignupPage() {
                                 </Link>
                             </p>
                         </form>
+
+                        {/* Divider */}
+                        <div className="relative my-8">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-slate-200" />
+                            </div>
+                            <div className="relative flex justify-center text-sm">
+                                <span className="bg-white px-3 text-slate-500">Or join with</span>
+                            </div>
+                        </div>
+
+                        {/* Social Login Button */}
+                        <div className="flex flex-col gap-4">
+                            <button
+                                onClick={() => signIn('google')}
+                                type="button"
+                                className="flex items-center justify-center gap-2.5 rounded-xl border border-slate-200 bg-white py-3.5 px-6 text-sm font-bold text-slate-900 shadow-sm hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-[0.99]"
+                            >
+                                <img src="https://authjs.dev/img/providers/google.svg" width={20} height={20} alt="Google logo" />
+                                Continue with Google
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

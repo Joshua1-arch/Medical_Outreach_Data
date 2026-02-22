@@ -28,6 +28,21 @@ export const dynamic = 'force-dynamic';
 async function getUserStats(userId: string) {
     await dbConnect();
 
+    // Defensive check: if userId is not a valid ObjectId string, 
+    // Mongoose queries will fail with a CastError.
+    const isValidId = /^[0-9a-fA-F]{24}$/.test(userId);
+    if (!isValidId) {
+        return { 
+            myEvents: 0, 
+            approvedEvents: 0, 
+            pendingEvents: 0, 
+            totalRecords: 0, 
+            recentEvents: [], 
+            isTrusted: false, 
+            isAdmin: false 
+        };
+    }
+
     const [myEvents, approvedEvents, pendingEvents, totalRecords, recentEvents, user] = await Promise.all([
         Event.countDocuments({ createdBy: userId }),
         Event.countDocuments({ createdBy: userId, status: 'approved' }),

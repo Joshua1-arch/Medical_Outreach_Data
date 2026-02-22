@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { AlertCircle, Mail, Lock, Eye, EyeOff, Globe, Building2 } from 'lucide-react';
 import { SubmitButton } from '@/components/ui/SubmitButton';
@@ -12,6 +12,8 @@ export default function LoginPage() {
     const router = useRouter();
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const searchParams = useSearchParams();
+    const reason = searchParams.get('reason');
 
     return (
         <div className="flex h-screen w-full overflow-hidden font-sans">
@@ -59,6 +61,14 @@ export default function LoginPage() {
                         <h2 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900">Welcome Back</h2>
                         <p className="text-slate-500 text-base">Please enter your details to sign in to your dashboard.</p>
                     </div>
+
+                    {/* Auto-logout message */}
+                    {reason === 'session_expired' && (
+                        <div className="p-4 bg-amber-50 text-amber-700 rounded-lg flex items-start gap-3 border border-amber-100 mb-4">
+                            <AlertCircle size={20} className="flex-shrink-0 mt-0.5" />
+                            <p className="text-sm font-medium">Your session has been invalidated or your account status has changed. Please sign in again or contact an administrator.</p>
+                        </div>
+                    )}
 
                     {/* Error banner */}
                     {error && (
@@ -186,19 +196,15 @@ export default function LoginPage() {
                         </div>
                     </div>
 
-                    {/* Social / SSO buttons (visual only — extend as needed) */}
-                    <div className="grid grid-cols-2 gap-4">
+                    {/* Social / SSO buttons */}
+                    <div className="flex flex-col gap-4">
                         <button
+                            onClick={() => signIn('google')}
                             type="button"
-                            className="flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white py-2.5 px-4 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 transition-all"
+                            className="flex w-full items-center justify-center gap-3 rounded-lg border border-slate-200 bg-white py-3 px-4 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-[0.99]"
                         >
-                            <Globe size={18} /> Google
-                        </button>
-                        <button
-                            type="button"
-                            className="flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white py-2.5 px-4 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 transition-all"
-                        >
-                            <Building2 size={18} /> SSO
+                            <img src="https://authjs.dev/img/providers/google.svg" width={20} height={20} alt="Google logo" />
+                            Continue with Google
                         </button>
                     </div>
 

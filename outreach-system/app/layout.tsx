@@ -3,6 +3,7 @@ import { Playfair_Display, Lato } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import SyncManager from '@/app/components/SyncManager';
+import SessionGuard from '@/app/components/SessionGuard';
 import { getSiteConfig } from "@/app/admin/settings/actions";
 import { SiteConfigProvider } from "@/app/context/SiteConfigProvider";
 import { headers } from "next/headers";
@@ -73,6 +74,7 @@ export default async function RootLayout({
         <SiteConfigProvider initialConfig={siteConfig}>
           {children}
           <SyncManager />
+          <SessionGuard />
           <SpeedInsights />
         </SiteConfigProvider>
       </body>

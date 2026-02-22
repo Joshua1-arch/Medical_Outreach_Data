@@ -26,7 +26,12 @@ export default async function MyEventsPage() {
         const session = await auth();
         await dbConnect();
 
-        const events = await Event.find({ createdBy: session?.user?.id }).sort({ createdAt: -1 }).lean() as any[];
+        const userId = session?.user?.id;
+        const isValidId = userId && /^[0-9a-fA-F]{24}$/.test(userId);
+
+        const events = isValidId 
+            ? await Event.find({ createdBy: userId }).sort({ createdAt: -1 }).lean() as any[]
+            : [];
 
         return (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">

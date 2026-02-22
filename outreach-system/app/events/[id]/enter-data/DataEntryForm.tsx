@@ -115,6 +115,16 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
     // Blood Donation Compatibility Logic
     const [compatibility, setCompatibility] = useState<{ fit: boolean | null, recipients: string[] } | null>(null);
 
+    // Smart BP Validation
+    const [bpValidation, setBpValidation] = useState<{
+        category: string;
+        colorClass: string;
+        bgColorClass: string;
+        borderColorClass: string;
+        icon: any;
+        warning?: boolean;
+    } | null>(null);
+
     useEffect(() => {
         const group = formData['Blood Group'];
         const rh = formData['Rhesus'];
@@ -123,16 +133,6 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
             // Calculate Recipients
             const isRhPos = rh === 'Positive';
             let recipients: string[] = [];
-
-            // Logic:
-            // O- : Universal -> All
-            // O+ : O+, A+, B+, AB+
-            // A- : A-, A+, AB-, AB+
-            // A+ : A+, AB+
-            // B- : B-, B+, AB-, AB+
-            // B+ : B+, AB+
-            // AB- : AB-, AB+
-            // AB+ : AB+ Only
 
             if (group === 'O') {
                 if (!isRhPos) recipients = ['O-', 'O+', 'A-', 'A+', 'B-', 'B+', 'AB-', 'AB+'];
@@ -148,15 +148,12 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
                 else recipients = ['AB+'];
             }
 
-            // Check Fitness (Basic checks if fields exist)
+            // Check Fitness
             let fit = true;
             const pcv = parseFloat(formData['PCV']);
             const weight = parseFloat(formData['Weight (kg)'] || formData['Weight']);
             const hiv = formData['HIV'];
             const hbsag = formData['HBsAg'];
-
-            // Only mark as strictly UNFIT if we know for sure.
-            // If fields are missing, we can't say for sure, but prompt asks "Fit to Donate? [Check other fields]"
 
             if (!isNaN(pcv) && pcv < 38) fit = false;
             if (!isNaN(weight) && weight < 50) fit = false;
@@ -167,7 +164,66 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
         } else {
             setCompatibility(null);
         }
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+    }, [formData]);
+
+    useEffect(() => {
+        const systolicVal = formData['Systolic'] || formData['systolic'];
+        const diastolicVal = formData['Diastolic'] || formData['diastolic'];
+        
+        const s = parseInt(systolicVal);
+        const d = parseInt(diastolicVal);
+
+        if (!isNaN(s) && !isNaN(d)) {
+            let cat = "";
+            let color = "";
+            let bg = "";
+            let border = "";
+            let isWarning = false;
+
+            if (s > 180 || d > 120) {
+                cat = "Hypertensive Crisis";
+                color = "text-red-700";
+                bg = "bg-red-100";
+                border = "border-red-600";
+                isWarning = true;
+            } else if (s >= 140 || d >= 90) {
+                cat = "Stage 2 Hypertension";
+                color = "text-red-600";
+                bg = "bg-red-50";
+                border = "border-red-200";
+                isWarning = true;
+            } else if (s >= 130 || d >= 80) {
+                cat = "Stage 1 Hypertension";
+                color = "text-orange-600";
+                bg = "bg-orange-50";
+                border = "border-orange-200";
+            } else if (s >= 120 && d < 80) {
+                cat = "Elevated";
+                color = "text-amber-600";
+                bg = "bg-amber-50";
+                border = "border-amber-200";
+            } else if (s < 120 && d < 80) {
+                cat = "Normal";
+                color = "text-emerald-600";
+                bg = "bg-emerald-50";
+                border = "border-emerald-200";
+            }
+
+            if (cat) {
+                setBpValidation({
+                    category: cat,
+                    colorClass: color,
+                    bgColorClass: bg,
+                    borderColorClass: border,
+                    icon: isWarning ? AlertTriangle : CheckCircle,
+                    warning: isWarning
+                });
+            } else {
+                setBpValidation(null);
+            }
+        } else {
+            setBpValidation(null);
+        }
     }, [formData]);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -428,6 +484,22 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
                                     </div>
                                 ))}
                             </div>
+
+                            {/* BP Validation Badge - Real-time Feedback */}
+                            {bpValidation && (
+                                <div className={`mt-2 p-4 rounded-xl border flex items-center gap-3 transition-all animate-in zoom-in duration-300 ${bpValidation.bgColorClass} ${bpValidation.borderColorClass}`}>
+                                    <div className={`p-1.5 rounded-full ${bpValidation.colorClass} bg-white/50`}>
+                                        <bpValidation.icon size={18} />
+                                    </div>
+                                    <div>
+                                        <p className={`text-[10px] font-bold uppercase tracking-wider opacity-70 ${bpValidation.colorClass}`}>BP Classification (AHA)</p>
+                                        <p className={`text-sm font-black ${bpValidation.colorClass}`}>
+                                            {bpValidation.category}
+                                            {bpValidation.warning && " — Action Required"}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Compatibility Card - Real-time Feedback */}
                             {compatibility && (

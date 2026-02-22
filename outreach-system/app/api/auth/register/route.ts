@@ -4,7 +4,7 @@ import dbConnect from '@/lib/db';
 import User from '@/models/User';
 import InvitationCode from '@/models/InvitationCode';
 import { z } from 'zod';
-import { sendWelcomeEmail } from '@/lib/email';
+import { sendWelcomeEmail, sendAdminNewUserAlert } from '@/lib/email';
 
 // Strict Zod Validation (Anti-Injection)
 const registerSchema = z.object({
@@ -102,6 +102,9 @@ export async function POST(req: Request) {
                 isTrusted: true
             }, { status: 201 });
         }
+
+        // Notify admin about pending user (non-blocking)
+        sendAdminNewUserAlert(user.email, user.name).catch(() => { });
 
         return NextResponse.json({
             message: 'User registered successfully. Pending approval.',

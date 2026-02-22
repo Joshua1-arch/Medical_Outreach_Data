@@ -41,7 +41,7 @@ export async function sendEmail(options: EmailOptions) {
 // Shared layout helpers
 // ---------------------------------------------------------------------------
 const BASE_URL = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-const LOGO_URL = `${BASE_URL}/Reach.png`;
+const LOGO_URL = `${BASE_URL}/Reachside1.png`;
 const YEAR = new Date().getFullYear();
 
 /** Top header strip with logo */
@@ -275,5 +275,33 @@ export async function sendEventRejectionEmail(userEmail: string, userName: strin
         subject: `Event Submission Update: ${eventTitle} - ReachPoint`,
         html: emailWrapper(emailHeader(), body),
         text: `Dear ${userName}, your event "${eventTitle}" could not be approved. Please revise and resubmit, or contact the administrator for feedback.`
+    });
+}
+// ---------------------------------------------------------------------------
+// 6. Admin New User Alert
+// ---------------------------------------------------------------------------
+export async function sendAdminNewUserAlert(userEmail: string, userName: string, provider: string = 'Credentials') {
+    const adminUrl = `${BASE_URL}/admin/users`;
+
+    const body = `
+        ${h2('New User Registration')}
+        ${p('A new user has registered on the platform and is awaiting administrative approval.')}
+        ${divider()}
+        ${infoBlock('#fbbf38', '#fffbeb',
+            `<p style="margin:0 0 4px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#999999;">User Profile</p>
+             <p style="margin:0; font-size:16px; font-weight:700; color:#000000;">${userName}</p>
+             <p style="margin:4px 0 0; font-size:14px; color:#555555;">${userEmail}</p>
+             <p style="margin:8px 0 0; font-size:12px; color:#666666;"><strong>Method:</strong> ${provider}</p>`
+        )}
+        ${p('Please review this registration and approve or reject the account at your earliest convenience.')}
+        ${ctaButton(adminUrl, 'Review Registrations')}
+    `;
+
+    // Send to the GMAIL_USER (acting as admin) or another config if needed
+    return sendEmail({
+        to: process.env.GMAIL_USER || '',
+        subject: `New User Registration: ${userName} - Action Required`,
+        html: emailWrapper(emailHeader(), body),
+        text: `New user registration: ${userName} (${userEmail}) using ${provider}. Review at ${adminUrl}`
     });
 }

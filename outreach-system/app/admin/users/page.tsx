@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 export default async function UsersPage() {
     try {
         await dbConnect();
-        const users = await User.find({}).sort({ createdAt: -1 });
+        const users = await User.find({}).sort({ createdAt: -1 }).lean();
 
         const pendingUsers = users.filter((user) => user.accountStatus === 'pending');
         const deletionRequests = users.filter((user) => user.deletionRequested === true);

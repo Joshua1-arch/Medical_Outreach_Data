@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 export default async function PendingEventsPage() {
     try {
         await dbConnect();
-        const events = await Event.find({}).populate('createdBy', 'name email').sort({ createdAt: -1 });
+        const events = await Event.find({}).populate('createdBy', 'name email').sort({ createdAt: -1 }).lean();
 
         return (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
