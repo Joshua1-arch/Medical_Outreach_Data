@@ -36,6 +36,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, message: "Password updated successfully" });
 
     } catch {
-        return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
+        return NextResponse.json({ success: false, message: "An error occurred. Please try again." }, { status: 500 });
     }
 }

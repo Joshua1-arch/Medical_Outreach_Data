@@ -172,14 +172,8 @@ export async function generateMedicalReport(stats: any) {
 
         return { success: true, report };
     } catch (error: any) {
-
-        if (error.message?.includes('404') || error.toString().includes('404')) {
-            return {
-                success: false,
-                message: 'Gemini API Error: 404 Not Found. This usually means "Generative Language API" is not enabled in Google Cloud, or the Key is invalid.'
-            };
-        }
-        return { success: false, message: 'Failed to generate report: ' + (error.message || 'Unknown error') };
+        console.error('Generate Report Error:', error);
+        return { success: false, message: 'Failed to generate report. Please try again later.' };
     }
 }
 

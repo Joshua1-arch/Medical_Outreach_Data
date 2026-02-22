@@ -33,8 +33,9 @@ export default function ForgotPasswordPage() {
             }
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {
+            console.error('Forgot Password Connection Error:', err);
             setStatus('error');
-            setMessage('Failed to connect to server');
+            setMessage('An error occurred. Please try again.');
         }
     };
 

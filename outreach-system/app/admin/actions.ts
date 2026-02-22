@@ -57,7 +57,7 @@ export async function approveUser(userId: string) {
         return { success: true, message: 'User approved' };
     } catch (error) {
         console.error('Failed to approve user:', error);
-        return { success: false, message: 'Failed to approve user' };
+        return { success: false, message: 'An evaluation error occurred. Please try again.' };
     }
 }
 
@@ -82,7 +82,7 @@ export async function rejectUser(userId: string) {
         return { success: true, message: 'User rejected' };
     } catch (error) {
         console.error('Failed to reject user:', error);
-        return { success: false, message: 'Failed to reject user' };
+        return { success: false, message: 'An evaluation error occurred. Please try again.' };
     }
 }
 
@@ -123,7 +123,7 @@ export async function toggleUserStatus(userId: string, newStatus: string) {
         return { success: true, message: `User status updated to ${newStatus}` };
     } catch (error) {
         console.error('Failed to update user status:', error);
-        return { success: false, message: 'Failed to update user status' };
+        return { success: false, message: 'An evaluation error occurred. Please try again.' };
     }
 }
 
@@ -170,7 +170,7 @@ export async function approveEvent(eventId: string) {
         return { success: true, message: 'Event approved' };
     } catch (error) {
         console.error('Failed to approve event:', error);
-        return { success: false, message: 'Failed to approve event' };
+        return { success: false, message: 'An evaluation error occurred. Please try again.' };
     }
 }
 
@@ -203,7 +203,7 @@ export async function rejectEvent(eventId: string) {
         return { success: true, message: 'Event rejected' };
     } catch (error) {
         console.error('Failed to reject event:', error);
-        return { success: false, message: 'Failed to reject event' };
+        return { success: false, message: 'An evaluation error occurred. Please try again.' };
     }
 }
 
@@ -217,7 +217,7 @@ export async function deleteEvent(eventId: string) {
         return { success: true, message: 'Event deleted' };
     } catch (error) {
         console.error('Failed to delete event:', error);
-        return { success: false, message: 'Failed to delete event' };
+        return { success: false, message: 'An evaluation error occurred. Please try again.' };
     }
 }
 
@@ -231,7 +231,7 @@ export async function updateEvent(eventId: string, data: any) {
         return { success: true, message: 'Event updated' };
     } catch (error) {
         console.error('Failed to update event:', error);
-        return { success: false, message: 'Failed to update event' };
+        return { success: false, message: 'An evaluation error occurred. Please try again.' };
     }
 }
 
@@ -291,7 +291,7 @@ export async function generateInvitationCodes(count: number = 1) {
         };
     } catch (error) {
         console.error('Failed to generate invitation codes:', error);
-        return { success: false, codes: [], message: 'Failed to generate invitation codes' };
+        return { success: false, codes: [], message: 'An evaluation error occurred. Please try again.' };
     }
 }
 
@@ -366,7 +366,7 @@ export async function deleteInvitationCode(codeId: string) {
         return { success: true, message: 'Invitation code deleted' };
     } catch (error) {
         console.error('Failed to delete invitation code:', error);
-        return { success: false, message: 'Failed to delete invitation code' };
+        return { success: false, message: 'An evaluation error occurred. Please try again.' };
     }
 }
 
@@ -397,7 +397,7 @@ export async function dismissDeletionRequest(userId: string) {
         return { success: true, message: 'Deletion request dismissed' };
     } catch (error) {
         console.error('Failed to dismiss deletion request:', error);
-        return { success: false, message: 'Failed to dismiss request' };
+        return { success: false, message: 'An evaluation error occurred. Please try again.' };
     }
 }
 

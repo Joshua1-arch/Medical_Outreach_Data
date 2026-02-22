@@ -112,6 +112,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         });
 
     } catch {
-        return NextResponse.json({ success: false, message: 'Internal Server Error' }, { status: 500 });
+        return NextResponse.json({ success: false, message: 'An error occurred. Please try again.' }, { status: 500 });
     }
 }

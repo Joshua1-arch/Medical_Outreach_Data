@@ -52,7 +52,7 @@ function extractPatientPhone(data: Record<string, unknown>): string | undefined 
 export async function submitRecord(eventId: string, data: Record<string, unknown>) {
     try {
         // 1. Rate Limiting (Spam Protection)
-        const ip = getIP();
+        const ip = await getIP();
         const { success } = await submissionRateLimit.limit(ip);
         if (!success) {
             return { success: false, message: 'Too many submissions. Please wait a minute.' };
@@ -104,8 +104,9 @@ export async function submitRecord(eventId: string, data: Record<string, unknown
         revalidatePath(`/e/${eventId}`);
 
         return { success: true, message: 'Record saved successfully!', code: retrievalCode };
-    } catch {
-        return { success: false, message: 'Failed to save record' };
+    } catch (error: any) {
+        console.error('Submit Record Error:', error);
+        return { success: false, message: 'An evaluation error occurred. Please try again later.' };
     }
 }
 
@@ -180,8 +181,9 @@ export async function searchPatientHistory(data: Record<string, unknown>, curren
             history,
             message: `Found ${history.length} previous record(s)`
         };
-    } catch {
-        return { success: false, found: false, message: 'Error searching patient history' };
+    } catch (error) {
+        console.error('Patient History Error:', error);
+        return { success: false, found: false, message: 'An evaluation error occurred while searching history.' };
     }
 }
 
@@ -249,8 +251,9 @@ export async function getRecordByCode(query: string, eventId?: string) {
         }
 
         return { success: true, data: JSON.parse(JSON.stringify(record)) };
-    } catch {
-        return { success: false, message: 'Error fetching record' };
+    } catch (error) {
+        console.error('Fetch Record Error:', error);
+        return { success: false, message: 'An evaluation error occurred while fetching the record.' };
     }
 }
 
@@ -267,8 +270,9 @@ export async function updateRecordByCode(code: string, data: Record<string, unkn
         revalidatePath(`/e/${record.eventId}`);
 
         return { success: true, message: 'Record updated successfully!' };
-    } catch {
-        return { success: false, message: 'Update failed' };
+    } catch (error) {
+        console.error('Update Record Error:', error);
+        return { success: false, message: 'An evaluation error occurred while updating.' };
     }
 }
 
@@ -284,8 +288,9 @@ export async function deleteRecord(recordId: string) {
         revalidatePath(`/dashboard/event/${record.eventId}/builder`);
 
         return { success: true, message: 'Record deleted' };
-    } catch {
-        return { success: false, message: 'Delete failed' };
+    } catch (error) {
+        console.error('Delete Record Error:', error);
+        return { success: false, message: 'An evaluation error occurred while deleting.' };
     }
 }
 
@@ -300,7 +305,8 @@ export async function updateRecordById(recordId: string, data: Record<string, un
         revalidatePath(`/dashboard/event/${record.eventId}/builder`);
         return { success: true, message: 'Record updated' };
     } catch (error) {
-        return { success: false, message: 'Update failed' };
+        console.error('Update Record Error:', error);
+        return { success: false, message: 'An evaluation error occurred while updating.' };
     }
 }
 
@@ -359,7 +365,8 @@ export async function sendResultEmail(recordId: string) {
 
         return { success: true, message: 'Result sent to ' + email };
 
-    } catch {
-        return { success: false, message: 'Server error sending email' };
+    } catch (error) {
+        console.error('Send Email Error:', error);
+        return { success: false, message: 'An evaluation error occurred while sending the email.' };
     }
 }

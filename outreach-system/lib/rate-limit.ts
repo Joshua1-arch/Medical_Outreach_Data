@@ -32,9 +32,9 @@ export const submissionRateLimit = (redisUrl && redisToken)
  * Helper to get the client IP address from request headers.
  * Works with Next.js Server Actions and Route Handlers.
  */
-export function getIP() {
+export async function getIP() {
   const { headers } = require("next/headers");
-  const headerList = headers();
+  const headerList = await headers();
   
   // Vercel / Cloudflare / Nginx standard headers
   const forwarded = headerList.get("x-forwarded-for");

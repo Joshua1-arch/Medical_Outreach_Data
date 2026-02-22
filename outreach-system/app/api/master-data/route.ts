@@ -10,6 +10,6 @@ export async function GET() {
         
         return NextResponse.json(data);
     } catch (error) {
-        return NextResponse.json({ error: 'Failed to fetch master data' }, { status: 500 });
+        return NextResponse.json({ error: 'An error occurred. Please try again.' }, { status: 500 });
     }
 }

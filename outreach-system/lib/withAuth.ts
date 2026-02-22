@@ -27,12 +27,7 @@ interface WithAuthConfig<T extends z.ZodSchema> {
     schema?: T;
 }
 
-/**
- * withAuth
- * 
- * Higher-order function that wraps a Next.js API handler.
- * Automatically handles auth checks and validation.
- */
+
 export function withAuth<T extends z.ZodSchema = any>(
     handler: (
         req: NextRequest, 
@@ -80,8 +75,7 @@ export function withAuth<T extends z.ZodSchema = any>(
                     if (!validation.success) {
                         return NextResponse.json(
                             { 
-                                error: "Validation Failed", 
-                                details: validation.error.format() 
+                                error: "Validation Failed: Invalid input format" 
                             }, 
                             { status: 400 }
                         );
@@ -101,7 +95,7 @@ export function withAuth<T extends z.ZodSchema = any>(
         } catch (error) {
             console.error("[API_PROTECTED_ERROR]:", error);
             return NextResponse.json(
-                { error: "Internal Server Error" }, 
+                { error: "An error occurred. Please try again." }, 
                 { status: 500 }
             );
         }

@@ -22,6 +22,7 @@ export async function submitDonation(eventId: string, formData: any) {
 
         return { success: true, message: 'Donation record created successfully.', donationId: newDonation._id.toString() };
     } catch (error: any) {
-        return { success: false, message: error.message || 'Failed to submit donation.' };
+        console.error('Submit Donation Error:', error);
+        return { success: false, message: 'An unexpected error occurred. Please try again.' };
     }
 }
