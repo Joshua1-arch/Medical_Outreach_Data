@@ -12,6 +12,7 @@ import {
     ArrowRight,
     Search,
     Layers,
+    XCircle,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -25,7 +26,7 @@ export default async function MyEventsPage() {
         const session = await auth();
         await dbConnect();
 
-        const events = await Event.find({ createdBy: session?.user?.id }).sort({ createdAt: -1 });
+        const events = await Event.find({ createdBy: session?.user?.id }).sort({ createdAt: -1 }).lean() as any[];
 
         return (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -152,11 +153,19 @@ export default async function MyEventsPage() {
                                                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-dark text-white rounded-xl text-sm font-semibold hover:bg-slate-700 transition-colors shadow-md group"
                                             >
                                                 <FileText size={16} />
-                                                Open Form Builder
+                                                Manage Event
                                                 <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
                                             </Link>
+                                        ) : event.status === 'rejected' ? (
+                                            <div className="flex items-center gap-2.5 px-4 py-2.5 bg-red-50 border border-red-200 rounded-xl">
+                                                <XCircle size={15} className="text-red-500 flex-shrink-0" />
+                                                <div>
+                                                    <span className="text-xs font-bold text-red-800 block">Event Rejected</span>
+                                                    <span className="text-xs text-red-600/80">This submission was not approved. You may create a new event.</span>
+                                                </div>
+                                            </div>
                                         ) : (
-                                            <div className="flex items-center gap-2.5 px-4 py-2 bg-amber-50 border border-amber-100 rounded-xl">
+                                            <div className="flex items-center gap-2.5 px-4 py-2.5 bg-amber-50 border border-amber-100 rounded-xl">
                                                 <Clock size={14} className="text-amber-500 flex-shrink-0" />
                                                 <div>
                                                     <span className="text-xs font-bold text-amber-800 block">Awaiting Admin Review</span>
@@ -222,10 +231,18 @@ function StatusBadge({ status }: { status: string }) {
             </span>
         );
     }
+    if (status === 'rejected') {
+        return (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-500 text-white rounded-full text-xs font-bold shadow-lg shadow-red-500/30 flex-shrink-0">
+                <XCircle size={11} />
+                Rejected
+            </span>
+        );
+    }
     return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500 text-white rounded-full text-xs font-bold shadow-lg shadow-amber-500/30 flex-shrink-0">
             <Clock size={11} />
-            Pending
+            Pending Review
         </span>
     );
 }

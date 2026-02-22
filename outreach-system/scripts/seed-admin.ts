@@ -6,13 +6,17 @@ const seedAdmin = async () => {
     try {
         await dbConnect();
 
-        const email = 'admin@example.com';
-        const password = 'securepassword';
+        const email = 'adekunlejoshua809@gmail.com';
+        const password = '76639974Joshua';
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const existingAdmin = await User.findOne({ email });
         if (existingAdmin) {
-            console.log('Admin already exists');
+            existingAdmin.password = hashedPassword;
+            existingAdmin.role = 'admin';
+            existingAdmin.accountStatus = 'active';
+            await existingAdmin.save();
+            console.log('Admin account updated with new password');
             process.exit(0);
         }
 

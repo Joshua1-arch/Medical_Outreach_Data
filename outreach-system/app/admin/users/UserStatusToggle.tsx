@@ -33,10 +33,10 @@ export default function UserStatusToggle({ userId, currentStatus }: UserStatusTo
 
     const getStatusColor = (s: string) => {
         switch (s) {
-            case 'active': return 'bg-green-50 text-green-700 border-green-200';
-            case 'suspended': return 'bg-amber-50 text-amber-700 border-amber-200';
-            case 'rejected': return 'bg-red-50 text-red-700 border-red-200';
-            case 'pending': return 'bg-blue-50 text-blue-700 border-blue-200';
+            case 'active': return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+            case 'suspended': return 'bg-amber-50 text-amber-700 border-amber-100';
+            case 'rejected': return 'bg-red-50 text-red-700 border-red-100';
+            case 'pending': return 'bg-blue-50 text-blue-700 border-blue-100';
             default: return 'bg-slate-50 text-slate-700 border-slate-200';
         }
     };
@@ -53,7 +53,7 @@ export default function UserStatusToggle({ userId, currentStatus }: UserStatusTo
                 onChange={(e) => handleStatusChange(e.target.value)}
                 disabled={isLoading}
                 className={`
-                    appearance-none pl-3 pr-8 py-1 rounded-full text-xs font-bold border cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-gold/20 transition-all
+                    appearance-none pl-3 pr-8 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border cursor-pointer focus:outline-none focus:ring-4 focus:ring-[#fbc037]/20 transition-all
                     ${getStatusColor(status)}
                 `}
             >

@@ -1,127 +1,145 @@
 'use client';
+
 import Link from "next/link";
-import { LayoutDashboard, Users, CalendarCheck, LogOut, Menu, X, ArrowLeft, Settings, Database } from "lucide-react";
+import { usePathname } from "next/navigation";
+import {
+    LayoutDashboard, Users, CalendarCheck, LogOut, Menu, X,
+    ArrowLeft, Settings, Database, BriefcaseMedical, HeartPulse
+} from "lucide-react";
 import { useState } from "react";
 
-export default function AdminSidebar({ onSignOut }: { onSignOut: () => Promise<void> }) {
-    const [isOpen, setIsOpen] = useState(false);
+const NAV_ITEMS = [
+    { name: 'Overview', href: '/admin', icon: LayoutDashboard },
+    { name: 'User Management', href: '/admin/users', icon: Users, hasBadge: true },
+    { name: 'All Events', href: '/admin/events', icon: CalendarCheck },
+    { name: 'Blood Bank Search', href: '/admin/blood-bank', icon: HeartPulse },
+];
 
-    return (
+const SETTINGS_ITEMS = [
+    { name: 'Site Appearance', href: '/admin/settings/site-appearance', icon: Settings },
+    { name: 'Master Data', href: '/admin/settings/data', icon: Database },
+];
+
+export default function AdminSidebar({
+    onSignOut,
+    deletionRequestCount = 0,
+}: {
+    onSignOut: () => Promise<void>;
+    deletionRequestCount?: number;
+}) {
+    const [isOpen, setIsOpen] = useState(false);
+    const pathname = usePathname();
+
+    const isActive = (href: string) =>
+        href === '/admin' ? pathname === '/admin' : pathname.startsWith(href);
+
+    const close = () => setIsOpen(false);
+
+    const NavLink = ({ item }: { item: typeof NAV_ITEMS[0] & { hasBadge?: boolean } }) => {
+        const active = isActive(item.href);
+        return (
+            <Link
+                href={item.href}
+                onClick={close}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${active
+                    ? 'bg-white/10 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                    }`}
+            >
+                <item.icon size={18} />
+                <span className="flex-1">{item.name}</span>
+                {item.hasBadge && deletionRequestCount > 0 && (
+                    <span className="ml-auto px-1.5 py-0.5 bg-red-500 text-white text-[10px] rounded-full font-bold leading-none animate-pulse">
+                        {deletionRequestCount}
+                    </span>
+                )}
+            </Link>
+        );
+    };
+
+    const SidebarContent = () => (
         <>
-            {/* Mobile Header Trigger */}
-            <div className="md:hidden fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md border-b border-slate-200 p-4 z-40 flex items-center justify-between h-16 shadow-sm">
-                <div className="flex items-center gap-2 font-bold text-brand-dark">
-                    <span className="w-8 h-8 bg-brand-dark rounded-lg flex items-center justify-center text-brand-gold text-lg font-serif">R</span>
-                    ReachPoint
+            {/* Logo */}
+            <div className="p-6 flex items-center gap-3 border-b border-slate-700/50">
+                <div className="flex size-9 items-center justify-center rounded-lg bg-[#fbc037] text-slate-900 shrink-0">
+                    <BriefcaseMedical size={20} />
                 </div>
-                <button onClick={() => setIsOpen(!isOpen)} className="text-slate-600 p-1">
-                    {isOpen ? <X /> : <Menu />}
+                <div>
+                    <h1 className="text-white font-bold tracking-tight leading-tight">ReachPoint</h1>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Super Admin</p>
+                </div>
+                <button onClick={close} className="md:hidden ml-auto text-slate-400 hover:text-white">
+                    <X size={20} />
                 </button>
             </div>
 
-            {/* Sidebar Drawer */}
+            {/* Main nav */}
+            <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+                {NAV_ITEMS.map((item) => <NavLink key={item.href} item={item} />)}
+
+                {/* Settings divider */}
+                <div className="pt-6 pb-2 px-2">
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Settings</p>
+                </div>
+
+                {SETTINGS_ITEMS.map((item) => <NavLink key={item.href} item={item} />)}
+
+                {/* Back to user portal */}
+                <div className="pt-4 mt-2 border-t border-slate-700/40">
+                    <Link
+                        href="/dashboard"
+                        onClick={close}
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-all"
+                    >
+                        <ArrowLeft size={16} />
+                        <span>Back to User Portal</span>
+                    </Link>
+                </div>
+            </nav>
+
+            {/* Sign out */}
+            <div className="p-4 border-t border-slate-700/50">
+                <button
+                    onClick={() => onSignOut()}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-white/5 transition-all"
+                >
+                    <LogOut size={18} />
+                    <span>Sign Out</span>
+                </button>
+            </div>
+        </>
+    );
+
+    return (
+        <>
+            {/* Mobile top bar */}
+            <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-[#1e293b] border-b border-slate-700/50 flex items-center justify-between px-4 z-40">
+                <div className="flex items-center gap-2">
+                    <div className="flex size-8 items-center justify-center rounded-lg bg-[#fbc037] text-slate-900">
+                        <BriefcaseMedical size={16} />
+                    </div>
+                    <span className="text-white font-bold text-sm">ReachPoint</span>
+                </div>
+                <button onClick={() => setIsOpen(true)} className="text-slate-400 hover:text-white p-1">
+                    <Menu size={22} />
+                </button>
+            </div>
+
+            {/* Sidebar */}
             <aside className={`
-                fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col transition-transform duration-300 ease-in-out
+                fixed inset-y-0 left-0 z-50 w-64 bg-[#1e293b] flex flex-col
+                transition-transform duration-300 ease-in-out
                 ${isOpen ? 'translate-x-0' : '-translate-x-full'}
                 md:relative md:translate-x-0
             `}>
-                <div className="p-6 border-b border-slate-100 flex justify-between items-center h-[88px] md:h-auto">
-                    <div>
-                        <h1 className="text-xl font-bold text-brand-dark flex items-center gap-2 font-serif">
-                            <span className="w-8 h-8 bg-brand-dark rounded-lg flex items-center justify-center text-brand-gold text-lg">R</span>
-                            ReachPoint
-                        </h1>
-                        <p className="text-xs text-brand-gold mt-1 uppercase tracking-wider font-bold">Super Admin</p>
-                    </div>
-                    <button onClick={() => setIsOpen(false)} className="md:hidden text-slate-400">
-                        <X />
-                    </button>
-                </div>
-
-                <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-                    <Link
-                        onClick={() => setIsOpen(false)}
-                        href="/admin"
-                        className="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-brand-dark rounded-md transition-colors font-medium"
-                    >
-                        <LayoutDashboard size={18} />
-                        Overview
-                    </Link>
-
-                    <Link
-                        onClick={() => setIsOpen(false)}
-                        href="/admin/users"
-                        className="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-brand-dark rounded-md transition-colors font-medium"
-                    >
-                        <Users size={18} />
-                        User Management
-                    </Link>
-
-
-                    <Link
-                        onClick={() => setIsOpen(false)}
-                        href="/admin/events"
-                        className="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-brand-dark rounded-md transition-colors font-medium"
-                    >
-                        <CalendarCheck size={18} />
-                        All Events
-                    </Link>
-
-                    <Link
-                        onClick={() => setIsOpen(false)}
-                        href="/admin/settings/site-appearance"
-                        className="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-brand-dark rounded-md transition-colors font-medium"
-                    >
-                        <Settings size={18} />
-                        Site Appearance
-                    </Link>
-
-                    <Link
-                        onClick={() => setIsOpen(false)}
-                        href="/admin/settings/data"
-                        className="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-brand-dark rounded-md transition-colors font-medium"
-                    >
-                        <Database size={18} />
-                        Master Data
-                    </Link>
-
-                    <Link
-                        onClick={() => setIsOpen(false)}
-                        href="/admin/blood-bank"
-                        className="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-red-700 rounded-md transition-colors font-medium"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-heart-pulse"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27" /></svg>
-                        Blood Bank Search
-                    </Link>
-
-                    <div className="pt-4 mt-4 border-t border-slate-100">
-                        <Link
-                            onClick={() => setIsOpen(false)}
-                            href="/dashboard"
-                            className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-brand-dark transition-colors font-medium text-sm"
-                        >
-                            <ArrowLeft size={16} />
-                            Back to User Portal
-                        </Link>
-                    </div>
-                </nav>
-
-                <div className="p-4 border-t border-slate-100">
-                    <button
-                        onClick={() => onSignOut()}
-                        className="flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 w-full rounded-md transition-colors font-medium"
-                    >
-                        <LogOut size={18} />
-                        Sign Out
-                    </button>
-                </div>
+                <SidebarContent />
             </aside>
 
-            {/* Overlay */}
+            {/* Mobile overlay */}
             {isOpen && (
                 <div
-                    className="fixed inset-0 bg-black/50 z-40 md:hidden"
-                    onClick={() => setIsOpen(false)}
+                    className="fixed inset-0 bg-black/60 z-40 md:hidden"
+                    onClick={close}
                 />
             )}
         </>

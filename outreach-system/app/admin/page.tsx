@@ -1,9 +1,8 @@
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import Event from "@/models/Event";
-import { Users, Clock, Calendar, Activity, X } from "lucide-react";
+import { Users, ShieldCheck, Calendar, Zap, X, TrendingUp, Download } from "lucide-react";
 import Link from "next/link";
-import ExportDataButton from "./ExportDataButton";
 import AuditLogFeed from "./AuditLogFeed";
 import InvitationCodeManager from "./InvitationCodeManager";
 
@@ -15,7 +14,6 @@ async function getStats() {
     const totalUsers = await User.countDocuments({});
     const pendingEvents = await Event.countDocuments({ status: 'pending' });
     const totalEvents = await Event.countDocuments({});
-
     return { pendingUsers, totalUsers, pendingEvents, totalEvents };
 }
 
@@ -23,81 +21,124 @@ export default async function AdminDashboardPage() {
     try {
         const stats = await getStats();
 
+        const statCards = [
+            {
+                label: 'Pending Approvals',
+                value: stats.pendingUsers.toLocaleString(),
+                trend: 'Action Required',
+                trendUp: false,
+                icon: ShieldCheck,
+                href: '/admin/users',
+                accent: 'blue',
+                iconBg: 'bg-blue-50',
+                iconColor: 'text-blue-500',
+                border: 'border-l-blue-500',
+                trendColor: 'text-blue-600',
+            },
+            {
+                label: 'Pending Events',
+                value: stats.pendingEvents.toLocaleString(),
+                trend: 'Needs Review',
+                trendUp: false,
+                icon: Calendar,
+                href: '/admin/events',
+                accent: 'yellow',
+                iconBg: 'bg-yellow-50',
+                iconColor: 'text-yellow-500',
+                border: 'border-l-yellow-500',
+                trendColor: 'text-yellow-600',
+            },
+            {
+                label: 'Total Users',
+                value: stats.totalUsers.toLocaleString(),
+                trend: 'Active Platform Usage',
+                trendUp: true,
+                icon: Users,
+                href: '/admin/users',
+                accent: 'emerald',
+                iconBg: 'bg-emerald-50',
+                iconColor: 'text-emerald-500',
+                border: 'border-l-emerald-500',
+                trendColor: 'text-emerald-600',
+            },
+            {
+                label: 'Total Events',
+                value: stats.totalEvents.toLocaleString(),
+                trend: 'Lifetime Metrics',
+                trendUp: true,
+                icon: Zap,
+                href: '/admin/events',
+                accent: 'purple',
+                iconBg: 'bg-purple-50',
+                iconColor: 'text-purple-500',
+                border: 'border-l-purple-500',
+                trendColor: 'text-purple-600',
+            },
+        ];
+
         return (
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="space-y-8">
+
+                {/* ── Page Header ── */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold text-slate-800">Dashboard</h1>
-                        <p className="text-slate-500 mt-1">Overview of system status and pending actions.</p>
+                        <h2 className="text-2xl font-bold text-slate-900">Dashboard</h2>
+                        <p className="text-sm text-slate-500 mt-0.5">Welcome back, Administrator.</p>
                     </div>
-                    <div className="flex-shrink-0">
-                        <ExportDataButton />
-                    </div>
+                    <a
+                        href="/api/admin/export"
+                        target="_blank"
+                        download
+                        className="inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-[#fbc037] text-slate-900 text-sm font-bold hover:bg-yellow-400 shadow-sm shadow-[#fbc037]/30 transition-all"
+                    >
+                        <Download size={16} />
+                        Export All Data
+                    </a>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <Link href="/admin/users" className="block">
-                        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="p-3 bg-amber-50 text-amber-600 rounded-lg">
-                                    <Clock size={24} />
+                {/* ── Stat Cards ── */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    {statCards.map((stat) => (
+                        <Link
+                            key={stat.label}
+                            href={stat.href}
+                            className={`relative bg-white rounded-2xl border border-slate-200 border-l-4 ${stat.border} p-6 shadow-sm hover:shadow-md transition-all group`}
+                        >
+                            <div className="flex items-start justify-between">
+                                <div className="space-y-1">
+                                    <p className="text-sm font-medium text-slate-500">{stat.label}</p>
+                                    <h3 className="text-3xl font-black text-slate-900">{stat.value}</h3>
+                                    <p className={`text-xs font-bold flex items-center gap-1 ${stat.trendColor}`}>
+                                        {stat.trendUp && <TrendingUp size={11} />}
+                                        {stat.trend}
+                                    </p>
                                 </div>
-                                <span className="text-2xl font-bold text-slate-900">{stats.pendingUsers}</span>
-                            </div>
-                            <h3 className="text-slate-500 font-medium">Pending Approvals</h3>
-                            <p className="text-xs text-amber-600 mt-1 font-medium">Action Required</p>
-                        </div>
-                    </Link>
-
-                    <Link href="/admin/events" className="block">
-                        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
-                                    <Calendar size={24} />
+                                <div className={`size-12 rounded-2xl flex items-center justify-center shrink-0 ${stat.iconBg} ${stat.iconColor} group-hover:scale-110 transition-transform`}>
+                                    <stat.icon size={22} />
                                 </div>
-                                <span className="text-2xl font-bold text-slate-900">{stats.pendingEvents}</span>
                             </div>
-                            <h3 className="text-slate-500 font-medium">Pending Events</h3>
-                            <p className="text-xs text-blue-600 mt-1 font-medium">Needs Review</p>
-                        </div>
-                    </Link>
-
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-lg">
-                                <Users size={24} />
-                            </div>
-                            <span className="text-2xl font-bold text-slate-900">{stats.totalUsers}</span>
-                        </div>
-                        <h3 className="text-slate-500 font-medium">Total Users</h3>
-                        <p className="text-xs text-slate-400 mt-1">Active Platform Usage</p>
-                    </div>
-
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
-                                <Activity size={24} />
-                            </div>
-                            <span className="text-2xl font-bold text-slate-900">{stats.totalEvents}</span>
-                        </div>
-                        <h3 className="text-slate-500 font-medium">Total Events</h3>
-                        <p className="text-xs text-slate-400 mt-1">Outreach History</p>
-                    </div>
+                        </Link>
+                    ))}
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <AuditLogFeed />
+                {/* ── Activity + Invite ── */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    {/* Activity log — 8 cols */}
+                    <div className="lg:col-span-8">
+                        <AuditLogFeed />
+                    </div>
 
-                    {/* Invitation Code Manager */}
-                    <InvitationCodeManager />
+                    {/* Invitation manager — 4 cols */}
+                    <div className="lg:col-span-4">
+                        <InvitationCodeManager />
+                    </div>
                 </div>
-
             </div>
         );
     } catch (error) {
         console.error("Database connection failed:", error);
         return (
-            <div className="p-12 text-center text-slate-500 bg-white rounded-xl border border-red-100 shadow-sm mt-8">
+            <div className="p-12 text-center text-slate-500 bg-white rounded-2xl border border-red-100 shadow-sm mt-8">
                 <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
                     <X size={32} />
                 </div>

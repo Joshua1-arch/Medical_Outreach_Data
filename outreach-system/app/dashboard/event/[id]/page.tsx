@@ -3,11 +3,11 @@ import dbConnect from '@/lib/db';
 import Event from '@/models/Event';
 import Record from '@/models/Record';
 import { redirect, notFound } from 'next/navigation';
-import EventBuilderClient from './EventBuilderClient';
+import ResponsesClient from './_components/ResponsesClient';
 
 export const dynamic = 'force-dynamic';
 
-export default async function BuilderPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function EventHubPage({ params }: { params: Promise<{ id: string }> }) {
     const session = await auth();
     if (!session?.user) redirect('/login');
 
@@ -28,7 +28,7 @@ export default async function BuilderPage({ params }: { params: Promise<{ id: st
     const records = await Record.find({ eventId: id }).sort({ createdAt: -1 }).limit(100);
 
     return (
-        <EventBuilderClient
+        <ResponsesClient
             event={JSON.parse(JSON.stringify(event))}
             records={JSON.parse(JSON.stringify(records))}
         />

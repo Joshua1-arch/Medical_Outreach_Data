@@ -19,9 +19,19 @@ const UserSchema = new Schema({
         type: Boolean,
         default: false
     },
+    // Extended profile fields
+    phone: { type: String, default: '' },
+    medicalRole: { type: String, default: '' },
+    profileImage: { type: String, default: '' },
+    timezone: { type: String, default: 'UTC' },
+    exportFormat: { type: String, enum: ['csv', 'word'], default: 'csv' },
+    deletionRequested: { type: Boolean, default: false },
+    deletionRequestedAt: { type: Date },
+
     resetPasswordToken: { type: String, sparse: true },
     resetPasswordExpires: { type: Date, sparse: true },
 }, { timestamps: true });
+
 
 const User = models.User || model('User', UserSchema);
 

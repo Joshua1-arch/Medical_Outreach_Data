@@ -58,7 +58,7 @@ export default function EventAdminActions({ eventId, eventTitle }: EventAdminAct
         <div className="flex items-center gap-2">
             <Link
                 href={`/dashboard/event/${eventId}/builder`}
-                className="p-2 text-slate-400 hover:text-brand-dark hover:bg-slate-50 rounded-lg transition-colors"
+                className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors"
                 title="Edit Event"
             >
                 <Edit size={16} />

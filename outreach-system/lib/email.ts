@@ -1,19 +1,13 @@
 import nodemailer from 'nodemailer';
 
-// Create reusable transporter
+// ---------------------------------------------------------------------------
+// Transporter
+// ---------------------------------------------------------------------------
 const createTransporter = () => {
-    // Check if email credentials are configured
-    if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) {
-
-        return null;
-    }
-
+    if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) return null;
     return nodemailer.createTransport({
         service: 'gmail',
-        auth: {
-            user: process.env.GMAIL_USER,
-            pass: process.env.GMAIL_PASS
-        }
+        auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS }
     });
 };
 
@@ -24,355 +18,262 @@ interface EmailOptions {
     text?: string;
 }
 
-/**
- * Send an email using Gmail SMTP
- * @param options - Email configuration (to, subject, html, text)
- * @returns Promise with success status and message
- */
 export async function sendEmail(options: EmailOptions) {
     try {
         const transporter = createTransporter();
-
         if (!transporter) {
-
-            return {
-                success: false,
-                message: 'Email credentials not configured',
-                skipped: true
-            };
+            return { success: false, message: 'Email credentials not configured', skipped: true };
         }
-
         const info = await transporter.sendMail({
             from: `"ReachPoint" <${process.env.GMAIL_USER}>`,
             to: options.to,
             subject: options.subject,
             html: options.html,
-            text: options.text || options.html.replace(/<[^>]*>/g, '') // Strip HTML for text version
+            text: options.text || options.html.replace(/<[^>]*>/g, '')
         });
-
-
         return { success: true, message: 'Email sent successfully', messageId: info.messageId };
     } catch {
         return { success: false, message: 'Failed to send email' };
     }
 }
 
-/**
- * Send user approval email
- */
-export async function sendUserApprovalEmail(userEmail: string, userName: string) {
-    const loginUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+// ---------------------------------------------------------------------------
+// Shared layout helpers
+// ---------------------------------------------------------------------------
+const BASE_URL = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+const LOGO_URL = `${BASE_URL}/Reach.png`;
+const YEAR = new Date().getFullYear();
 
-    const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <style>
-                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .header { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: #fbbf24; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-                .content { background: #ffffff; padding: 30px; border: 1px solid #e2e8f0; }
-                .button { display: inline-block; padding: 12px 30px; background: #1e293b; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; margin: 20px 0; }
-                .footer { background: #f8fafc; padding: 20px; text-align: center; color: #64748b; font-size: 12px; border-radius: 0 0 10px 10px; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <h1 style="margin: 0; font-size: 28px;">🎉 Account Approved!</h1>
-                </div>
-                <div class="content">
-                    <h2 style="color: #1e293b;">Welcome, ${userName}!</h2>
-                    <p>Great news! Your account has been approved by our administrator.</p>
-                    <p>You can now access the ReachPoint and start creating events, managing records, and contributing to our mission.</p>
-                    <div style="text-align: center;">
-                        <a href="${loginUrl}/login" class="button">Login Now</a>
-                    </div>
-                    <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
-                        If you have any questions, please don't hesitate to reach out to your administrator.
-                    </p>
-                </div>
-                <div class="footer">
-                    <p>This is an automated message from the ReachPoint.</p>
-                    <p>© ${new Date().getFullYear()} ReachPoint. All rights reserved.</p>
-                </div>
-            </div>
-        </body>
-        </html>
+/** Top header strip with logo */
+const emailHeader = () => `
+    <div style="background-color:#000000; padding:28px 40px; text-align:center;">
+        <img src="${LOGO_URL}" alt="ReachPoint" width="160" height="auto"
+             style="display:inline-block; max-width:160px; height:auto;" />
+    </div>
+    <div style="background-color:#fbbf38; height:4px;"></div>
+`;
+
+/** Bottom footer strip */
+const emailFooter = (extra = '') => `
+    <div style="background-color:#f5f5f5; border-top:1px solid #e0e0e0; padding:24px 40px; text-align:center;">
+        ${extra ? `<p style="margin:0 0 8px; color:#555555; font-size:13px;">${extra}</p>` : ''}
+        <p style="margin:0; color:#999999; font-size:12px; letter-spacing:0.3px;">
+            &copy; ${YEAR} ReachPoint Medical Outreach. All rights reserved.
+        </p>
+        <p style="margin:6px 0 0; color:#bbbbbb; font-size:11px;">
+            This is an automated notification. Please do not reply to this message.
+        </p>
+    </div>
+`;
+
+/** Outer wrapper for the full email */
+const emailWrapper = (headerHtml: string, bodyHtml: string, footerExtra = '') => `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ReachPoint</title>
+</head>
+<body style="margin:0; padding:0; background-color:#ebebeb; font-family:'Segoe UI', Arial, sans-serif; color:#1a1a1a;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#ebebeb; padding:32px 16px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0"
+                       style="max-width:600px; width:100%; background-color:#ffffff;
+                              border-radius:8px; overflow:hidden;
+                              box-shadow:0 2px 12px rgba(0,0,0,0.12);">
+                    <tr><td>${headerHtml}</td></tr>
+                    <tr><td style="padding:36px 40px;">${bodyHtml}</td></tr>
+                    <tr><td>${emailFooter(footerExtra)}</td></tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+`;
+
+/** Gold CTA button */
+const ctaButton = (href: string, label: string) => `
+    <div style="text-align:center; margin:28px 0;">
+        <a href="${href}"
+           style="display:inline-block; background-color:#fbbf38; color:#000000;
+                  text-decoration:none; font-weight:700; font-size:14px;
+                  letter-spacing:0.5px; padding:13px 36px; border-radius:4px;">
+            ${label}
+        </a>
+    </div>
+`;
+
+/** Highlighted info block */
+const infoBlock = (borderColor: string, bgColor: string, content: string) => `
+    <div style="border-left:4px solid ${borderColor}; background-color:${bgColor};
+                padding:16px 20px; border-radius:0 4px 4px 0; margin:20px 0;">
+        ${content}
+    </div>
+`;
+
+const divider = () => `<hr style="border:none; border-top:1px solid #e8e8e8; margin:24px 0;" />`;
+
+const h2 = (text: string, color = '#000000') =>
+    `<h2 style="margin:0 0 16px; font-size:20px; font-weight:700; color:${color};">${text}</h2>`;
+
+const p = (text: string, style = '') =>
+    `<p style="margin:0 0 16px; font-size:15px; line-height:1.7; color:#333333; ${style}">${text}</p>`;
+
+// ---------------------------------------------------------------------------
+// 1. User Approval Email
+// ---------------------------------------------------------------------------
+export async function sendUserApprovalEmail(userEmail: string, userName: string) {
+    const loginUrl = `${BASE_URL}/login`;
+
+    const body = `
+        ${h2('Account Approved')}
+        ${p(`Dear <strong>${userName}</strong>,`)}
+        ${p('We are pleased to inform you that your ReachPoint account has been reviewed and approved by our administrator.')}
+        ${p('You now have full access to the platform and may begin creating outreach events, managing participant records, and contributing to our mission.')}
+        ${divider()}
+        ${ctaButton(loginUrl, 'Access Your Account')}
+        ${p('If you have any questions or require assistance, please contact your system administrator.', 'font-size:13px; color:#666666;')}
     `;
 
     return sendEmail({
         to: userEmail,
-        subject: '✅ Your Account Has Been Approved!',
-        html,
-        text: `Welcome ${userName}! Your account has been approved. Login now at ${loginUrl}/login`
+        subject: 'Account Approved - ReachPoint',
+        html: emailWrapper(emailHeader(), body, 'For support, contact your system administrator.'),
+        text: `Dear ${userName}, your ReachPoint account has been approved. Login at ${loginUrl}`
     });
 }
 
-/**
- * Send user rejection email
- */
+// ---------------------------------------------------------------------------
+// 2. User Rejection Email
+// ---------------------------------------------------------------------------
 export async function sendUserRejectionEmail(userEmail: string, userName: string) {
-    const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <style>
-                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .header { background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); color: #ffffff; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-                .content { background: #ffffff; padding: 30px; border: 1px solid #e2e8f0; }
-                .info-box { background: #fef2f2; border-left: 4px solid #ef4444; padding: 15px; margin: 20px 0; border-radius: 4px; }
-                .footer { background: #f8fafc; padding: 20px; text-align: center; color: #64748b; font-size: 12px; border-radius: 0 0 10px 10px; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <h1 style="margin: 0; font-size: 28px;">Registration Update</h1>
-                </div>
-                <div class="content">
-                    <h2 style="color: #dc2626;">Hello ${userName},</h2>
-                    <p>Thank you for your interest in the ReachPoint.</p>
-                    <div class="info-box">
-                        <p style="margin: 0; color: #991b1b; font-weight: bold;">
-                            Unfortunately, your registration could not be approved at this time.
-                        </p>
-                    </div>
-                    <p>This decision may be due to:</p>
-                    <ul style="color: #475569;">
-                        <li>Incomplete or insufficient information</li>
-                        <li>Not meeting our current membership criteria</li>
-                        <li>Administrative or organizational requirements</li>
-                    </ul>
-                    <p style="margin-top: 20px;">If you believe this was an error or would like more information, please contact the system administrator.</p>
-                    <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
-                        We appreciate your understanding.
-                    </p>
-                </div>
-                <div class="footer">
-                    <p>This is an automated message from the ReachPoint.</p>
-                    <p>© ${new Date().getFullYear()} ReachPoint. All rights reserved.</p>
-                </div>
-            </div>
-        </body>
-        </html>
+    const body = `
+        ${h2('Registration Update')}
+        ${p(`Dear <strong>${userName}</strong>,`)}
+        ${p('Thank you for your interest in the ReachPoint platform. After reviewing your registration, we regret to inform you that your account application could not be approved at this time.')}
+        ${infoBlock('#fbbf38', '#fffbeb',
+            `<p style="margin:0; font-size:14px; color:#333333;">This decision may be due to incomplete information, unmet membership criteria, or current organisational requirements.</p>`
+        )}
+        ${p('If you believe this decision was made in error or would like further information, please reach out directly to your system administrator.')}
+        ${p('We appreciate your understanding.', 'font-size:13px; color:#666666;')}
     `;
 
     return sendEmail({
         to: userEmail,
         subject: 'Registration Update - ReachPoint',
-        html,
-        text: `Hello ${userName}, Thank you for your interest in the ReachPoint. Unfortunately, your registration could not be approved at this time. Please contact the administrator for more information.`
+        html: emailWrapper(emailHeader(), body),
+        text: `Dear ${userName}, your ReachPoint registration could not be approved. Please contact the administrator for more information.`
     });
 }
 
-/**
- * Send welcome email to users who sign up with invitation codes
- */
+// ---------------------------------------------------------------------------
+// 3. Welcome Email (invitation code sign-up)
+// ---------------------------------------------------------------------------
 export async function sendWelcomeEmail(userEmail: string, userName: string) {
-    const loginUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    const loginUrl = `${BASE_URL}/login`;
 
-    const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <style>
-                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .header { background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: #ffffff; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-                .content { background: #ffffff; padding: 30px; border: 1px solid #e2e8f0; }
-                .badge { display: inline-block; background: #fbbf24; color: #1e293b; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; margin: 10px 0; }
-                .feature-box { background: #f0fdf4; border-left: 4px solid #10b981; padding: 15px; margin: 15px 0; border-radius: 4px; }
-                .button { display: inline-block; padding: 12px 30px; background: #059669; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; margin: 20px 0; }
-                .footer { background: #f8fafc; padding: 20px; text-align: center; color: #64748b; font-size: 12px; border-radius: 0 0 10px 10px; }
-           </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <h1 style="margin: 0; font-size: 28px;">🎊 Welcome to the Team!</h1>
-                </div>
-                <div class="content">
-                    <h2 style="color: #059669;">Congratulations, ${userName}!</h2>
-                    <p>You've successfully signed up using an invitation code. Your account is now <strong>active</strong> and ready to use!</p>
-                    
-                    <div class="badge">✨ TRUSTED CREATOR STATUS</div>
-                    
-                    <p style="color: #047857; font-weight: bold;">You've been granted special privileges:</p>
-                    
-                    <div class="feature-box">
-                        <p style="margin: 0; color: #065f46;"><strong>✓ Instant Access</strong> - No approval wait time</p>
-                    </div>
-                    <div class="feature-box">
-                        <p style="margin: 0; color: #065f46;"><strong>✓ Trusted Creator</strong> - Your events are auto-approved</p>
-                    </div>
-                    <div class="feature-box">
-                        <p style="margin: 0; color: #065f46;"><strong>✓ Full System Access</strong> - Create events and manage records immediately</p>
-                    </div>
-                    
-                    <p style="margin-top: 20px;">You can now:</p>
-                    <ul style="color: #475569;">
-                        <li>Login to your account</li>
-                        <li>Create outreach events</li>
-                        <li>Manage participant records</li>
-                        <li>Track blood donation data</li>
-                    </ul>
-                    
-                    <div style="text-align: center;">
-                        <a href="${loginUrl}/login" class="button">Login to Your Account</a>
-                    </div>
-                    
-                    <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
-                        Welcome aboard! If you have any questions, don't hesitate to reach out.
-                    </p>
-                </div>
-                <div class="footer">
-                    <p>This is an automated message from the ReachPoint.</p>
-                    <p>© ${new Date().getFullYear()} ReachPoint. All rights reserved.</p>
-                </div>
-            </div>
-        </body>
-        </html>
+    const features = [
+        ['Instant Access', 'Your account is active immediately with no approval wait time.'],
+        ['Trusted Creator Status', 'Your events are automatically approved upon submission.'],
+        ['Full Platform Access', 'Create events, manage records, and capture participant data right away.'],
+    ];
+
+    const featureRows = features.map(([title, desc]) => `
+        <tr>
+            <td style="padding:12px 0; border-bottom:1px solid #f0f0f0; vertical-align:top;">
+                <p style="margin:0; font-size:14px; font-weight:700; color:#000000;">${title}</p>
+                <p style="margin:4px 0 0; font-size:13px; color:#555555;">${desc}</p>
+            </td>
+        </tr>
+    `).join('');
+
+    const body = `
+        ${h2('Welcome to ReachPoint')}
+        ${p(`Dear <strong>${userName}</strong>,`)}
+        ${p('You have successfully registered on the ReachPoint platform using an invitation code. Your account is now active and ready to use.')}
+        ${divider()}
+        <p style="margin:0 0 12px; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#999999;">Your Privileges</p>
+        <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #f0f0f0;">
+            ${featureRows}
+        </table>
+        ${ctaButton(loginUrl, 'Log In to Your Account')}
+        ${p('If you have any questions, do not hesitate to contact your administrator.', 'font-size:13px; color:#666666;')}
     `;
 
     return sendEmail({
         to: userEmail,
-        subject: '🎊 Welcome! Your Account is Active',
-        html,
-        text: `Welcome ${userName}! You've successfully signed up with an invitation code. Your account is active with Trusted Creator privileges. Login now at ${loginUrl}/login`
+        subject: 'Welcome to ReachPoint - Your Account is Active',
+        html: emailWrapper(emailHeader(), body),
+        text: `Dear ${userName}, your ReachPoint account is now active with Trusted Creator privileges. Login at ${loginUrl}`
     });
 }
 
-/**
- * Send event approval email
- */
+// ---------------------------------------------------------------------------
+// 4. Event Approval Email
+// ---------------------------------------------------------------------------
 export async function sendEventApprovalEmail(userEmail: string, userName: string, eventTitle: string) {
-    const eventsUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/events`;
+    const eventsUrl = `${BASE_URL}/events`;
 
-    const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <style>
-                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .header { background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: #ffffff; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-                .content { background: #ffffff; padding: 30px; border: 1px solid #e2e8f0; }
-                .event-box { background: #f0fdf4; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0; border-radius: 4px; }
-                .button { display: inline-block; padding: 12px 30px; background: #059669; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; margin: 20px 0; }
-                .footer { background: #f8fafc; padding: 20px; text-align: center; color: #64748b; font-size: 12px; border-radius: 0 0 10px 10px; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <h1 style="margin: 0; font-size: 28px;">🚀 Outreach Event Approved!</h1>
-                </div>
-                <div class="content">
-                    <h2 style="color: #059669;">Congratulations, ${userName}!</h2>
-                    <p>Your outreach event has been approved and is now live on the system.</p>
-                    <div class="event-box">
-                        <h3 style="margin: 0 0 10px 0; color: #047857;">📅 ${eventTitle}</h3>
-                        <p style="margin: 0; color: #065f46;">Your event is now visible to all users and ready for participation.</p>
-                    </div>
-                    <p>You can now:</p>
-                    <ul style="color: #475569;">
-                        <li>View your event on the events page</li>
-                        <li>Track participant registrations</li>
-                        <li>Manage event records and data</li>
-                    </ul>
-                    <div style="text-align: center;">
-                        <a href="${eventsUrl}" class="button">View Event</a>
-                    </div>
-                </div>
-                <div class="footer">
-                    <p>This is an automated message from the ReachPoint.</p>
-                    <p>© ${new Date().getFullYear()} ReachPoint. All rights reserved.</p>
-                </div>
-            </div>
-        </body>
-        </html>
+    const body = `
+        ${h2('Event Approved')}
+        ${p(`Dear <strong>${userName}</strong>,`)}
+        ${p('We are pleased to confirm that your submitted event has been reviewed and approved. It is now live on the platform.')}
+        ${infoBlock('#fbbf38', '#fffbeb',
+            `<p style="margin:0 0 4px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#999999;">Approved Event</p>
+             <p style="margin:0; font-size:16px; font-weight:700; color:#000000;">${eventTitle}</p>
+             <p style="margin:6px 0 0; font-size:13px; color:#555555;">This event is now visible to all platform users and ready for participation.</p>`
+        )}
+        ${p('You may now track participant registrations, manage records, and view event data through your dashboard.')}
+        ${ctaButton(eventsUrl, 'View Event on Platform')}
     `;
 
     return sendEmail({
         to: userEmail,
-        subject: `🎉 Your Event "${eventTitle}" is Now Live!`,
-        html,
-        text: `Congratulations ${userName}! Your outreach event "${eventTitle}" has been approved and is now live. View it at ${eventsUrl}`
+        subject: `Event Approved: ${eventTitle} - ReachPoint`,
+        html: emailWrapper(emailHeader(), body),
+        text: `Dear ${userName}, your event "${eventTitle}" has been approved and is now live. View it at ${eventsUrl}`
     });
 }
 
-/**
- * Send event rejection email
- */
+// ---------------------------------------------------------------------------
+// 5. Event Rejection Email
+// ---------------------------------------------------------------------------
 export async function sendEventRejectionEmail(userEmail: string, userName: string, eventTitle: string) {
-    const loginUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    const createUrl = `${BASE_URL}/dashboard/create-event`;
 
-    const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <style>
-                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .header { background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); color: #ffffff; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-                .content { background: #ffffff; padding: 30px; border: 1px solid #e2e8f0; }
-                .event-box { background: #fff7ed; border-left: 4px solid #f97316; padding: 15px; margin: 20px 0; border-radius: 4px; }
-                .info-box { background: #fef2f2; border-left: 4px solid #ef4444; padding: 15px; margin: 20px 0; border-radius: 4px; }
-                .button { display: inline-block; padding: 12px 30px; background: #1e293b; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; margin: 20px 0; }
-                .footer { background: #f8fafc; padding: 20px; text-align: center; color: #64748b; font-size: 12px; border-radius: 0 0 10px 10px; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <h1 style="margin: 0; font-size: 28px;">Event Submission Update</h1>
-                </div>
-                <div class="content">
-                    <h2 style="color: #ea580c;">Hello ${userName},</h2>
-                    <p>Thank you for submitting your outreach event to our system.</p>
-                    <div class="event-box">
-                        <h3 style="margin: 0 0 10px 0; color: #c2410c;">📅 ${eventTitle}</h3>
-                    </div>
-                    <div class="info-box">
-                        <p style="margin: 0; color: #991b1b; font-weight: bold;">
-                            Unfortunately, this event could not be approved at this time.
-                        </p>
-                    </div>
-                    <p>Common reasons for event non-approval include:</p>
-                    <ul style="color: #475569;">
-                        <li>Event details need clarification or modification</li>
-                        <li>Scheduling conflicts with existing events</li>
-                        <li>Does not align with current organizational goals</li>
-                        <li>Insufficient planning or resources indicated</li>
-                    </ul>
-                    <p style="margin-top: 20px;"><strong>What you can do:</strong></p>
-                    <ul style="color: #475569;">
-                        <li>Review and revise your event details</li>
-                        <li>Submit a new event with additional information</li>
-                        <li>Contact the administrator for specific feedback</li>
-                    </ul>
-                    <div style="text-align: center;">
-                        <a href="${loginUrl}/events/create" class="button">Submit a New Event</a>
-                    </div>
-                    <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
-                        We appreciate your commitment to our outreach mission. Don't be discouraged - we encourage you to try again!
-                    </p>
-                </div>
-                <div class="footer">
-                    <p>This is an automated message from the ReachPoint.</p>
-                    <p>© ${new Date().getFullYear()} ReachPoint. All rights reserved.</p>
-                </div>
-            </div>
-        </body>
-        </html>
+    const reasons = [
+        'Event details require clarification or modification',
+        'Scheduling conflict with an existing event',
+        'Submission does not align with current organisational objectives',
+        'Insufficient planning or resource information provided',
+    ];
+
+    const reasonList = reasons.map(r => `<li style="margin-bottom:6px; font-size:14px; color:#444444;">${r}</li>`).join('');
+
+    const body = `
+        ${h2('Event Submission Update')}
+        ${p(`Dear <strong>${userName}</strong>,`)}
+        ${p('Thank you for submitting your event to the ReachPoint platform. After careful review, we regret to inform you that the following submission could not be approved at this time.')}
+        ${infoBlock('#e0e0e0', '#f9f9f9',
+            `<p style="margin:0 0 4px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#999999;">Submitted Event</p>
+             <p style="margin:0; font-size:15px; font-weight:700; color:#000000;">${eventTitle}</p>`
+        )}
+        <p style="margin:0 0 10px; font-size:14px; font-weight:700; color:#333333;">Common reasons for non-approval include:</p>
+        <ul style="margin:0 0 20px; padding-left:20px;">
+            ${reasonList}
+        </ul>
+        ${p('We encourage you to review your submission, make any necessary adjustments, and resubmit. You may also contact the administrator for specific feedback.')}
+        ${ctaButton(createUrl, 'Submit a New Event')}
+        ${p('We value your commitment to the outreach mission and look forward to your next submission.', 'font-size:13px; color:#666666;')}
     `;
 
     return sendEmail({
         to: userEmail,
-        subject: `Event Submission Update: "${eventTitle}"`,
-        html,
-        text: `Hello ${userName}, Thank you for submitting your event "${eventTitle}". Unfortunately, this event could not be approved at this time. You can revise and submit a new event or contact the administrator for feedback.`
+        subject: `Event Submission Update: ${eventTitle} - ReachPoint`,
+        html: emailWrapper(emailHeader(), body),
+        text: `Dear ${userName}, your event "${eventTitle}" could not be approved. Please revise and resubmit, or contact the administrator for feedback.`
     });
 }

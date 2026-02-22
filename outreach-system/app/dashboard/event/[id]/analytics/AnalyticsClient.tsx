@@ -5,7 +5,7 @@ import { generateSmartInsight } from '@/lib/analytics';
 import { generateMedicalReport } from '@/app/dashboard/actions';
 import { Button } from '@/components/ui/Button';
 import {
-    Users, Activity, Clock, Info, Loader2, AlertCircle, Sparkles, Bot, Download
+    Users, Activity, Clock, Info, Loader2, AlertCircle, Sparkles, Bot, Download, X, Rocket
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import dynamic from 'next/dynamic';
@@ -20,8 +20,9 @@ export default function AnalyticsClient({ eventId }: { eventId: string }) {
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [showComingSoon, setShowComingSoon] = useState(false);
 
-    // AI State
+    // AI State (reserved for future use)
     const [aiReport, setAiReport] = useState<string | null>(null);
     const [analyzing, setAnalyzing] = useState(false);
 
@@ -126,14 +127,69 @@ export default function AnalyticsClient({ eventId }: { eventId: string }) {
             {/* ACTION BAR */}
             <div className="flex justify-between items-center">
                 <p className="text-slate-500 text-sm">Last updated: Just now</p>
-                <Button
-                    onClick={handleAnalyze}
-                    isLoading={analyzing}
-                    className="flex items-center gap-2"
+                <button
+                    onClick={() => setShowComingSoon(true)}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-slate-900 to-slate-700 text-white rounded-xl font-bold text-sm hover:from-slate-800 hover:to-slate-600 transition-all shadow-lg shadow-slate-900/20 group"
                 >
-                    <Sparkles size={18} /> Analyze with AI
-                </Button>
+                    <Sparkles size={16} className="text-[#fbc037] group-hover:animate-pulse" />
+                    Analyze with AI
+                </button>
             </div>
+
+            {/* Coming Soon Modal */}
+            {showComingSoon && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 animate-in zoom-in-95 duration-200">
+                        {/* Close */}
+                        <button
+                            onClick={() => setShowComingSoon(false)}
+                            className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                        >
+                            <X size={18} />
+                        </button>
+
+                        {/* Icon */}
+                        <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#fbc037]/20 to-[#fbc037]/5 border border-[#fbc037]/20 mx-auto mb-5">
+                            <Rocket size={30} className="text-[#fbc037]" />
+                        </div>
+
+                        {/* Text */}
+                        <div className="text-center mb-6">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#fbc037]/10 border border-[#fbc037]/20 text-[10px] font-bold uppercase tracking-widest text-amber-700 mb-3">
+                                <Sparkles size={10} /> Coming Soon
+                            </span>
+                            <h3 className="text-xl font-bold text-slate-900 mt-1">AI-Powered Analysis</h3>
+                            <p className="text-slate-500 text-sm mt-2 leading-relaxed">
+                                We're building an intelligent medical data analysis engine that will transform your event data into actionable clinical insights.
+                            </p>
+                        </div>
+
+                        {/* Feature list */}
+                        <ul className="space-y-2.5 mb-7">
+                            {[
+                                'Automated population health summaries',
+                                'Anomaly & risk pattern detection',
+                                'Downloadable CMO-style PDF reports',
+                                'Natural language data Q&A',
+                            ].map((feat) => (
+                                <li key={feat} className="flex items-center gap-3 text-sm text-slate-600">
+                                    <span className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                                    </span>
+                                    {feat}
+                                </li>
+                            ))}
+                        </ul>
+
+                        <button
+                            onClick={() => setShowComingSoon(false)}
+                            className="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-sm transition-colors"
+                        >
+                            Got it
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* AI REPORT SECTION */}
             {aiReport && (

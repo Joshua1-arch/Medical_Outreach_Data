@@ -1,13 +1,12 @@
 import { auth } from '@/auth';
 import dbConnect from '@/lib/db';
 import Event from '@/models/Event';
-import Record from '@/models/Record';
 import { redirect, notFound } from 'next/navigation';
-import EventBuilderClient from './EventBuilderClient';
+import SettingsClient from '../_components/SettingsClient';
 
 export const dynamic = 'force-dynamic';
 
-export default async function BuilderPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function SettingsPage({ params }: { params: Promise<{ id: string }> }) {
     const session = await auth();
     if (!session?.user) redirect('/login');
 
@@ -15,7 +14,7 @@ export default async function BuilderPage({ params }: { params: Promise<{ id: st
 
     await dbConnect();
 
-    const event = await Event.findById(id);
+    const event = await Event.findById(id).select('_id title isPublic accessCode createdBy').lean() as any;
     if (!event) notFound();
 
     if (
@@ -25,12 +24,5 @@ export default async function BuilderPage({ params }: { params: Promise<{ id: st
         redirect('/dashboard/my-events');
     }
 
-    const records = await Record.find({ eventId: id }).sort({ createdAt: -1 }).limit(100);
-
-    return (
-        <EventBuilderClient
-            event={JSON.parse(JSON.stringify(event))}
-            records={JSON.parse(JSON.stringify(records))}
-        />
-    );
+    return <SettingsClient event={JSON.parse(JSON.stringify(event))} />;
 }

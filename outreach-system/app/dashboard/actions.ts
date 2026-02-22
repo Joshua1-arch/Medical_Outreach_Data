@@ -217,3 +217,58 @@ export async function changePassword(prevState: any, formData: FormData) {
         return { success: false, message: 'Failed to update password' };
     }
 }
+
+export async function updateUserProfile(prevState: any, formData: FormData) {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) return { success: false, message: 'Unauthorized' };
+
+        await dbConnect();
+        const user = await User.findById(session.user.id);
+        if (!user) return { success: false, message: 'User not found' };
+
+        const name = formData.get('name') as string;
+        const phone = formData.get('phone') as string;
+        const medicalRole = formData.get('medicalRole') as string;
+        const profileImage = formData.get('profileImage') as string;
+        const timezone = formData.get('timezone') as string;
+        const exportFormat = formData.get('exportFormat') as string;
+
+        if (name) user.name = name;
+        if (phone !== null) user.phone = phone;
+        if (medicalRole !== null) user.medicalRole = medicalRole;
+        if (profileImage) user.profileImage = profileImage;
+        if (timezone) user.timezone = timezone;
+        if (exportFormat) user.exportFormat = exportFormat;
+
+        await user.save();
+        revalidatePath('/dashboard/settings');
+
+        return { success: true, message: 'Profile updated successfully' };
+    } catch {
+        return { success: false, message: 'Failed to update profile' };
+    }
+}
+
+export async function requestAccountDeletion() {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) return { success: false, message: 'Unauthorized' };
+
+        await dbConnect();
+        const user = await User.findById(session.user.id);
+        if (!user) return { success: false, message: 'User not found' };
+
+        user.deletionRequested = true;
+        user.deletionRequestedAt = new Date();
+        await user.save();
+
+        revalidatePath('/admin/users');
+
+        return { success: true, message: 'Your deletion request has been sent to the admin for review.' };
+    } catch {
+        return { success: false, message: 'Failed to submit deletion request' };
+    }
+}
+
+

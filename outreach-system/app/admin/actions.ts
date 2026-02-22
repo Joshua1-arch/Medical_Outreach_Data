@@ -369,3 +369,35 @@ export async function deleteInvitationCode(codeId: string) {
         return { success: false, message: 'Failed to delete invitation code' };
     }
 }
+
+export async function approveDeletionRequest(userId: string) {
+    try {
+        await checkAdmin();
+        await dbConnect();
+        const user = await User.findByIdAndDelete(userId);
+        revalidatePath('/admin/users');
+        await logAudit('USER_DELETION_APPROVED', `User:${userId}`, { email: user?.email });
+        return { success: true, message: 'User account permanently deleted' };
+    } catch (error) {
+        console.error('Failed to delete user:', error);
+        return { success: false, message: 'Failed to delete user' };
+    }
+}
+
+export async function dismissDeletionRequest(userId: string) {
+    try {
+        await checkAdmin();
+        await dbConnect();
+        const user = await User.findByIdAndUpdate(userId, {
+            deletionRequested: false,
+            deletionRequestedAt: null
+        }, { new: true });
+        revalidatePath('/admin/users');
+        await logAudit('USER_DELETION_DISMISSED', `User:${userId}`, { email: user?.email });
+        return { success: true, message: 'Deletion request dismissed' };
+    } catch (error) {
+        console.error('Failed to dismiss deletion request:', error);
+        return { success: false, message: 'Failed to dismiss request' };
+    }
+}
+

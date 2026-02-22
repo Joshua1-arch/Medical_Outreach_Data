@@ -8,6 +8,7 @@ import { auth } from "@/auth";
 import crypto from "crypto";
 
 import Event from "@/models/Event";
+import { submissionRateLimit, getIP } from "@/lib/rate-limit";
 
 function generateRetrievalCode() {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -50,6 +51,13 @@ function extractPatientPhone(data: Record<string, unknown>): string | undefined 
 
 export async function submitRecord(eventId: string, data: Record<string, unknown>) {
     try {
+        // 1. Rate Limiting (Spam Protection)
+        const ip = getIP();
+        const { success } = await submissionRateLimit.limit(ip);
+        if (!success) {
+            return { success: false, message: 'Too many submissions. Please wait a minute.' };
+        }
+
         const session = await auth();
         await dbConnect();
 

@@ -1,91 +1,101 @@
 'use client';
-import Link from "next/link";
-import Image from "next/image";
-import { usePathname } from "next/navigation";
+
+import Link from 'next/link';
+import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import {
     LayoutDashboard,
     PlusCircle,
     CalendarCheck,
+    Settings,
+    HelpCircle,
     LogOut,
     Menu,
     X,
     ShieldAlert,
-    Settings,
     ChevronRight,
-} from "lucide-react";
-import { useState } from "react";
+} from 'lucide-react';
+import { useState } from 'react';
 
 interface NavItem {
     label: string;
     href: string;
     icon: React.ReactNode;
-    highlight?: boolean;
 }
 
-export default function Sidebar({ user, onSignOut }: { user: any; onSignOut: () => Promise<void> }) {
+export default function Sidebar({
+    user,
+    onSignOut,
+}: {
+    user: any;
+    onSignOut: () => Promise<void>;
+}) {
     const [isOpen, setIsOpen] = useState(false);
     const pathname = usePathname();
 
     const navItems: NavItem[] = [
-        { label: "Dashboard", href: "/dashboard", icon: <LayoutDashboard size={18} /> },
-        { label: "Create Project", href: "/dashboard/create-event", icon: <PlusCircle size={18} /> },
-        { label: "My Projects", href: "/dashboard/my-events", icon: <CalendarCheck size={18} /> },
-        { label: "Settings", href: "/dashboard/settings", icon: <Settings size={18} /> },
+        { label: 'Dashboard',      href: '/dashboard',              icon: <LayoutDashboard size={19} /> },
+        { label: 'Create Project', href: '/dashboard/create-event', icon: <PlusCircle size={19} /> },
+        { label: 'My Projects',    href: '/dashboard/my-events',    icon: <CalendarCheck size={19} /> },
     ];
 
     const isActive = (href: string) => {
-        if (href === "/dashboard") return pathname === "/dashboard";
+        if (href === '/dashboard') return pathname === '/dashboard';
         return pathname.startsWith(href);
     };
 
+    const initials =
+        user?.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) ||
+        user?.email?.charAt(0).toUpperCase() ||
+        'U';
+
     const SidebarContent = () => (
-        <div className="flex flex-col h-full">
-            {/* Logo Header */}
-            <div className="relative flex flex-col items-center gap-2 px-6 pt-6 pb-5 border-b border-white/10">
-                {/* Mobile close button — top right */}
+        <div className="flex flex-col h-full bg-white border-r border-slate-200">
+
+            {/* Logo */}
+            <div className="flex items-center gap-3 px-6 py-5 border-b border-slate-100">
+                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-[#fbc037]/15 shrink-0">
+                    <Image src="/Reach.png" alt="ReachPoint" width={22} height={22} className="object-contain" />
+                </div>
+                <span className="text-lg font-bold tracking-tight text-slate-900">ReachPoint</span>
+                {/* Mobile close */}
                 <button
                     onClick={() => setIsOpen(false)}
-                    className="md:hidden absolute top-3 right-3 text-white/30 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10"
+                    className="md:hidden ml-auto text-slate-400 hover:text-slate-600 transition-colors p-1"
                 >
-                    <X size={16} />
+                    <X size={18} />
                 </button>
-
-                {/* Logo */}
-                <div className="flex items-center justify-center">
-                    <Image src="/Reachside1.png" alt="ReachPoint Logo" width={130} height={38} className="object-contain" />
-                </div>
-
-                {/* USER PORTAL badge */}
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-gold/10 border border-brand-gold/25">
-                    <span className="w-1.5 h-1.5 rounded-full bg-brand-gold animate-pulse" />
-                    <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-brand-gold/90">User Portal</span>
-                </div>
             </div>
 
-            {/* User Info */}
-            <div className="px-4 py-4 mx-3 mt-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
-                <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-brand-gold/20 border border-brand-gold/30 flex items-center justify-center flex-shrink-0">
-                        <span className="text-brand-gold font-bold text-sm">
-                            {user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "U"}
-                        </span>
+            {/* User chip */}
+            <div className="px-4 py-4">
+                <div className="flex items-center gap-3 bg-slate-50 rounded-xl px-3 py-2.5">
+                    <div className="w-8 h-8 rounded-full bg-[#fbc037] flex items-center justify-center shrink-0 overflow-hidden border-2 border-[#fbc037]">
+                        {user?.profileImage ? (
+                            <img src={user.profileImage} alt={user?.name || 'User'} className="w-full h-full object-cover" />
+                        ) : (
+                            <span className="text-slate-900 text-xs font-bold">{initials}</span>
+                        )}
                     </div>
                     <div className="min-w-0">
-                        <p className="text-white font-semibold text-sm truncate">{user?.name || "User"}</p>
-                        <p className="text-white/40 text-xs truncate">{user?.email}</p>
+                        <p className="text-sm font-semibold text-slate-900 truncate">{user?.name || 'User'}</p>
+                        <p className="text-xs text-slate-400 truncate">{user?.email}</p>
                     </div>
                 </div>
             </div>
 
-            {/* Navigation */}
-            <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-                <p className="text-white/30 text-[10px] font-bold uppercase tracking-[0.15em] px-3 mb-3">Navigation</p>
+            {/* Nav */}
+            <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 px-3 mb-2 mt-1">
+                    Menu
+                </p>
 
+                {/* Admin shortcut */}
                 {user?.role === 'admin' && (
                     <Link
-                        onClick={() => setIsOpen(false)}
                         href="/admin"
-                        className="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-brand-gold bg-brand-gold/10 border border-brand-gold/20 hover:bg-brand-gold/20 transition-all font-semibold text-sm mb-3"
+                        onClick={() => setIsOpen(false)}
+                        className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors mb-2"
                     >
                         <ShieldAlert size={18} />
                         <span className="flex-1">Admin Portal</span>
@@ -98,32 +108,52 @@ export default function Sidebar({ user, onSignOut }: { user: any; onSignOut: () 
                         key={item.href}
                         href={item.href}
                         onClick={() => setIsOpen(false)}
-                        className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
-                            ${isActive(item.href)
-                                ? 'bg-white text-brand-dark shadow-lg shadow-black/20'
-                                : 'text-white/60 hover:text-white hover:bg-white/10'
-                            }
-                        `}
+                        className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150 ${
+                            isActive(item.href)
+                                ? 'bg-[#fbc037]/15 text-slate-900'
+                                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                        }`}
                     >
-                        <span className={`${isActive(item.href) ? 'text-brand-dark' : 'text-white/50 group-hover:text-white'} transition-colors`}>
+                        <span className={isActive(item.href) ? 'text-yellow-700' : 'text-slate-400 group-hover:text-slate-600'}>
                             {item.icon}
                         </span>
-                        <span className="flex-1">{item.label}</span>
-                        {isActive(item.href) && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-brand-gold" />
-                        )}
+                        <span className={isActive(item.href) ? 'font-semibold' : ''}>{item.label}</span>
                     </Link>
                 ))}
             </nav>
 
-            {/* Sign Out */}
-            <div className="p-3 border-t border-white/10">
+            {/* Bottom links */}
+            <div className="px-4 pb-5 pt-3 border-t border-slate-100 space-y-1">
+                <Link
+                    href="/dashboard/settings"
+                    onClick={() => setIsOpen(false)}
+                    className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                        pathname.startsWith('/dashboard/settings')
+                            ? 'bg-[#fbc037]/15 text-slate-900'
+                            : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                    }`}
+                >
+                    <Settings size={19} className="text-slate-400" />
+                    Settings
+                </Link>
+                <Link
+                    href="/help"
+                    onClick={() => setIsOpen(false)}
+                    className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                        pathname.startsWith('/help')
+                            ? 'bg-[#fbc037]/15 text-slate-900'
+                            : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                    }`}
+                >
+                    <HelpCircle size={19} className="text-slate-400" />
+                    Help Center
+                </Link>
                 <button
                     onClick={() => onSignOut()}
-                    className="group w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/50 hover:text-red-400 hover:bg-red-500/10 transition-all text-sm font-medium"
+                    className="w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-500 hover:text-red-500 hover:bg-red-50 transition-colors"
                 >
-                    <LogOut size={18} />
-                    <span>Sign Out</span>
+                    <LogOut size={19} />
+                    Sign Out
                 </button>
             </div>
         </div>
@@ -131,34 +161,33 @@ export default function Sidebar({ user, onSignOut }: { user: any; onSignOut: () 
 
     return (
         <>
-            {/* Mobile Top Bar */}
-            <div className="md:hidden fixed top-0 left-0 right-0 z-40 h-14 bg-brand-dark border-b border-white/10 flex items-center justify-between px-4">
-                <div className="flex items-center gap-2.5">
-                    <div className="rounded-md px-2 py-0.5 flex items-center justify-center">
-                        <Image src="/Reachside1.png" alt="ReachPoint Logo" width={90} height={26} className="object-contain" />
-                    </div>
+            {/* Mobile top bar */}
+            <div className="md:hidden fixed top-0 left-0 right-0 z-40 h-14 bg-white flex items-center justify-between px-4 shadow-sm shadow-slate-200/50">
+                <div className="flex items-center gap-2">
+                    <Image src="/Reach.png" alt="ReachPoint" width={28} height={28} className="object-contain" />
+                    <span className="font-bold text-slate-900">ReachPoint</span>
                 </div>
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="text-white/70 hover:text-white transition-colors p-1"
+                    className="text-slate-500 hover:text-slate-900 transition-colors p-1"
                 >
                     {isOpen ? <X size={22} /> : <Menu size={22} />}
                 </button>
             </div>
 
-            {/* Desktop Sidebar */}
+            {/* Desktop sidebar */}
             <aside className={`
-                fixed inset-y-0 left-0 z-50 w-64 bg-brand-dark flex flex-col transition-transform duration-300 ease-in-out
+                fixed inset-y-0 left-0 z-50 w-64 flex flex-col transition-transform duration-300 ease-in-out
                 ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-                md:relative md:translate-x-0 md:flex
+                md:relative md:translate-x-0 md:flex md:shrink-0
             `}>
                 <SidebarContent />
             </aside>
 
-            {/* Mobile Overlay */}
+            {/* Mobile overlay */}
             {isOpen && (
                 <div
-                    className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm"
+                    className="fixed inset-0 bg-black/40 z-40 md:hidden backdrop-blur-sm"
                     onClick={() => setIsOpen(false)}
                 />
             )}
