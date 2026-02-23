@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { LogIn, Sparkles } from "lucide-react";
+import { LogIn } from "lucide-react";
 import { useSiteConfig } from "@/app/context/SiteConfigProvider";
 
 export default function Navbar() {
@@ -39,9 +39,8 @@ export default function Navbar() {
                         </Link>
                         <Link href="/signup" 
                             style={{ backgroundColor: primaryColor }} 
-                            className="flex items-center gap-2 px-5 py-2.5 text-white rounded-lg text-sm font-bold hover:bg-slate-800 hover:shadow-lg transition-all shadow-[0_4px_14px_0_rgba(15,23,42,0.39)] group"
+                            className="px-5 py-2.5 text-white rounded-lg text-sm font-bold hover:bg-slate-800 hover:shadow-lg transition-all shadow-[0_4px_14px_0_rgba(15,23,42,0.39)]"
                         >
-                            <Sparkles size={16} style={{ color: secondaryColor }} className="group-hover:animate-pulse" /> 
                             Get Started
                         </Link>
                     </div>

@@ -330,7 +330,7 @@ function SignupPageContent() {
 
                             {/* Info note */}
                             <p className="text-xs text-slate-400 bg-[#fbc037]/5 border border-[#fbc037]/20 rounded-lg px-4 py-3">
-                                💡 <strong className="text-slate-600">No invitation code?</strong> Your account will need admin approval before you can log in. You&apos;ll be notified by email once approved.
+                                 <strong className="text-slate-600">No invitation code?</strong> Your account will need admin approval before you can log in. You&apos;ll be notified by email once approved.
                             </p>
 
                             {/* Submit */}

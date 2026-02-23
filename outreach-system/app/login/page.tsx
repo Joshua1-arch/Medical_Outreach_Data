@@ -46,7 +46,8 @@ export default function LoginPage() {
             </div>
 
             {/* ── Right Panel (form) ── */}
-            <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 bg-white relative">
+            <div className="w-full lg:w-1/2 flex flex-col bg-white overflow-y-auto">
+                <div className="flex-1 flex flex-col items-center justify-center p-8 relative min-h-[600px]">
 
                 {/* Mobile-only logo */}
                 <div className="absolute top-8 left-8 lg:hidden flex items-center gap-2">
@@ -216,9 +217,10 @@ export default function LoginPage() {
                         </Link>
                     </p>
                 </div>
+                </div>
 
                 {/* Footer note */}
-                <div className="absolute bottom-6 text-xs text-slate-400">
+                <div className="p-8 pt-0 text-center text-xs text-slate-400">
                     © {new Date().getFullYear()} ReachPoint Systems. All rights reserved.
                 </div>
             </div>
