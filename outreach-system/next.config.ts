@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
   productionBrowserSourceMaps: false,
   poweredByHeader: false,
   compiler: {
-    removeConsole: process.env.NODE_ENV === "production",
+    removeConsole: true,
   },
   images: {
     remotePatterns: [

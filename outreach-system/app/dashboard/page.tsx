@@ -393,9 +393,6 @@ export default async function DashboardPage() {
                 <p className="max-w-md mx-auto mb-4 text-slate-500 text-sm">
                     Could not connect to the database. This is usually caused by an unwhitelisted IP in MongoDB Atlas.
                 </p>
-                <div className="text-xs bg-slate-100 p-4 rounded-xl text-left max-w-lg mx-auto overflow-auto font-mono text-slate-600">
-                    {(error as Error).message || 'Unknown error'}
-                </div>
             </div>
         );
     }

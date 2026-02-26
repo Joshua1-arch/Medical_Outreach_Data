@@ -146,9 +146,6 @@ export default async function AdminDashboardPage() {
                 <p className="max-w-md mx-auto mb-4">
                     Could not connect to the database. This is usually caused by network issues or an IP address that hasn't been whitelisted in MongoDB Atlas.
                 </p>
-                <div className="text-xs bg-slate-100 p-4 rounded text-left max-w-lg mx-auto overflow-auto font-mono text-slate-600">
-                    {(error as Error).message || "Unknown error"}
-                </div>
             </div>
         );
     }
