@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { AlertCircle, Mail, Lock, Eye, EyeOff, Globe, Building2 } from 'lucide-react';
 import { SubmitButton } from '@/components/ui/SubmitButton';
+import GoogleSignupButton from '@/components/auth/GoogleSignupButton';
 
 export default function LoginPage() {
     const router = useRouter();
@@ -16,10 +17,10 @@ export default function LoginPage() {
     const reason = searchParams.get('reason');
 
     return (
-        <div className="flex h-screen w-full overflow-hidden font-sans">
+        <div className="flex min-h-screen w-full font-sans overflow-x-hidden">
 
             {/* ── Left Panel (decorative, desktop only) ── */}
-            <div className="hidden lg:flex w-1/2 relative bg-slate-900 items-center justify-center overflow-hidden">
+            <div className="hidden lg:flex lg:w-5/12 xl:w-2/5 relative bg-slate-900 items-center justify-center overflow-hidden">
                 {/* BG image + gradient overlay */}
                 <div className="absolute inset-0 z-0">
                     <img
@@ -35,32 +36,32 @@ export default function LoginPage() {
                     <div className="mb-8 inline-flex items-center justify-center w-12 h-12 rounded-lg bg-[#fbc037] text-slate-900">
                         <Image src="/Reach.png" alt="ReachPoint Logo" width={32} height={32} className="object-contain" />
                     </div>
-                    <h1 className="text-white text-5xl font-black leading-tight tracking-tight mb-6">
+                    <h1 className="text-white text-4xl xl:text-5xl font-black leading-tight tracking-tight mb-6">
                         Empowering <br />
                         <span className="text-[#fbc037]">Medical Outreach</span>
                     </h1>
-                    <p className="text-slate-300 text-lg font-light leading-relaxed mb-8">
+                    <p className="text-slate-300 text-base xl:text-lg font-light leading-relaxed mb-8">
                         Seamlessly manage your outreach data, coordinate events, and connect with communities using ReachPoint&apos;s advanced platform.
                     </p>
                 </div>
             </div>
 
             {/* ── Right Panel (form) ── */}
-            <div className="w-full lg:w-1/2 flex flex-col bg-white overflow-y-auto">
-                <div className="flex-1 flex flex-col items-center justify-center p-8 relative min-h-[600px]">
+            <div className="flex-1 bg-white flex flex-col min-h-screen">
+                <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 sm:px-10 lg:px-14 xl:px-20 relative">
 
                 {/* Mobile-only logo */}
-                <div className="absolute top-8 left-8 lg:hidden flex items-center gap-2">
+                <div className="absolute top-6 left-6 sm:top-8 sm:left-8 w-full lg:hidden flex items-center gap-2">
                     <Image src="/Reach.png" alt="ReachPoint" width={36} height={36} className="object-contain" />
                     <span className="font-bold text-xl text-slate-900">ReachPoint</span>
                 </div>
 
-                <div className="w-full max-w-[420px] flex flex-col gap-7">
+                <div className="w-full max-w-[420px] flex flex-col gap-6 mt-12 lg:mt-0">
 
                     {/* Heading */}
                     <div className="flex flex-col gap-1.5">
                         <h2 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900">Welcome Back</h2>
-                        <p className="text-slate-500 text-base">Please enter your details to sign in to your dashboard.</p>
+                        <p className="text-slate-500 text-sm sm:text-base">Please enter your details to sign in to your dashboard.</p>
                     </div>
 
                     {/* Auto-logout message */}
@@ -165,7 +166,7 @@ export default function LoginPage() {
                         </div>
 
                         {/* Remember + Forgot */}
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-wrap items-center justify-between gap-y-3 gap-x-4">
                             <div className="flex items-center gap-2">
                                 <input
                                     id="remember"
@@ -199,14 +200,7 @@ export default function LoginPage() {
 
                     {/* Social / SSO buttons */}
                     <div className="flex flex-col gap-4">
-                        <button
-                            onClick={() => signIn('google')}
-                            type="button"
-                            className="flex w-full items-center justify-center gap-3 rounded-lg border border-slate-200 bg-white py-3 px-4 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-[0.99]"
-                        >
-                            <img src="https://authjs.dev/img/providers/google.svg" width={20} height={20} alt="Google logo" />
-                            Continue with Google
-                        </button>
+                        <GoogleSignupButton isLogin />
                     </div>
 
                     {/* Signup link */}

@@ -8,6 +8,7 @@ import { auth } from "@/auth";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import bcrypt from "bcryptjs";
 import nodeCrypto from "crypto";
+import { sendEventCreationConfirmationEmail, sendAdminNewEventAlert } from "@/lib/email";
 
 export async function createEvent(formData: FormData) {
     try {
@@ -35,6 +36,14 @@ export async function createEvent(formData: FormData) {
 
         if (!title || !date || !location) {
             return { success: false, message: 'Missing required fields' };
+        }
+
+        const selectedDate = new Date(date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset time for comparison
+
+        if (selectedDate < today) {
+            return { success: false, message: 'Event date must be today or in the future.' };
         }
 
 
@@ -65,6 +74,12 @@ export async function createEvent(formData: FormData) {
 
         revalidatePath('/dashboard/my-events');
         revalidatePath('/admin/events');
+
+        // Send email notifications (non-blocking)
+        sendEventCreationConfirmationEmail(user.email, user.name, title, status === 'approved').catch(console.error);
+        if (status === 'pending') {
+            sendAdminNewEventAlert(user.name, user.email, title).catch(console.error);
+        }
 
         return {
             success: true,

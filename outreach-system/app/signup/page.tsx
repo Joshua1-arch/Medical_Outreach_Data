@@ -11,6 +11,7 @@ import {
     Users, BarChart3,
 } from 'lucide-react';
 import { SubmitButton } from '@/components/ui/SubmitButton';
+import GoogleSignupButton from '@/components/auth/GoogleSignupButton';
 
 /* ─── Left-panel bullet points ───────────────────────────── */
 const PERKS = [
@@ -31,6 +32,7 @@ function SignupPageContent() {
     const [error, setError]               = useState('');
     const [success, setSuccess]           = useState(false);
     const [autoApproved, setAutoApproved] = useState(false);
+    const [hasConsented, setHasConsented] = useState(false);
 
     const searchParams = useSearchParams();
     const googleSuccess = searchParams.get('success') === 'google';
@@ -333,8 +335,43 @@ function SignupPageContent() {
                                  <strong className="text-slate-600">No invitation code?</strong> Your account will need admin approval before you can log in. You&apos;ll be notified by email once approved.
                             </p>
 
+                            {/* NDPR Consent Checkbox */}
+                            <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-50 border border-slate-100 group transition-all hover:bg-white hover:border-[#fbc037]/30 hover:shadow-sm">
+                                <div className="relative flex items-center h-5">
+                                    <input
+                                        id="ndpr-consent"
+                                        name="ndpr-consent"
+                                        type="checkbox"
+                                        checked={hasConsented}
+                                        onChange={(e) => setHasConsented(e.target.checked)}
+                                        className="w-4 h-4 rounded border-slate-300 text-[#fbc037] focus:ring-[#fbc037] focus:ring-offset-0 cursor-pointer accent-[#fbc037] transition-all"
+                                    />
+                                </div>
+                                <div className="text-xs sm:text-sm leading-tight text-slate-500 font-medium select-none">
+                                    <label htmlFor="ndpr-consent" className="cursor-pointer">
+                                        I agree to the ReachPoint{' '}
+                                        <Link 
+                                            href="/privacy" 
+                                            target="_blank" 
+                                            className="text-slate-900 font-bold hover:text-[#fbc037] transition-colors decoration-[#fbc037]/30 underline underline-offset-4"
+                                        >
+                                            Privacy Policy
+                                        </Link>{' '}
+                                        and consent to the processing of my data.
+                                    </label>
+                                </div>
+                            </div>
+
                             {/* Submit */}
-                            <SubmitButton className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#fbc037] py-3.5 px-6 text-sm font-bold text-slate-900 hover:bg-yellow-400 shadow-md hover:shadow-lg transition-all active:scale-[0.99]">
+                            <SubmitButton 
+                                disabled={!hasConsented}
+                                className={`w-full flex items-center justify-center gap-2 rounded-xl py-3.5 px-6 text-sm font-bold transition-all active:scale-[0.99]
+                                    ${hasConsented 
+                                        ? 'bg-[#fbc037] text-slate-900 hover:bg-yellow-400 shadow-md hover:shadow-lg' 
+                                        : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-60'
+                                    }
+                                `}
+                            >
                                 <UserPlus size={18} />
                                 Create Account
                             </SubmitButton>
@@ -359,15 +396,13 @@ function SignupPageContent() {
                         </div>
 
                         {/* Social Login Button */}
-                        <div className="flex flex-col gap-4">
-                            <button
-                                onClick={() => signIn('google')}
-                                type="button"
-                                className="flex items-center justify-center gap-2.5 rounded-xl border border-slate-200 bg-white py-3.5 px-6 text-sm font-bold text-slate-900 shadow-sm hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-[0.99]"
-                            >
-                                <img src="https://authjs.dev/img/providers/google.svg" width={20} height={20} alt="Google logo" />
-                                Continue with Google
-                            </button>
+                        <div className="flex flex-col gap-3">
+                            <GoogleSignupButton disabled={!hasConsented} />
+                            {!hasConsented && (
+                                <p className="text-[10px] text-center text-slate-400 font-semibold uppercase tracking-widest animate-pulse">
+                                    Please accept the terms to continue
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>

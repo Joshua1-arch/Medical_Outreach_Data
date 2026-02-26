@@ -17,7 +17,12 @@ export default function SessionGuard() {
     useEffect(() => {
         // Don't check on public pages or login page to avoid loops
         const publicPaths = ['/login', '/register', '/maintenance', '/'];
+        
         if (publicPaths.includes(pathname) || pathname.startsWith('/api')) {
+            // Once we reach a public page, we can clear the logout flag if it exists
+            if (typeof window !== 'undefined') {
+                sessionStorage.removeItem('logging-out');
+            }
             return;
         }
 
@@ -28,7 +33,15 @@ export default function SessionGuard() {
                 const session = await response.json();
                 
                 if (!session || Object.keys(session).length === 0) {
-                    // Session is invalid or gone
+                    // Check if this was a deliberate logout
+                    const isLoggingOut = sessionStorage.getItem('logging-out');
+                    if (isLoggingOut) {
+                        // If we are currently logging out, don't trigger the session_expired warning.
+                        // The redirect to login is already being handled by the logout action.
+                        return;
+                    }
+
+                    // Session is invalid or gone unexpectedly
                     window.location.href = '/login?reason=session_expired';
                 }
             } catch (error) {

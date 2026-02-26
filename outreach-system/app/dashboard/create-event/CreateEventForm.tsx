@@ -54,6 +54,7 @@ export default function CreateEventForm() {
     const fieldWithIcon =
         'w-full h-12 pl-10 pr-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#fbc037]/50 focus:border-[#fbc037] outline-none transition-all placeholder:text-slate-400 text-sm';
     const label = 'block text-sm font-semibold text-slate-700 mb-1.5';
+    const today = new Date().toISOString().split('T')[0];
 
     return (
         <div className="max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -214,6 +215,7 @@ export default function CreateEventForm() {
                                     id="date"
                                     name="date"
                                     required
+                                    min={today}
                                     className={fieldWithIcon}
                                 />
                             </div>

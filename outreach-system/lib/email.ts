@@ -1,16 +1,3 @@
-import nodemailer from 'nodemailer';
-
-// ---------------------------------------------------------------------------
-// Transporter
-// ---------------------------------------------------------------------------
-const createTransporter = () => {
-    if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) return null;
-    return nodemailer.createTransport({
-        service: 'gmail',
-        auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS }
-    });
-};
-
 interface EmailOptions {
     to: string;
     subject: string;
@@ -19,20 +6,45 @@ interface EmailOptions {
 }
 
 export async function sendEmail(options: EmailOptions) {
+    const apiKey = process.env.BREVO_API_KEY;
+    const senderEmail = process.env.BREVO_SENDER_EMAIL;
+    const senderName = process.env.BREVO_SENDER_NAME || 'ReachPoint';
+
+    if (!apiKey || !senderEmail) {
+        console.warn('BREVO_API_KEY or BREVO_SENDER_EMAIL not configured');
+        return { success: false, message: 'Email credentials not configured', skipped: true };
+    }
+
     try {
-        const transporter = createTransporter();
-        if (!transporter) {
-            return { success: false, message: 'Email credentials not configured', skipped: true };
-        }
-        const info = await transporter.sendMail({
-            from: `"ReachPoint" <${process.env.GMAIL_USER}>`,
-            to: options.to,
-            subject: options.subject,
-            html: options.html,
-            text: options.text || options.html.replace(/<[^>]*>/g, '')
+        const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+            method: 'POST',
+            headers: {
+                'accept': 'application/json',
+                'api-key': apiKey,
+                'content-type': 'application/json'
+            },
+            body: JSON.stringify({
+                sender: {
+                    name: senderName,
+                    email: senderEmail
+                },
+                to: [{ email: options.to }],
+                subject: options.subject,
+                htmlContent: options.html,
+                textContent: options.text || options.html.replace(/<[^>]*>/g, '')
+            })
         });
-        return { success: true, message: 'Email sent successfully', messageId: info.messageId };
-    } catch {
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Brevo API Error:', errorData);
+            return { success: false, message: 'Failed to send email via Brevo' };
+        }
+
+        const data = await response.json();
+        return { success: true, message: 'Email sent successfully', messageId: data.messageId };
+    } catch (error) {
+        console.error('Email sending exception:', error);
         return { success: false, message: 'Failed to send email' };
     }
 }
@@ -169,9 +181,7 @@ export async function sendUserRejectionEmail(userEmail: string, userName: string
     });
 }
 
-// ---------------------------------------------------------------------------
-// 3. Welcome Email (invitation code sign-up)
-// ---------------------------------------------------------------------------
+
 export async function sendWelcomeEmail(userEmail: string, userName: string) {
     const loginUrl = `${BASE_URL}/login`;
 
@@ -297,11 +307,69 @@ export async function sendAdminNewUserAlert(userEmail: string, userName: string,
         ${ctaButton(adminUrl, 'Review Registrations')}
     `;
 
-    // Send to the GMAIL_USER (acting as admin) or another config if needed
+    // Send to the ADMIN_EMAIL (acting as admin) or another config if needed
     return sendEmail({
-        to: process.env.GMAIL_USER || '',
+        to: process.env.ADMIN_EMAIL || '',
         subject: `New User Registration: ${userName} - Action Required`,
         html: emailWrapper(emailHeader(), body),
         text: `New user registration: ${userName} (${userEmail}) using ${provider}. Review at ${adminUrl}`
+    });
+}
+
+// ---------------------------------------------------------------------------
+// 7. Event Creation Confirmation Email (User)
+// ---------------------------------------------------------------------------
+export async function sendEventCreationConfirmationEmail(userEmail: string, userName: string, eventTitle: string, isApproved: boolean) {
+    const dashboardUrl = `${BASE_URL}/dashboard/my-events`;
+
+    const statusMessage = isApproved
+        ? 'Your event has been automatically approved and is now live on the platform!'
+        : 'Your event proposal has been submitted successfully and is currently pending admin approval. You will receive another notification once it has been reviewed.';
+
+    const body = `
+        ${h2('Event Proposal Submitted')}
+        ${p(`Dear <strong>${userName}</strong>,`)}
+        ${p('Thank you for submitting a new outreach event to the ReachPoint platform.')}
+        ${infoBlock('#fbbf38', '#fffbeb',
+            `<p style="margin:0 0 4px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#999999;">Event Details</p>
+             <p style="margin:0; font-size:16px; font-weight:700; color:#000000;">${eventTitle}</p>`
+        )}
+        ${p(statusMessage)}
+        ${ctaButton(dashboardUrl, 'View My Events')}
+    `;
+
+    return sendEmail({
+        to: userEmail,
+        subject: `Event Submission Received: ${eventTitle} - ReachPoint`,
+        html: emailWrapper(emailHeader(), body),
+        text: `Dear ${userName}, your event "${eventTitle}" has been submitted. ${statusMessage} View your events at ${dashboardUrl}`
+    });
+}
+
+// ---------------------------------------------------------------------------
+// 8. Admin New Event Alert
+// ---------------------------------------------------------------------------
+export async function sendAdminNewEventAlert(userName: string, userEmail: string, eventTitle: string) {
+    const adminEventsUrl = `${BASE_URL}/admin/events`;
+
+    const body = `
+        ${h2('New Event Proposal')}
+        ${p('A new outreach event has been proposed on the platform and is awaiting administrative approval.')}
+        ${divider()}
+        ${infoBlock('#fbbf38', '#fffbeb',
+            `<p style="margin:0 0 4px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#999999;">Event Proposal</p>
+             <p style="margin:0; font-size:16px; font-weight:700; color:#000000;">${eventTitle}</p>
+             <p style="margin:6px 0 0; font-size:13px; color:#555555;"><strong>Submitted by:</strong> ${userName} (${userEmail})</p>`
+        )}
+        ${p('Please review this proposal and approve or reject the event at your earliest convenience.')}
+        ${ctaButton(adminEventsUrl, 'Review Events')}
+    `;
+
+    // Send to the ADMIN_EMAIL (acting as admin)
+    return sendEmail({
+        to: process.env.ADMIN_EMAIL || '',
+        subject: `New Event Proposal: ${eventTitle} - Action Required`,
+        html: emailWrapper(emailHeader(), body),
+        text: `New event proposal "${eventTitle}" submitted by ${userName} (${userEmail}). Review at ${adminEventsUrl}`
     });
 }
