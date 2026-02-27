@@ -29,7 +29,7 @@ export default async function PendingEventsPage() {
                         <div key={event._id.toString()} className="group bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col md:flex-row">
                             
                             {/* Visual Side */}
-                            <div className="w-full md:w-64 relative bg-slate-50 shrink-0">
+                            <div className="w-full h-48 md:h-auto md:w-64 relative bg-slate-50 shrink-0 border-b md:border-b-0 md:border-r border-slate-100">
                                 {event.coverImage ? (
                                     <Image src={event.coverImage} alt={event.title} fill className="object-cover transition-transform group-hover:scale-105" />
                                 ) : (
@@ -86,52 +86,54 @@ export default async function PendingEventsPage() {
                                 )}
 
                                 {/* Meta Footer */}
-                                <div className="mt-8 pt-6 border-t border-slate-100 flex flex-wrap items-center justify-between gap-6">
-                                    <div className="flex flex-wrap items-center gap-6">
+                                <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+                                    <div className="flex flex-wrap items-center gap-4 sm:gap-6">
                                         <div className="flex items-center gap-2 text-slate-500">
-                                            <Calendar size={14} className="text-[#fbc037]" />
-                                            <span className="text-xs font-bold">{new Date(event.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                                            <Calendar size={14} className="text-[#fbc037] shrink-0" />
+                                            <span className="text-xs font-bold whitespace-nowrap">{new Date(event.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                                         </div>
                                         <div className="flex items-center gap-2 text-slate-500">
-                                            <MapPin size={14} className="text-[#fbc037]" />
-                                            <span className="text-xs font-bold">{event.location}</span>
+                                            <MapPin size={14} className="text-[#fbc037] shrink-0" />
+                                            <span className="text-xs font-bold line-clamp-1 break-all">{event.location}</span>
                                         </div>
                                         <div className="flex items-center gap-2 text-slate-500">
-                                            <Layout size={14} className="text-[#fbc037]" />
-                                            <span className="text-xs font-bold">{event.formFields?.length || 0} Data Fields</span>
+                                            <Layout size={14} className="text-[#fbc037] shrink-0" />
+                                            <span className="text-xs font-bold whitespace-nowrap">{event.formFields?.length || 0} Data Fields</span>
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
                                         {event.status === 'pending' ? (
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                                                 <form action={async () => {
                                                     'use server';
                                                     await approveEvent(event._id.toString());
-                                                }}>
-                                                    <button className="h-9 px-4 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all font-bold text-xs flex items-center gap-1.5 shadow-sm shadow-emerald-500/20">
+                                                }} className="flex-1 sm:flex-none">
+                                                    <button className="w-full sm:w-auto h-9 px-4 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm shadow-emerald-500/20">
                                                         <Check size={14} /> Approve
                                                     </button>
                                                 </form>
                                                 <form action={async () => {
                                                     'use server';
                                                     await rejectEvent(event._id.toString());
-                                                }}>
-                                                    <button className="h-9 px-4 bg-red-50 text-red-600 border border-red-100 rounded-xl hover:bg-red-100 transition-all font-bold text-xs flex items-center gap-1.5">
+                                                }} className="flex-1 sm:flex-none">
+                                                    <button className="w-full sm:w-auto h-9 px-4 bg-red-50 text-red-600 border border-red-100 rounded-xl hover:bg-red-100 transition-all font-bold text-xs flex items-center justify-center gap-1.5">
                                                         <X size={14} /> Reject
                                                     </button>
                                                 </form>
                                             </div>
                                         ) : (
-                                            <div className={`h-9 px-4 rounded-xl font-bold text-xs flex items-center gap-2 
+                                            <div className={`h-9 px-4 rounded-xl font-bold text-xs flex items-center gap-2 shrink-0
                                                 ${event.status === 'approved' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-red-50 text-red-600 border border-red-100'}
                                             `}>
                                                 {event.status === 'approved' ? <CheckCircle size={14} /> : <X size={14} />}
                                                 {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
                                             </div>
                                         )}
-                                        <div className="h-8 w-px bg-slate-200 mx-1" />
-                                        <EventAdminActions eventId={event._id.toString()} eventTitle={event.title} />
+                                        <div className="hidden sm:block h-8 w-px bg-slate-200 mx-1" />
+                                        <div className="flex justify-start">
+                                            <EventAdminActions eventId={event._id.toString()} eventTitle={event.title} />
+                                        </div>
                                     </div>
                                 </div>
                             </div>

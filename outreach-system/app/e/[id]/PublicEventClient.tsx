@@ -124,7 +124,7 @@ export default function PublicEventClient({ event }: { event: any }) {
                         {!recordToUpdate ? (
                             <div className="p-8 text-center">
                                 <h2 className="text-xl font-bold text-slate-800 mb-2">Continue Existing Record</h2>
-                                <p className="text-slate-500 mb-6">Enter the Retrieval Code provided during registration.</p>
+                                <p className="text-slate-500 mb-6">Enter the Retrieval Code/ Phone number provided during registration.</p>
 
                                 <form onSubmit={handleFetchRecord} className="max-w-sm mx-auto space-y-4">
                                     <div className="relative">
@@ -141,9 +141,9 @@ export default function PublicEventClient({ event }: { event: any }) {
                                     <button
                                         type="submit"
                                         disabled={isFetchingInfo}
-                                        className="w-full py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-bold disabled:opacity-50 flex items-center justify-center gap-2"
+                                        className="w-full py-3 bg-[#fbc037] text-slate-900 rounded-lg hover:bg-yellow-400 shadow-sm shadow-[#fbc037]/30 transition-colors font-bold disabled:opacity-50 flex items-center justify-center gap-2"
                                     >
-                                        {isFetchingInfo ? <Spinner className="text-white" /> : 'Find Record'}
+                                        {isFetchingInfo ? <Spinner className="text-slate-900" /> : 'Find Record'}
                                     </button>
                                 </form>
                             </div>
