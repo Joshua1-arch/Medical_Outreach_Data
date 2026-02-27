@@ -72,6 +72,9 @@ export async function updateSiteConfig(formData: FormData) {
         const logoFile = formData.get('logoFile') as File;
 
         if (logoFile && logoFile.size > 0 && logoFile.name !== 'undefined') {
+            if (!logoFile.type.startsWith('image/')) {
+                return { success: false, message: 'Invalid file type. Please upload an image.' };
+            }
             const bytes = await logoFile.arrayBuffer();
             const buffer = Buffer.from(bytes);
 

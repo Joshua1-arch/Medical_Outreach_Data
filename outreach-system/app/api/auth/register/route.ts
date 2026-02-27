@@ -24,6 +24,15 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'Invalid input format' }, { status: 400 });
         }
 
+        const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "127.0.0.1";
+        const { submissionRateLimit } = require('@/lib/rate-limit');
+        if (submissionRateLimit) {
+            const { success } = await submissionRateLimit.limit(ip + "_register");
+            if (!success) {
+                return NextResponse.json({ message: 'Too many registration attempts. Please wait a minute.' }, { status: 429 });
+            }
+        }
+
         const validatedData = validationResult.data;
 
         await dbConnect();

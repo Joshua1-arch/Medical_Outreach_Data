@@ -241,8 +241,9 @@ function generateCodeString(): string {
     // Generate a 10-character alphanumeric code in format XXXX-XXXX-XX
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Removed confusing characters like 0, O, 1, I
     let code = '';
+    const bytes = crypto.randomBytes(10);
     for (let i = 0; i < 10; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
+        code += chars.charAt(bytes[i] % chars.length);
     }
     // Format as XXXX-XXXX-XX
     return `${code.slice(0, 4)}-${code.slice(4, 8)}-${code.slice(8, 10)}`;

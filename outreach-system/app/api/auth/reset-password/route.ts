@@ -8,8 +8,17 @@ export async function POST(req: NextRequest) {
     try {
         const { token, newPassword } = await req.json();
 
-        if (!token || !newPassword) {
-            return NextResponse.json({ success: false, message: "Missing token or password" }, { status: 400 });
+        if (!token || !newPassword || typeof token !== 'string' || typeof newPassword !== 'string') {
+            return NextResponse.json({ success: false, message: "Invalid or missing token and password" }, { status: 400 });
+        }
+
+        const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "127.0.0.1";
+        const { submissionRateLimit } = require('@/lib/rate-limit');
+        if (submissionRateLimit) {
+            const { success } = await submissionRateLimit.limit(ip + "_reset_password");
+            if (!success) {
+                return NextResponse.json({ success: false, message: 'Too many requests. Please wait a minute.' }, { status: 429 });
+            }
         }
 
         await dbConnect();

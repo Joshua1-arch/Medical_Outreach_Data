@@ -17,6 +17,13 @@ export async function createEvent(formData: FormData) {
             return { success: false, message: 'Unauthorized' };
         }
 
+        const { submissionRateLimit, getIP } = require('@/lib/rate-limit');
+        const ip = await getIP();
+        const { success: rateLimitSuccess } = await submissionRateLimit.limit(ip + "_create_event");
+        if (!rateLimitSuccess) {
+            return { success: false, message: 'Too many event creation requests. Please try again later.' };
+        }
+
         await dbConnect();
 
 
@@ -150,6 +157,18 @@ export async function generateMedicalReport(stats: any) {
         const session = await auth();
         if (!session?.user) return { success: false, message: 'Unauthorized' };
 
+        const { submissionRateLimit, getIP } = require('@/lib/rate-limit');
+        const ip = await getIP();
+        const { success: rateLimitSuccess } = await submissionRateLimit.limit(ip + "_report");
+        if (!rateLimitSuccess) {
+            return { success: false, message: 'Too many report generation requests. Please try again later.' };
+        }
+
+        const statsString = JSON.stringify(stats);
+        if (statsString.length > 50000) {
+            return { success: false, message: 'Data payload too large for processing.' };
+        }
+
         if (!process.env.GOOGLE_API_KEY) {
             return { success: false, message: 'Google API Key is missing. Please add it to .env' };
         }
@@ -161,7 +180,7 @@ export async function generateMedicalReport(stats: any) {
         let report = null;
         let lastError = null;
 
-        const prompt = `You are a Chief Medical Officer analyzing aggregate health data from an outreach event. Identify public health trends, correlations, and suggest interventions. Format the response in Markdown. Data: ${JSON.stringify(stats)}`;
+        const prompt = `You are a Chief Medical Officer analyzing aggregate health data from an outreach event. Identify public health trends, correlations, and suggest interventions. Format the response in Markdown. Data: ${statsString}`;
 
         for (const modelName of models) {
             try {
@@ -197,6 +216,13 @@ export async function changePassword(prevState: any, formData: FormData) {
         const session = await auth();
         if (!session?.user?.id) return { success: false, message: 'Unauthorized' };
 
+        const { submissionRateLimit, getIP } = require('@/lib/rate-limit');
+        const ip = await getIP();
+        const { success: rateLimitSuccess } = await submissionRateLimit.limit(ip + "_password_change");
+        if (!rateLimitSuccess) {
+            return { success: false, message: 'Too many attempts. Please try again later.' };
+        }
+
         const currentPassword = formData.get('currentPassword') as string;
         const newPassword = formData.get('newPassword') as string;
         const confirmPassword = formData.get('confirmPassword') as string;
@@ -231,6 +257,13 @@ export async function updateUserProfile(prevState: any, formData: FormData) {
     try {
         const session = await auth();
         if (!session?.user?.id) return { success: false, message: 'Unauthorized' };
+
+        const { submissionRateLimit, getIP } = require('@/lib/rate-limit');
+        const ip = await getIP();
+        const { success: rateLimitSuccess } = await submissionRateLimit.limit(ip + "_profile_update");
+        if (!rateLimitSuccess) {
+            return { success: false, message: 'Too many profile update requests. Please try again later.' };
+        }
 
         await dbConnect();
         const user = await User.findById(session.user.id);

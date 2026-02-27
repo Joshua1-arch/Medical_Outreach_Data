@@ -2,9 +2,15 @@
 
 import dbConnect from '@/lib/db';
 import Donation from '@/models/Donation';
+import { auth } from '@/auth';
 
 export async function searchCompatibleDonors(targetBloodType: string) {
     try {
+        const session = await auth();
+        if (session?.user?.role !== 'admin') {
+            return { success: false, message: 'Unauthorized' };
+        }
+
         await dbConnect();
 
         // Query: Find detailed donors where the target blood type is in their compatible recipients list

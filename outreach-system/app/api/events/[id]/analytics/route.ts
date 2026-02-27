@@ -3,14 +3,26 @@ import dbConnect from '@/lib/db';
 import Event from '@/models/Event';
 import RecordModel from '@/models/Record'; // Renamed to avoid reserved word conflict if needed, though 'Record' is TS type usually.
 
+import { auth } from '@/auth';
+
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const session = await auth();
+        if (!session?.user) {
+            return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+        }
+
         await dbConnect();
         const { id } = await params;
 
         const event = await Event.findById(id);
         if (!event) {
             return NextResponse.json({ success: false, message: 'Event not found' }, { status: 404 });
+        }
+
+        // Ownership check
+        if (session.user.role !== 'admin' && String(event.createdBy) !== session.user.id) {
+            return NextResponse.json({ success: false, message: 'Unauthorized: You do not have permission to view this event\'s analytics' }, { status: 403 });
         }
 
         const records = await RecordModel.find({ eventId: id });

@@ -32,5 +32,11 @@ export default async function PublicEventPage({ params }: { params: Promise<{ id
         );
     }
 
-    return <PublicEventClient event={JSON.parse(JSON.stringify(event))} />;
+    const clientEvent = JSON.parse(JSON.stringify(event));
+    if (clientEvent.accessCode) {
+        clientEvent.hasAccessCode = true;
+        delete clientEvent.accessCode;
+    }
+
+    return <PublicEventClient event={clientEvent} />
 }

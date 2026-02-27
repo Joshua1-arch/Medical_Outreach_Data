@@ -11,7 +11,7 @@ import Event from "@/models/Event";
 import { submissionRateLimit, getIP } from "@/lib/rate-limit";
 
 function generateRetrievalCode() {
-    return Math.random().toString(36).substring(2, 8).toUpperCase();
+    return crypto.randomBytes(3).toString('hex').toUpperCase();
 }
 
 function generatePatientHash(data: Record<string, unknown>): string | null {
@@ -112,6 +112,12 @@ export async function submitRecord(eventId: string, data: Record<string, unknown
 
 export async function searchPatientHistory(data: Record<string, unknown>, currentEventId: string) {
     try {
+        const ip = await getIP();
+        const { success: rateLimitSuccess } = await submissionRateLimit.limit(ip + "_history_search");
+        if (!rateLimitSuccess) {
+            return { success: false, found: false, message: 'Too many search requests. Please wait a minute.' };
+        }
+
         await dbConnect();
 
         const patientHash = generatePatientHash(data);
@@ -189,6 +195,12 @@ export async function searchPatientHistory(data: Record<string, unknown>, curren
 
 export async function getRecordByCode(query: string, eventId?: string) {
     try {
+        const ip = await getIP();
+        const { success: rateLimitSuccess } = await submissionRateLimit.limit(ip + "_lookup");
+        if (!rateLimitSuccess) {
+            return { success: false, message: 'Too many lookup requests. Please wait a minute.' };
+        }
+
         await dbConnect();
 
         const trimmedQuery = query.trim();
@@ -196,8 +208,10 @@ export async function getRecordByCode(query: string, eventId?: string) {
         const normalizePhone = (str: string) => str.replace(/\D/g, '');
         const normalizedQuery = normalizePhone(trimmedQuery);
 
+        const escapedQuery = trimmedQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
         const codeQuery: any = {
-            retrievalCode: { $regex: new RegExp(`^${trimmedQuery}$`, 'i') }
+            retrievalCode: { $regex: new RegExp(`^${escapedQuery}$`, 'i') }
         };
         if (eventId) {
             codeQuery.eventId = eventId;
@@ -257,12 +271,21 @@ export async function getRecordByCode(query: string, eventId?: string) {
     }
 }
 
-export async function updateRecordByCode(code: string, data: Record<string, unknown>) {
+export async function updateRecordByCode(code: string, data: Record<string, unknown>, eventId?: string) {
     try {
+        const ip = await getIP();
+        const { success: rateLimitSuccess } = await submissionRateLimit.limit(ip + "_update");
+        if (!rateLimitSuccess) {
+            return { success: false, message: 'Too many update requests. Please wait a minute.' };
+        }
+
         await dbConnect();
 
-        const record = await Record.findOne({ retrievalCode: code });
-        if (!record) return { success: false, message: 'Invalid code' };
+        const query: any = { retrievalCode: code };
+        if (eventId) query.eventId = eventId;
+
+        const record = await Record.findOne(query);
+        if (!record) return { success: false, message: 'Invalid code or record not found for this event' };
 
         record.data = { ...record.data, ...data };
         await record.save();
@@ -282,8 +305,15 @@ export async function deleteRecord(recordId: string) {
         if (!session?.user) return { success: false, message: 'Unauthorized' };
 
         await dbConnect();
-        const record = await Record.findByIdAndDelete(recordId);
+
+        const record = await Record.findById(recordId).populate('eventId');
         if (!record) return { success: false, message: 'Record not found' };
+
+        if (session.user.role !== 'admin' && record.eventId.createdBy.toString() !== session.user.id) {
+            return { success: false, message: 'Unauthorized: You do not have permission to delete this record' };
+        }
+
+        await Record.findByIdAndDelete(recordId);
 
         revalidatePath(`/dashboard/event/${record.eventId}/builder`);
 
@@ -300,6 +330,13 @@ export async function updateRecordById(recordId: string, data: Record<string, un
         if (!session?.user) return { success: false, message: 'Unauthorized' };
 
         await dbConnect();
+        const existingRecord = await Record.findById(recordId).populate('eventId');
+        if (!existingRecord) return { success: false, message: 'Record not found' };
+
+        if (session.user.role !== 'admin' && existingRecord.eventId.createdBy.toString() !== session.user.id) {
+            return { success: false, message: 'Unauthorized: You do not have permission to update this record' };
+        }
+
         const record = await Record.findByIdAndUpdate(recordId, { data }, { new: true });
 
         revalidatePath(`/dashboard/event/${record.eventId}/builder`);
@@ -321,6 +358,10 @@ export async function sendResultEmail(recordId: string) {
 
         if (!record) {
             return { success: false, message: 'Record not found' };
+        }
+
+        if (session.user.role !== 'admin' && record.eventId.createdBy.toString() !== session.user.id) {
+            return { success: false, message: 'Unauthorized: You do not have permission to send emails for this record' };
         }
 
         const data = record.data || {};
@@ -368,5 +409,25 @@ export async function sendResultEmail(recordId: string) {
     } catch (error) {
         console.error('Send Email Error:', error);
         return { success: false, message: 'An evaluation error occurred while sending the email.' };
+    }
+}
+
+export async function verifyEventAccess(eventId: string, accessCode: string) {
+    try {
+        await dbConnect();
+        
+        const event = await Event.findById(eventId);
+        if (!event) {
+            return { success: false, message: 'Event not found' };
+        }
+        
+        if (event.accessCode === accessCode) {
+            return { success: true };
+        } else {
+            return { success: false, message: 'Incorrect access code' };
+        }
+    } catch (error) {
+        console.error('Verify Event Access Error:', error);
+        return { success: false, message: 'An error occurred while verifying access code' };
     }
 }

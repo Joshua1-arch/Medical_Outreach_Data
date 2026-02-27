@@ -21,6 +21,15 @@ const Patient = mongoose.models.Patient || mongoose.model('Patient', PatientSche
  */
 export async function POST(req: NextRequest) {
     try {
+        const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "127.0.0.1";
+        const { submissionRateLimit } = require('@/lib/rate-limit');
+        if (submissionRateLimit) {
+            const { success } = await submissionRateLimit.limit(ip + "_patient_reg");
+            if (!success) {
+                return NextResponse.json({ message: 'Rate limit exceeded. Try again later.' }, { status: 429 });
+            }
+        }
+
         await dbConnect();
 
         // 1. Receive the raw payload from the request

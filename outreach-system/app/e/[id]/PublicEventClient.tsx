@@ -3,14 +3,15 @@
 import { useState } from 'react';
 import DataEntryForm from '@/app/events/[id]/enter-data/DataEntryForm';
 import { Lock, ArrowRight, ShieldCheck, UserPlus, RefreshCw, Search } from 'lucide-react';
-import { getRecordByCode, updateRecordByCode } from '@/app/events/actions';
+import { getRecordByCode, updateRecordByCode, verifyEventAccess } from '@/app/events/actions';
 import { Spinner } from '@/components/ui/Spinner';
 
 export default function PublicEventClient({ event }: { event: any }) {
-    const hasPassword = !!event.accessCode;
+    const hasPassword = !!event.hasAccessCode;
     const [isUnlocked, setIsUnlocked] = useState(!hasPassword);
     const [passwordInput, setPasswordInput] = useState('');
     const [error, setError] = useState('');
+    const [isVerifying, setIsVerifying] = useState(false);
 
     // Multi-Stage Logic
     const [entryMode, setEntryMode] = useState<'new' | 'update'>('new');
@@ -19,14 +20,21 @@ export default function PublicEventClient({ event }: { event: any }) {
     const [isFetchingInfo, setIsFetchingInfo] = useState(false);
     const [recordToUpdate, setRecordToUpdate] = useState<any>(null);
 
-    const handleUnlock = (e: React.FormEvent) => {
+    const handleUnlock = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (passwordInput === event.accessCode) {
+        
+        setIsVerifying(true);
+        setError('');
+        
+        const result = await verifyEventAccess(event._id, passwordInput);
+        
+        if (result.success) {
             setIsUnlocked(true);
-            setError('');
         } else {
-            setError('Incorrect access code');
+            setError(result.message || 'Incorrect access code');
         }
+        
+        setIsVerifying(false);
     };
 
     const handleFetchRecord = async (e: React.FormEvent) => {
@@ -73,9 +81,12 @@ export default function PublicEventClient({ event }: { event: any }) {
 
                         <button
                             type="submit"
-                            className="w-full py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors font-semibold flex items-center justify-center gap-2"
+                            disabled={isVerifying}
+                            className="w-full py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors font-semibold flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                         >
-                            Unlock Event <ArrowRight size={18} />
+                            {isVerifying ? <Spinner className="text-white" /> : (
+                                <>Unlock Event <ArrowRight size={18} /></>
+                            )}
                         </button>
                     </form>
                 </div>
@@ -165,10 +176,8 @@ export default function PublicEventClient({ event }: { event: any }) {
                                         initialData={recordToUpdate.data}
                                         submitButtonText="Update Record"
                                         onSubmit={async (data) => {
-
-                                            return await updateRecordByCode(recordToUpdate.retrievalCode, data);
-                                        }
-                                        }
+                                            return await updateRecordByCode(recordToUpdate.retrievalCode, data, event._id);
+                                        }}
                                     />
                                 </div>
                             </div>
