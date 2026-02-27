@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { createEvent } from '../actions';
 import { useRouter } from 'next/navigation';
 import {
@@ -10,7 +10,6 @@ import {
     FileText,
 } from 'lucide-react';
 import Link from 'next/link';
-import { CldUploadWidget } from 'next-cloudinary';
 import Image from 'next/image';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 
@@ -19,10 +18,43 @@ export default function CreateEventForm() {
     const [error, setError]         = useState('');
     const [success, setSuccess]     = useState('');
     const [coverImage, setCoverImage] = useState('');
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
     const [trackInventory, setTrackInventory] = useState(false);
+    const fileRef = useRef<HTMLInputElement>(null);
     const [inventoryItems, setInventoryItems] = useState<
         { id: string; itemName: string; startingStock: number }[]
     >([]);
+
+    const handleImagePick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Show immediate local preview
+        const reader = new FileReader();
+        reader.onload = (ev) => setCoverImage(ev.target?.result as string);
+        reader.readAsDataURL(file);
+
+        // Upload in background
+        setIsUploadingImage(true);
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', 'med_outreach_unsigned');
+        
+        try {
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (data.secure_url) {
+                setCoverImage(data.secure_url);
+            }
+        } catch (error) {
+            console.error('Image upload failed', error);
+        } finally {
+            setIsUploadingImage(false);
+        }
+    };
 
     /* ── Inventory helpers ── */
     const addInventoryItem = () =>
@@ -126,64 +158,55 @@ export default function CreateEventForm() {
                     {/* Cover Image upload */}
                     <div className="space-y-2">
                         <label className={label}>Event Cover Image</label>
-                        <CldUploadWidget
-                            uploadPreset="med_outreach_unsigned"
-                            options={{
-                                sources: ['local'],
-                                multiple: false,
-                                maxFiles: 1,
-                                showPoweredBy: false,
-                                clientAllowedFormats: ['png', 'jpeg', 'jpg', 'webp'],
-                                styles: {
-                                    palette: {
-                                        window: '#FFFFFF', sourceBg: '#F8FAFC',
-                                        windowBorder: '#E2E8F0', tabIcon: '#0F172A',
-                                        inactiveTabIcon: '#64748B', menuIcons: '#0F172A',
-                                        link: '#fbc037', action: '#fbc037',
-                                        inProgress: '#fbc037', complete: '#10B981',
-                                        error: '#EF4444', textDark: '#0F172A', textLight: '#FFFFFF',
-                                    },
-                                },
-                            }}
-                            onSuccess={(result) => {
-                                // @ts-ignore
-                                setCoverImage(result?.info?.secure_url);
-                            }}
+                        <input
+                            ref={fileRef}
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleImagePick}
+                            disabled={isUploadingImage}
+                        />
+                        <div
+                            onClick={() => !isUploadingImage && fileRef.current?.click()}
+                            className={`relative h-52 w-full rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 hover:border-[#fbc037] hover:bg-[#fbc037]/5 cursor-pointer overflow-hidden transition-all group ${isUploadingImage ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
-                            {({ open }) => (
-                                <div
-                                    onClick={() => open()}
-                                    className="relative h-52 w-full rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 hover:border-[#fbc037] hover:bg-[#fbc037]/5 cursor-pointer overflow-hidden transition-all group"
-                                >
-                                    {coverImage ? (
-                                        <>
-                                            <Image src={coverImage} fill className="object-cover" alt="Event Cover" />
-                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                <span className="text-white text-sm font-semibold">Click to change image</span>
-                                            </div>
-                                            {/* Remove button */}
-                                            <button
-                                                type="button"
-                                                onClick={(e) => { e.stopPropagation(); setCoverImage(''); }}
-                                                className="absolute top-3 right-3 bg-red-500 text-white rounded-lg px-2.5 py-1 text-xs font-bold hover:bg-red-600 transition-colors shadow"
-                                            >
-                                                Remove
-                                            </button>
-                                        </>
-                                    ) : (
-                                        <div className="flex flex-col items-center justify-center h-full gap-2 select-none">
-                                            <div className="w-12 h-12 rounded-full bg-slate-100 group-hover:bg-[#fbc037]/15 flex items-center justify-center transition-colors">
-                                                <ImageIcon size={22} className="text-slate-400 group-hover:text-[#fbc037] transition-colors" />
-                                            </div>
-                                            <p className="text-sm font-semibold text-slate-600 group-hover:text-slate-900 transition-colors">
-                                                Click to upload cover image
-                                            </p>
-                                            <p className="text-xs text-slate-400">PNG, JPG, WEBP — recommended 1200×600px, max 5 MB</p>
+                            {coverImage ? (
+                                <>
+                                    <Image src={coverImage} fill className={`object-cover ${isUploadingImage ? 'opacity-30' : 'opacity-100'} transition-opacity`} priority alt="Event Cover" />
+                                    {!isUploadingImage && (
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                            <span className="text-white text-sm font-semibold">Click to change image</span>
                                         </div>
                                     )}
+                                    {isUploadingImage && (
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <span className="animate-spin w-6 h-6 border-4 border-[#fbc037]/30 border-t-[#fbc037] rounded-full" />
+                                        </div>
+                                    )}
+                                    <button
+                                        type="button"
+                                        disabled={isUploadingImage}
+                                        onClick={(e) => { e.stopPropagation(); setCoverImage(''); }}
+                                        className="absolute top-3 right-3 bg-red-500 text-white rounded-lg px-2.5 py-1 text-xs font-bold hover:bg-red-600 transition-colors shadow"
+                                    >
+                                        Remove
+                                    </button>
+                                </>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center h-full gap-2 select-none">
+                                    <div className="w-12 h-12 rounded-full bg-slate-100 group-hover:bg-[#fbc037]/15 flex items-center justify-center transition-colors">
+                                        {isUploadingImage 
+                                            ? <span className="animate-spin w-5 h-5 border-2 border-slate-900/30 border-t-slate-900 rounded-full" />
+                                            : <ImageIcon size={22} className="text-slate-400 group-hover:text-[#fbc037] transition-colors" />
+                                        }
+                                    </div>
+                                    <p className="text-sm font-semibold text-slate-600 group-hover:text-slate-900 transition-colors">
+                                        {isUploadingImage ? 'Uploading image...' : 'Click to upload cover image'}
+                                    </p>
+                                    <p className="text-xs text-slate-400">PNG, JPG, WEBP — recommended 1200×600px, max 5 MB</p>
                                 </div>
                             )}
-                        </CldUploadWidget>
+                        </div>
                     </div>
 
                     {/* Event Title */}

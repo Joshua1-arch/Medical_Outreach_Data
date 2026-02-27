@@ -67,10 +67,42 @@ export default function SettingsClient({ user }: { user: UserData }) {
     const [smsNotifs, setSmsNotifs] = useState(false);
     const [exportFmt, setExportFmt] = useState(user.exportFormat);
     const [previewImage, setPreviewImage] = useState(user.profileImage);
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
     const fileRef = useRef<HTMLInputElement>(null);
 
     const [profileState, profileAction, profilePending] = useActionState(updateUserProfile, profileInitial);
     const [passwordState, passwordAction, passwordPending] = useActionState(changePassword, passwordInitial);
+
+    const handleImagePick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Show immediate local preview
+        const reader = new FileReader();
+        reader.onload = (ev) => setPreviewImage(ev.target?.result as string);
+        reader.readAsDataURL(file);
+
+        // Upload in background to avoid 413 Payload Too Large
+        setIsUploadingImage(true);
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', 'med_outreach_unsigned');
+        
+        try {
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (data.secure_url) {
+                setPreviewImage(data.secure_url);
+            }
+        } catch (error) {
+            console.error('Image upload failed', error);
+        } finally {
+            setIsUploadingImage(false);
+        }
+    };
 
     const sidebarItems = [
         { id: 'profile', label: 'Profile', icon: User },
@@ -78,14 +110,6 @@ export default function SettingsClient({ user }: { user: UserData }) {
         { id: 'notifications', label: 'Notifications', icon: BellRing },
         { id: 'preferences', label: 'Preferences', icon: SettingsIcon },
     ];
-
-    const handleImagePick = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => setPreviewImage(ev.target?.result as string);
-        reader.readAsDataURL(file);
-    };
 
     return (
         <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -140,7 +164,7 @@ export default function SettingsClient({ user }: { user: UserData }) {
                                     <div className="relative shrink-0">
                                         <div className="w-20 h-20 rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden">
                                             {previewImage
-                                                ? <img src={previewImage} alt="Profile" className="w-full h-full object-cover" />
+                                                ? <img src={previewImage} alt="Profile" className={`w-full h-full object-cover ${isUploadingImage ? 'opacity-50' : 'opacity-100'} transition-opacity`} />
                                                 : (
                                                     <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-slate-400">
                                                         {user.name.charAt(0).toUpperCase()}
@@ -150,9 +174,10 @@ export default function SettingsClient({ user }: { user: UserData }) {
                                         <button
                                             type="button"
                                             onClick={() => fileRef.current?.click()}
-                                            className="absolute -bottom-2 -right-2 w-7 h-7 rounded-full bg-[#fbc037] flex items-center justify-center shadow-md hover:bg-yellow-400 transition-colors"
+                                            disabled={isUploadingImage}
+                                            className="absolute -bottom-2 -right-2 w-7 h-7 rounded-full bg-[#fbc037] flex items-center justify-center shadow-md hover:bg-yellow-400 transition-colors disabled:opacity-50"
                                         >
-                                            <Camera size={13} className="text-slate-900" />
+                                            {isUploadingImage ? <span className="animate-spin w-3 h-3 border-2 border-slate-900/30 border-t-slate-900 rounded-full" /> : <Camera size={13} className="text-slate-900" />}
                                         </button>
                                         <input
                                             ref={fileRef}
@@ -161,7 +186,7 @@ export default function SettingsClient({ user }: { user: UserData }) {
                                             className="hidden"
                                             onChange={handleImagePick}
                                         />
-                                        {/* Hidden field carries the base64 */}
+                                        {/* Hidden field carries the URL */}
                                         <input type="hidden" name="profileImage" value={previewImage} />
                                     </div>
                                     <div>
@@ -170,9 +195,10 @@ export default function SettingsClient({ user }: { user: UserData }) {
                                         <button
                                             type="button"
                                             onClick={() => fileRef.current?.click()}
-                                            className="text-xs font-semibold text-[#fbc037] hover:underline mt-1"
+                                            disabled={isUploadingImage}
+                                            className="text-xs font-semibold text-[#fbc037] hover:underline mt-1 disabled:opacity-50"
                                         >
-                                            Change photo
+                                            {isUploadingImage ? 'Uploading...' : 'Change photo'}
                                         </button>
                                     </div>
                                 </div>

@@ -41,6 +41,10 @@ export async function createEvent(formData: FormData) {
         const coverImage = formData.get('coverImage') as string;
         const inventory = JSON.parse(formData.get('inventory') as string || '[]');
 
+        if (coverImage && (!coverImage.startsWith('http') || coverImage.length > 1000)) {
+            return { success: false, message: 'Invalid cover image URL provided.' };
+        }
+
         if (!title || !date || !location) {
             return { success: false, message: 'Missing required fields' };
         }
@@ -275,6 +279,10 @@ export async function updateUserProfile(prevState: any, formData: FormData) {
         const profileImage = formData.get('profileImage') as string;
         const timezone = formData.get('timezone') as string;
         const exportFormat = formData.get('exportFormat') as string;
+
+        if (profileImage && (!profileImage.startsWith('http') || profileImage.length > 1000)) {
+            return { success: false, message: 'Invalid profile image URL format' };
+        }
 
         if (name) user.name = name;
         if (phone !== null) user.phone = phone;
