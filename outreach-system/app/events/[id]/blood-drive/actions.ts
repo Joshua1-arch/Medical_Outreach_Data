@@ -15,12 +15,26 @@ export async function submitDonation(eventId: string, formData: any) {
             return { success: false, message: 'Too many submissions. Please wait a minute.' };
         }
 
+        const session = await auth();
         await dbConnect();
 
-        // Basic validation could go here, but the Schema handles most of the heavy lifting including the logic gates for fitness.
+        const event = await Event.findById(eventId);
+        if (!event) return { success: false, message: 'Event not found' };
+
+        let recordedBy = undefined;
+
+        if (event.isPublic) {
+            recordedBy = session?.user?.id;
+        } else {
+            if (!session?.user?.id) {
+                return { success: false, message: 'Unauthorized: You must be logged in to submit to a private event.' };
+            }
+            recordedBy = session.user.id;
+        }
 
         const newDonation = new Donation({
             eventId,
+            recordedBy,
             ...formData
         });
 

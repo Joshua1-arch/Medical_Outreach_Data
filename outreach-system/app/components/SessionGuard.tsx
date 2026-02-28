@@ -16,9 +16,9 @@ export default function SessionGuard() {
 
     useEffect(() => {
         // Don't check on public pages or login page to avoid loops
-        const publicPaths = ['/login', '/register', '/maintenance', '/'];
+        const publicPaths = ['/login', '/register', '/signup', '/maintenance', '/', '/forgot-password', '/reset-password', '/auth-error', '/privacy', '/help'];
         
-        if (publicPaths.includes(pathname) || pathname.startsWith('/api')) {
+        if (publicPaths.includes(pathname) || pathname.startsWith('/api') || pathname.startsWith('/e/') || pathname.startsWith('/events/')) {
             // Once we reach a public page, we can clear the logout flag if it exists
             if (typeof window !== 'undefined') {
                 sessionStorage.removeItem('logging-out');

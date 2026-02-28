@@ -587,6 +587,8 @@ export default function EventBuilderClient({ event, records }: { event: any, rec
                                                 { label: 'Full Name', type: 'text', required: true, width: 'full' },
                                                 { label: 'Age', type: 'number', required: true, width: 'half' },
                                                 { label: 'Sex', type: 'select', options: ['Male', 'Female'], required: true, width: 'half' },
+                                                 { label: 'Phone Number', type: 'number', required: true, width: 'full' },
+                                                  { label: 'Gmail', type: 'text', required: true, width: 'full' },
                                                 { label: 'PCV', type: 'number', required: true, width: 'half' },
                                                 { label: 'Weight (kg)', type: 'number', required: true, width: 'half' },
                                                 { label: 'HBsAg', type: 'select', options: ['Non-Reactive', 'Reactive'], required: true, width: 'half' },
@@ -599,7 +601,7 @@ export default function EventBuilderClient({ event, records }: { event: any, rec
                                         }}
                                         className="flex-shrink-0 px-3 py-1 bg-red-50 border border-red-200 text-red-700 text-xs font-bold rounded-full"
                                     >
-                                        🩸 Blood Drive Template
+                                        Blood Drive Template
                                     </button>
                                 </div>
                             </div>

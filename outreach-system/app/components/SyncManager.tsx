@@ -106,7 +106,7 @@ export default function SyncManager() {
 
     if (!isOnline) {
         return (
-            <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2 px-4 py-3 bg-red-100 text-red-700 rounded-full shadow-lg border border-red-200 animate-in fade-in slide-in-from-bottom-2">
+            <div className="fixed bottom-4 left-4 z-50 flex items-center gap-2 px-4 py-3 bg-red-100 text-red-700 rounded-full shadow-lg border border-red-200 animate-in fade-in slide-in-from-bottom-2">
                 <CloudOff size={20} />
                 <span className="font-bold text-sm">Offline</span>
                 {unsyncedCount > 0 && (
@@ -120,7 +120,7 @@ export default function SyncManager() {
 
     if (isSyncing) {
         return (
-            <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2 px-4 py-3 bg-blue-100 text-blue-700 rounded-full shadow-lg border border-blue-200 animate-in fade-in slide-in-from-bottom-2">
+            <div className="fixed bottom-4 left-4 z-50 flex items-center gap-2 px-4 py-3 bg-blue-100 text-blue-700 rounded-full shadow-lg border border-blue-200 animate-in fade-in slide-in-from-bottom-2">
                 <Spinner size={20} className="text-blue-700" />
                 <span className="font-bold text-sm">Syncing...</span>
             </div>
@@ -129,7 +129,7 @@ export default function SyncManager() {
 
     if (unsyncedCount > 0) {
         return (
-            <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2 px-4 py-3 bg-amber-100 text-amber-700 rounded-full shadow-lg border border-amber-200 animate-in fade-in slide-in-from-bottom-2 cursor-pointer" onClick={syncData}>
+            <div className="fixed bottom-4 left-4 z-50 flex items-center gap-2 px-4 py-3 bg-amber-100 text-amber-700 rounded-full shadow-lg border border-amber-200 animate-in fade-in slide-in-from-bottom-2 cursor-pointer" onClick={syncData}>
                 <RefreshCw size={20} />
                 <span className="font-bold text-sm">Sync Required</span>
                 <span className="ml-1 bg-amber-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
@@ -142,7 +142,7 @@ export default function SyncManager() {
     // Default: Online & Synced (Green Cloud) - Maybe hide after a few seconds? 
     // Or keep it small.
     return (
-        <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2 px-4 py-3 bg-green-50 text-green-700 rounded-full shadow-lg border border-green-200 opacity-75 hover:opacity-100 transition-opacity">
+        <div className="fixed bottom-4 left-4 z-50 flex items-center gap-2 px-4 py-3 bg-green-50 text-green-700 rounded-full shadow-lg border border-green-200 opacity-75 hover:opacity-100 transition-opacity">
             <Cloud size={20} />
             <span className="font-bold text-sm">Online</span>
         </div>

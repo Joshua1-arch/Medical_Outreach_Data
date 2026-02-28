@@ -62,19 +62,19 @@ export async function POST(req: Request) {
         let usedInvitationCode = null;
 
         if (validatedData.invitationCode) {
-            const invitationCode = await InvitationCode.findOne({
-                code: validatedData.invitationCode.toUpperCase().trim(),
-                isUsed: false
-            });
+            // Atomic update to prevent TOCTOU race condition (multiple simultaneous signups with same code)
+            const invitationCode = await InvitationCode.findOneAndUpdate(
+                { code: validatedData.invitationCode.toUpperCase().trim(), isUsed: false },
+                { $set: { isUsed: true, usedAt: new Date() } },
+                { new: true }
+            );
 
             if (!invitationCode) {
-                // "If a record isn't found... throw generic 404: 'Resource not found or access denied'"
                 return NextResponse.json({
                     message: 'Resource not found or access denied'
                 }, { status: 404 });
             }
 
-            // Valid code - user gets VIP privileges
             accountStatus = 'active';
             isTrusted = true;
             usedInvitationCode = invitationCode;
@@ -95,9 +95,7 @@ export async function POST(req: Request) {
 
         // Use invitation code
         if (usedInvitationCode) {
-            usedInvitationCode.isUsed = true;
             usedInvitationCode.usedBy = user._id;
-            usedInvitationCode.usedAt = new Date();
             await usedInvitationCode.save();
         }
 

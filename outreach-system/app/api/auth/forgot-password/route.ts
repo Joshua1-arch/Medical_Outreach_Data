@@ -37,16 +37,19 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        // Generate token
-        const token = crypto.randomBytes(32).toString('hex');
+        // Generate plain text token to send to email
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        
+        // Hash it before storing in DB
+        const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
         const tokenExpiry = Date.now() + 3600000; // 1 hour
 
-        user.resetPasswordToken = token;
+        user.resetPasswordToken = hashedToken;
         user.resetPasswordExpires = tokenExpiry;
         await user.save();
 
-        // Email content
-        const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password/${token}`;
+        // Email content - send the UNHASHED token!
+        const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password/${resetToken}`;
 
         const html = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">

@@ -30,7 +30,7 @@ export async function getMasterData(category?: string) {
 }
 
 // Ensure a category exists (initialize if missing)
-export async function ensureCategory(category: string) {
+async function ensureCategory(category: string) {
     try {
         await dbConnect();
         const existing = await MasterData.findOne({ category });

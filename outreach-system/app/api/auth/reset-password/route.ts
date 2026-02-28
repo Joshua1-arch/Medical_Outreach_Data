@@ -1,5 +1,5 @@
-
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
@@ -23,9 +23,12 @@ export async function POST(req: NextRequest) {
 
         await dbConnect();
 
-        // Find user with valid token and not expired
+        // Hash the incoming token
+        const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+        // Find user with valid hashed token and not expired
         const user = await User.findOne({
-            resetPasswordToken: token,
+            resetPasswordToken: hashedToken,
             resetPasswordExpires: { $gt: Date.now() }
         });
 

@@ -53,46 +53,11 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialData]);
 
-    // Debounced patient history search
+    // Debounced patient history search is currently disabled to prevent loading spinners for fast entry
+    // Triggering history search manually or avoiding background network calls during entry
     const searchHistory = useCallback(async () => {
-        // Check if we have enough identifying info
-        const hasName = Object.entries(formData).some(([key, value]) =>
-            key.toLowerCase().includes('name') && value && String(value).trim().length > 2
-        );
-        const hasPhone = Object.entries(formData).some(([key, value]) =>
-            (key.toLowerCase().includes('phone') || key.toLowerCase().includes('mobile')) && value
-        );
-        const hasGender = Object.entries(formData).some(([key, value]) =>
-            (key.toLowerCase().includes('gender') || key.toLowerCase().includes('sex')) && value
-        );
-
-        if (hasName && (hasPhone || hasGender)) {
-            setIsSearchingHistory(true);
-            try {
-                const result = await searchPatientHistory(formData, eventId);
-                if (result.success && result.found && result.history) {
-                    setPatientHistory(result.history as PatientHistory[]);
-                } else {
-                    setPatientHistory(null);
-                }
-                setHistorySearched(true);
-            } catch {
-                // Ignore history search errors
-            }
-            setIsSearchingHistory(false);
-        }
-    }, [formData, eventId]);
-
-    // Trigger history search when identifying fields change
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            if (!historySearched && Object.keys(formData).length > 0) {
-                searchHistory();
-            }
-        }, 800); // Debounce 800ms
-
-        return () => clearTimeout(timer);
-    }, [formData, searchHistory, historySearched]);
+        // ... (Disabled to avoid spinner delay while typing)
+    }, []);
 
 
     // Auto-calculate BMI
@@ -242,7 +207,6 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
         setError('');
         setSuccess('');
         setRetrievalCode('');
-
         // Validate required fields
         const missingFields = formFields.filter(f => f.required && !formData[f.label]);
         if (missingFields.length > 0) {
@@ -251,11 +215,13 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
         }
 
         let result;
+        const payload = { ...formData };
+
         if (onSubmit) {
-            result = await onSubmit(formData);
+            result = await onSubmit(payload);
         } else {
             try {
-                result = await submitRecord(eventId, formData);
+                result = await submitRecord(eventId, payload);
             } catch {
                 // Network error or server unreachable
 
@@ -412,14 +378,6 @@ export default function DataEntryForm({ eventId, eventTitle, formFields, initial
                             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3 text-red-800">
                                 <AlertCircle size={20} className="flex-shrink-0 mt-0.5" />
                                 <p>{error}</p>
-                            </div>
-                        )}
-
-                        {/* Patient History Card */}
-                        {isSearchingHistory && (
-                            <div className="mb-6 p-4 bg-slate-50 border border-slate-200 rounded-lg flex items-center gap-3">
-                                <Spinner size={18} className="text-slate-500" />
-                                <span className="text-slate-600 text-sm">Checking for patient history...</span>
                             </div>
                         )}
 

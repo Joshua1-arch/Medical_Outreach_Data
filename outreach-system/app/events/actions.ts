@@ -76,8 +76,28 @@ export async function submitRecord(eventId: string, data: Record<string, unknown
         }
 
         const retrievalCode = generateRetrievalCode();
-        const patientHash = generatePatientHash(data);
-        const patientPhone = extractPatientPhone(data);
+        // Lightweight HTML Sanitizer to strip tags and prevent XSS
+        const sanitizeHtml = (str: string) => {
+            if (!str) return str;
+            return str.replace(/(<([^>]+)>)/gi, "").trim();
+        };
+
+        const sanitizeData = (obj: any): any => {
+           if (typeof obj === 'string') return sanitizeHtml(obj);
+           if (Array.isArray(obj)) return obj.map(sanitizeData);
+           if (typeof obj === 'object' && obj !== null) {
+               const cleaned: any = {};
+               for (const key of Object.keys(obj)) {
+                  cleaned[sanitizeHtml(key)] = sanitizeData(obj[key]);
+               }
+               return cleaned;
+           }
+           return obj;
+        };
+
+        const safeData = sanitizeData(data);
+        const patientHash = generatePatientHash(safeData);
+        const patientPhone = extractPatientPhone(safeData);
 
         if (patientPhone) {
             const existingRecord = await Record.findOne({
@@ -93,7 +113,7 @@ export async function submitRecord(eventId: string, data: Record<string, unknown
         await Record.create({
             eventId,
             projectID: eventId, 
-            data,
+            data: safeData,
             recordedBy,
             retrievalCode,
             patientHash,
@@ -138,7 +158,7 @@ export async function searchPatientHistory(data: Record<string, unknown>, curren
             return { success: true, found: false, message: 'No previous records found' };
         }
 
-        const history = previousRecords.map((record) => {
+        const history = previousRecords.map((record: any) => {
             const eventTitle = record.eventId?.title || 'Unknown Event';
             const eventDate = record.eventId?.date ? new Date(record.eventId.date) : new Date(record.createdAt);
             const recordDate = new Date(record.createdAt);
@@ -211,7 +231,8 @@ export async function getRecordByCode(query: string, eventId?: string) {
         const escapedQuery = trimmedQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
         const codeQuery: any = {
-            retrievalCode: { $regex: new RegExp(`^${escapedQuery}$`, 'i') }
+            // Lightweight HTML Sanitizer to strip tags and prevent XSS
+            retrievalCode: { $regex: new RegExp(`^${escapedQuery.replace(/(<([^>]+)>)/gi, "").trim()}$`, 'i') }
         };
         if (eventId) {
             codeQuery.eventId = eventId;
@@ -219,6 +240,7 @@ export async function getRecordByCode(query: string, eventId?: string) {
 
         let record = await Record.findOne(codeQuery);
 
+        // PHONE NUMBER SEARCH FALLBACK
         if (!record && normalizedQuery.length >= 5) {
             const filter: any = {};
             if (eventId) {
@@ -281,13 +303,34 @@ export async function updateRecordByCode(code: string, data: Record<string, unkn
 
         await dbConnect();
 
-        const query: any = { retrievalCode: code };
+        // Lightweight HTML Sanitizer to strip tags and prevent XSS
+        const sanitizeHtml = (str: string) => {
+            if (!str) return str;
+            return str.replace(/(<([^>]+)>)/gi, "").trim();
+        };
+
+        const sanitizeData = (obj: any): any => {
+           if (typeof obj === 'string') return sanitizeHtml(obj);
+           if (Array.isArray(obj)) return obj.map(sanitizeData);
+           if (typeof obj === 'object' && obj !== null) {
+               const cleaned: any = {};
+               for (const key of Object.keys(obj)) {
+                  cleaned[sanitizeHtml(key)] = sanitizeData(obj[key]);
+               }
+               return cleaned;
+           }
+           return obj;
+        };
+
+        const query: any = { retrievalCode: sanitizeHtml(code) };
         if (eventId) query.eventId = eventId;
 
         const record = await Record.findOne(query);
         if (!record) return { success: false, message: 'Invalid code or record not found for this event' };
 
-        record.data = { ...record.data, ...data };
+        const safeData = sanitizeData(data);
+
+        record.data = { ...record.data, ...safeData };
         await record.save();
 
         revalidatePath(`/e/${record.eventId}`);

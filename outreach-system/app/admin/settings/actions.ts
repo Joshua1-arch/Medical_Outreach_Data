@@ -72,14 +72,24 @@ export async function updateSiteConfig(formData: FormData) {
         const logoFile = formData.get('logoFile') as File;
 
         if (logoFile && logoFile.size > 0 && logoFile.name !== 'undefined') {
+            // Validate MIME type initially
             if (!logoFile.type.startsWith('image/')) {
                 return { success: false, message: 'Invalid file type. Please upload an image.' };
             }
+
+            // Strictly validate extensions to prevent Server-Side XSS via HTML file uploads
+            const ext = logoFile.name.slice((logoFile.name.lastIndexOf(".") - 1 >>> 0) + 2).toLowerCase();
+            const allowedExts = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'];
+            if (!allowedExts.includes(ext)) {
+                return { success: false, message: 'Invalid file extension. Only valid image files are allowed.' };
+            }
+
             const bytes = await logoFile.arrayBuffer();
             const buffer = Buffer.from(bytes);
 
-            // Create unique filename
-            const filename = `logo-${Date.now()}-${logoFile.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
+            // Create unique filename, strictly alphanumerics for basename to prevent directory traversal
+            const baseName = logoFile.name.substring(0, logoFile.name.lastIndexOf('.')).replace(/[^a-zA-Z0-9-]/g, '') || 'upload';
+            const filename = `logo-${Date.now()}-${baseName}.${ext}`;
             
             // Ensure uploads directory exists
             const uploadDir = join(cwd(), 'public', 'uploads');

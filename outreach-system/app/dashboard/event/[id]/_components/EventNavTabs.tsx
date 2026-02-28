@@ -14,10 +14,11 @@ export default function EventNavTabs({ eventId }: { eventId: string }) {
         { label: 'Form Builder', href: `${base}/builder`, icon: LayoutTemplate },
         { label: 'Settings', href: `${base}/settings`, icon: Settings },
         { label: 'Analytics', href: `${base}/analytics`, icon: Activity },
+        { label: 'Chat', href: `${base}/chat`, icon: MessageSquare },
     ];
 
     return (
-        <nav className="flex items-center gap-1 px-4 pb-0">
+        <nav className="flex items-center gap-1 px-4 pb-0 w-full overflow-x-auto no-scrollbar">
             {tabs.map((tab) => {
                 // Exact match for hub, prefix match for sub-pages
                 const isActive =

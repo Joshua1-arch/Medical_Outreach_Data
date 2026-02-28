@@ -5,6 +5,7 @@ import DataEntryForm from '@/app/events/[id]/enter-data/DataEntryForm';
 import { Lock, ArrowRight, ShieldCheck, UserPlus, RefreshCw, Search } from 'lucide-react';
 import { getRecordByCode, updateRecordByCode, verifyEventAccess } from '@/app/events/actions';
 import { Spinner } from '@/components/ui/Spinner';
+import VolunteerChatWidget from '@/app/components/VolunteerChatWidget';
 
 export default function PublicEventClient({ event }: { event: any }) {
     const hasPassword = !!event.hasAccessCode;
@@ -189,6 +190,9 @@ export default function PublicEventClient({ event }: { event: any }) {
             <div className="mt-12 text-center text-slate-400 text-sm">
                 Powered by ReachPoint
             </div>
+            
+            {/* Realtime Volunteer Chat Widget */}
+            <VolunteerChatWidget eventId={event._id} volunteerName="Volunteer" />
         </div>
     );
 }
