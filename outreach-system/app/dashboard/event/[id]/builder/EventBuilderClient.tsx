@@ -550,7 +550,7 @@ export default function EventBuilderClient({ event, records }: { event: any, rec
                                     </button>
                                 </div>
                                 {/* Template pills */}
-                                <div className="flex gap-1.5 px-3 pb-2">
+                                <div className="flex gap-1.5 overflow-x-auto px-3 pb-2 scrollbar-hide shrink-0 w-full mb-1">
                                     <button
                                         onClick={async () => {
                                             setIsRefreshing(true);
@@ -573,7 +573,7 @@ export default function EventBuilderClient({ event, records }: { event: any, rec
                                             ]);
                                             setIsRefreshing(false);
                                         }}
-                                        className="flex-shrink-0 px-3 py-1 bg-brand-cream border border-brand-gold/30 text-brand-dark text-xs font-bold rounded-full"
+                                        className="flex-shrink-0 whitespace-nowrap px-3 py-1 bg-brand-cream border border-brand-gold/30 text-brand-dark text-xs font-bold rounded-full"
                                     >
                                         📋 Medical Template
                                     </button>
@@ -599,7 +599,7 @@ export default function EventBuilderClient({ event, records }: { event: any, rec
                                             ]);
                                             setIsRefreshing(false);
                                         }}
-                                        className="flex-shrink-0 px-3 py-1 bg-red-50 border border-red-200 text-red-700 text-xs font-bold rounded-full"
+                                        className="flex-shrink-0 whitespace-nowrap px-3 py-1 bg-red-50 border border-red-200 text-red-700 text-xs font-bold rounded-full mr-2"
                                     >
                                         Blood Drive Template
                                     </button>
@@ -630,14 +630,16 @@ export default function EventBuilderClient({ event, records }: { event: any, rec
                                             <p className="text-slate-400 text-xs mt-1">Add elements using the panel or quick-add bar above.</p>
                                         </div>
                                     ) : (
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                        <div className="flex flex-col lg:grid lg:grid-cols-2 gap-3 pb-8">
                                             {formFields.map((field, index) => (
                                                 <div
                                                     key={index}
-                                                    className={`bg-white rounded-xl border border-slate-200 shadow-sm hover:border-brand-gold/40 transition-all ${field.width === 'half' ? 'sm:col-span-1' : 'sm:col-span-2'}`}
+                                                    className={`bg-white rounded-xl border border-slate-200 shadow-sm transition-all ${
+                                                        field.width === 'half' ? 'lg:col-span-1' : 'lg:col-span-2'
+                                                    } w-full overflow-hidden`}
                                                 >
                                                     {/* Card top bar */}
-                                                    <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-slate-50 rounded-t-xl border-b border-slate-100">
+                                                    <div className="flex items-center gap-1.5 px-3 py-2.5 bg-slate-50 border-b border-slate-100 flex-wrap sm:flex-nowrap">
                                                         <span className="w-5 h-5 rounded-full bg-brand-gold/20 text-brand-dark text-[10px] font-bold flex items-center justify-center shrink-0">
                                                             {index + 1}
                                                         </span>
@@ -655,7 +657,7 @@ export default function EventBuilderClient({ event, records }: { event: any, rec
                                                                 <Copy size={14} />
                                                             </button>
                                                             <button onClick={() => removeField(index)} className="p-1.5 rounded text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors" title="Delete">
-                                                                <Trash2 size={14} />
+                                                                <Trash2 size={13} />
                                                             </button>
                                                         </div>
                                                     </div>
@@ -670,11 +672,11 @@ export default function EventBuilderClient({ event, records }: { event: any, rec
                                                             placeholder="Question label e.g. Full Name"
                                                         />
 
-                                                        <div className="flex flex-wrap gap-2 items-center">
+                                                        <div className="flex flex-col sm:flex-row gap-2.5 sm:items-center justify-between">
                                                             <select
                                                                 value={field.type}
                                                                 onChange={(e) => updateField(index, 'type', e.target.value)}
-                                                                className="flex-1 min-w-[120px] px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 focus:ring-2 focus:ring-brand-gold/40 outline-none"
+                                                                className="w-full sm:w-auto flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 focus:ring-2 focus:ring-brand-gold/40 outline-none"
                                                             >
                                                                 <option value="text">Short Text</option>
                                                                 <option value="number">Number</option>
@@ -683,18 +685,20 @@ export default function EventBuilderClient({ event, records }: { event: any, rec
                                                                 <option value="select">Dropdown</option>
                                                             </select>
 
-                                                            <div className="flex items-center bg-slate-50 rounded-lg p-0.5 border border-slate-200">
-                                                                <button onClick={() => updateField(index, 'width', 'half')} className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all ${field.width === 'half' ? 'bg-white text-brand-dark shadow-sm' : 'text-slate-400'}`}>½</button>
-                                                                <button onClick={() => updateField(index, 'width', 'full')} className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all ${!field.width || field.width === 'full' ? 'bg-white text-brand-dark shadow-sm' : 'text-slate-400'}`}>Full</button>
-                                                            </div>
-
-                                                            <label className="flex items-center gap-1.5 cursor-pointer select-none ml-auto">
-                                                                <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${field.required ? 'bg-brand-dark border-brand-dark' : 'border-slate-300 bg-white'}`}>
-                                                                    {field.required && <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>}
+                                                            <div className="flex items-center justify-between gap-3 w-full sm:w-auto">
+                                                                <div className="flex items-center bg-slate-50 rounded-lg p-0.5 border border-slate-200">
+                                                                    <button onClick={() => updateField(index, 'width', 'half')} className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all ${field.width === 'half' ? 'bg-white text-brand-dark shadow-sm' : 'text-slate-400'}`}>½</button>
+                                                                    <button onClick={() => updateField(index, 'width', 'full')} className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all ${!field.width || field.width === 'full' ? 'bg-white text-brand-dark shadow-sm' : 'text-slate-400'}`}>Full</button>
                                                                 </div>
-                                                                <input type="checkbox" checked={field.required} onChange={(e) => updateField(index, 'required', e.target.checked)} className="hidden" />
-                                                                <span className="text-xs font-semibold text-slate-500">Required</span>
-                                                            </label>
+
+                                                                <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                                                                    <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0 ${field.required ? 'bg-brand-dark border-brand-dark' : 'border-slate-300 bg-white'}`}>
+                                                                        {field.required && <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>}
+                                                                    </div>
+                                                                    <input type="checkbox" checked={field.required} onChange={(e) => updateField(index, 'required', e.target.checked)} className="hidden" />
+                                                                    <span className="text-xs font-semibold text-slate-500 whitespace-nowrap">Required</span>
+                                                                </label>
+                                                            </div>
                                                         </div>
 
                                                         {field.type === 'select' && (

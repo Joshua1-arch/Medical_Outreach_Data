@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion, Variants } from 'framer-motion';
 import {
     FileText, BriefcaseMedical, Package, Calendar,
     BarChart3, Settings, Search, TrendingUp, ChevronRight,
-    Ticket, MessageCircle, LayoutDashboard
+    Ticket, MessageCircle, LayoutDashboard, Menu, X
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -19,12 +20,11 @@ const categories = [
 ];
 
 const guides = [
-    'Setting up HIPAA-compliant data encryption',
-    'How to export outreach campaign analytics',
-    'Managing volunteer access levels',
-    'Troubleshooting mobile sync issues in remote areas',
-    'Creating your first medical outreach form',
-    'Inviting team members and assigning roles',
+    { title: 'Welcome to ReachPoint: Getting Started', tags: ['getting', 'started', 'welcome', 'beginner', 'overview'], href: '/help/guide' },
+    { title: 'Phase 1: Setting Up Basecamp (For Event Admins)', tags: ['event', 'admin', 'setup', 'basecamp', 'create'], href: '/help/guide#phase-1' },
+    { title: 'Phase 2: Equipping Your Team', tags: ['equip', 'team', 'form', 'builder', 'custom', 'questions'], href: '/help/guide#phase-2' },
+    { title: 'Phase 3: Boots on the Ground (For Volunteers)', tags: ['volunteers', 'link', 'data', 'entry', 'chat', 'mobile', 'sync'], href: '/help/guide#phase-3' },
+    { title: 'Phase 4: Making Sense of the Data', tags: ['data', 'analytics', 'charts', 'export', 'csv', 'ai', 'report'], href: '/help/guide#phase-4' },
 ];
 
 const containerVariants: Variants = {
@@ -39,9 +39,12 @@ const itemVariants: Variants = {
 
 export default function HelpCenterClient({ user }: { user?: any }) {
     const [query, setQuery] = useState('');
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const filteredGuides = guides.filter((g) =>
-        g.toLowerCase().includes(query.toLowerCase())
+        g.title.toLowerCase().includes(query.toLowerCase()) || 
+        g.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase())) ||
+        query.toLowerCase().split(' ').some(word => g.title.toLowerCase().includes(word) || g.tags.some(tag => tag.includes(word)))
     );
 
     const filteredCategories = categories.filter(
@@ -56,20 +59,19 @@ export default function HelpCenterClient({ user }: { user?: any }) {
         <div className="min-h-screen bg-white font-sans text-slate-900">
 
             {/* ── Sticky Header ── */}
-            <header className="flex h-16 items-center justify-between px-6 md:px-10 border-b border-slate-100 sticky top-0 bg-white/80 backdrop-blur-md z-30">
-                <Link href="/" className="flex items-center gap-3">
-                    <div className="flex size-8 items-center justify-center rounded-lg bg-[#fbc037] text-slate-900 shrink-0">
-                        <BriefcaseMedical size={18} />
-                    </div>
-                    <span className="text-xl font-bold tracking-tight">ReachPoint</span>
+            <header className="flex h-16 items-center justify-between px-6 md:px-10 border-b border-slate-100 sticky top-0 bg-white/80 backdrop-blur-md z-40 relative">
+                <Link href="/" className="flex items-center gap-3 shrink-0">
+                    <Image src="/Reach.png" alt="ReachPoint Logo" width={32} height={32} className="object-contain" priority />
+                    <span className="text-xl font-bold tracking-tight text-slate-900">ReachPoint</span>
                 </Link>
 
+                {/* Desktop Nav */}
                 <nav className="hidden md:flex items-center gap-8">
-                    {['Guides', 'Forms', 'Status'].map((item) => (
-                        <a key={item} href="#" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
-                            {item}
-                        </a>
-                    ))}
+                    <Link href="/help/guide" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+                        Guides
+                    </Link>
+                    <span className="text-sm font-medium text-slate-400 cursor-not-allowed">Forms</span>
+                    <span className="text-sm font-medium text-slate-400 cursor-not-allowed">Status</span>
                     {user ? (
                         <Link
                             href={user.role === 'admin' ? '/admin' : '/dashboard'}
@@ -87,7 +89,47 @@ export default function HelpCenterClient({ user }: { user?: any }) {
                         </Link>
                     )}
                 </nav>
+
+                {/* Mobile Menu Toggle */}
+                <button 
+                    className="md:hidden p-2 text-slate-600 focus:outline-none"
+                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                >
+                    {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                </button>
             </header>
+
+            {/* ── Mobile Menu Dropdown ── */}
+            {mobileMenuOpen && (
+                <div className="md:hidden fixed top-16 left-0 w-full bg-white border-b border-slate-100 shadow-xl z-30 p-6 flex flex-col gap-6 font-medium">
+                    <Link href="/help/guide" className="text-lg text-slate-700 hover:text-slate-900" onClick={() => setMobileMenuOpen(false)}>
+                        Guides
+                    </Link>
+                    <span className="text-lg text-slate-400 cursor-not-allowed">Forms</span>
+                    <span className="text-lg text-slate-400 cursor-not-allowed">Status</span>
+                    
+                    <div className="pt-6 border-t border-slate-100 flex flex-col gap-4">
+                        {user ? (
+                            <Link
+                                href={user.role === 'admin' ? '/admin' : '/dashboard'}
+                                className="h-12 w-full rounded-xl bg-slate-900 text-white text-base font-bold hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                <LayoutDashboard size={18} />
+                                Dashboard
+                            </Link>
+                        ) : (
+                            <Link
+                                href="/login"
+                                className="h-12 w-full rounded-xl bg-[#fbc037] text-slate-900 text-base font-bold transition-all flex items-center justify-center"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                Sign In
+                            </Link>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* ── Hero / Search ── */}
             <section className="bg-[#f8f7f5] py-20 px-6 md:px-10">
@@ -183,7 +225,7 @@ export default function HelpCenterClient({ user }: { user?: any }) {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
 
                     {/* Popular Guides */}
-                    <div className="lg:col-span-8 space-y-8">
+                    <div className="lg:col-span-8 space-y-8" id="guides">
                         <div className="flex items-center gap-3 text-[#fbc037]">
                             <TrendingUp size={24} />
                             <h2 className="text-2xl font-bold text-slate-900">Popular Guides</h2>
@@ -191,16 +233,17 @@ export default function HelpCenterClient({ user }: { user?: any }) {
 
                         <div className="space-y-2">
                             {(showAll ? guides : filteredGuides).map((guide, i) => (
-                                <motion.button
-                                    key={i}
-                                    initial={{ opacity: 0, x: -8 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: i * 0.05 }}
-                                    className="w-full flex items-center justify-between p-6 rounded-2xl hover:bg-slate-50 transition-colors group text-left border border-transparent hover:border-slate-100"
-                                >
-                                    <span className="font-semibold text-slate-700 group-hover:text-slate-900">{guide}</span>
-                                    <ChevronRight size={20} className="text-slate-300 group-hover:text-[#fbc037] transition-colors shrink-0" />
-                                </motion.button>
+                                <Link href={guide.href} key={i} passHref legacyBehavior>
+                                    <motion.a
+                                        initial={{ opacity: 0, x: -8 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: i * 0.05 }}
+                                        className="w-full flex items-center justify-between p-6 rounded-2xl hover:bg-slate-50 transition-colors group text-left border border-transparent hover:border-slate-100 block"
+                                    >
+                                        <span className="font-semibold text-slate-700 group-hover:text-slate-900">{guide.title}</span>
+                                        <ChevronRight size={20} className="text-slate-300 group-hover:text-[#fbc037] transition-colors shrink-0" />
+                                    </motion.a>
+                                </Link>
                             ))}
 
                             {!showAll && filteredGuides.length === 0 && (
@@ -265,7 +308,7 @@ export default function HelpCenterClient({ user }: { user?: any }) {
             <footer className="border-t border-slate-100 py-12 px-6 md:px-10">
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
                     <div className="flex items-center gap-2">
-                        <BriefcaseMedical size={18} className="text-[#fbc037]" />
+                        <Image src="/Reach.png" alt="ReachPoint Logo" width={18} height={18} className="object-contain grayscale opacity-50" />
                         <span className="text-sm font-bold text-slate-400">ReachPoint</span>
                     </div>
 
