@@ -51,6 +51,8 @@ function extractPatientPhone(data: Record<string, unknown>): string | undefined 
 
 export async function submitRecord(eventId: string, data: Record<string, unknown>) {
     try {
+        if (typeof eventId !== 'string') return { success: false, message: 'Invalid format' };
+
         // 1. Rate Limiting (Spam Protection)
         const ip = await getIP();
         const { success } = await submissionRateLimit.limit(ip);
@@ -295,6 +297,9 @@ export async function getRecordByCode(query: string, eventId?: string) {
 
 export async function updateRecordByCode(code: string, data: Record<string, unknown>, eventId?: string) {
     try {
+        if (typeof code !== 'string') return { success: false, message: 'Invalid format' };
+        if (eventId && typeof eventId !== 'string') return { success: false, message: 'Invalid format' };
+
         const ip = await getIP();
         const { success: rateLimitSuccess } = await submissionRateLimit.limit(ip + "_update");
         if (!rateLimitSuccess) {
@@ -344,6 +349,8 @@ export async function updateRecordByCode(code: string, data: Record<string, unkn
 
 export async function deleteRecord(recordId: string) {
     try {
+        if (typeof recordId !== 'string') return { success: false, message: 'Invalid format' };
+
         const session = await auth();
         if (!session?.user) return { success: false, message: 'Unauthorized' };
 
@@ -369,6 +376,8 @@ export async function deleteRecord(recordId: string) {
 
 export async function updateRecordById(recordId: string, data: Record<string, unknown>) {
     try {
+        if (typeof recordId !== 'string') return { success: false, message: 'Invalid format' };
+
         const session = await auth();
         if (!session?.user) return { success: false, message: 'Unauthorized' };
 
@@ -392,6 +401,8 @@ export async function updateRecordById(recordId: string, data: Record<string, un
 
 export async function sendResultEmail(recordId: string) {
     try {
+        if (typeof recordId !== 'string') return { success: false, message: 'Invalid format' };
+
         const session = await auth();
         if (!session?.user) return { success: false, message: 'Unauthorized' };
 
@@ -457,6 +468,8 @@ export async function sendResultEmail(recordId: string) {
 
 export async function verifyEventAccess(eventId: string, accessCode: string) {
     try {
+        if (typeof eventId !== 'string' || typeof accessCode !== 'string') return { success: false, message: 'Invalid format' };
+
         await dbConnect();
         
         const event = await Event.findById(eventId);

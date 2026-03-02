@@ -12,6 +12,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
             return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
         }
 
+        const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "127.0.0.1";
+        const { submissionRateLimit } = require('@/lib/rate-limit');
+        if (submissionRateLimit) {
+            const { success } = await submissionRateLimit.limit(ip + "_analytics");
+            if (!success) {
+                return NextResponse.json({ success: false, message: 'Too many analytics requests. Please wait a minute.' }, { status: 429 });
+            }
+        }
+
         await dbConnect();
         const { id } = await params;
 

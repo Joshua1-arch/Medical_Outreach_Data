@@ -18,7 +18,7 @@ export default function EventNavTabs({ eventId }: { eventId: string }) {
     ];
 
     return (
-        <nav className="flex items-center gap-1 px-4 pb-0 w-full overflow-x-auto no-scrollbar">
+        <nav className="flex items-center gap-1 px-4 pb-0 w-full overflow-x-auto">
             {tabs.map((tab) => {
                 // Exact match for hub, prefix match for sub-pages
                 const isActive =
@@ -30,7 +30,7 @@ export default function EventNavTabs({ eventId }: { eventId: string }) {
                     <Link
                         key={tab.href}
                         href={tab.href}
-                        className={`flex items-center gap-2 px-4 py-3 border-b-2 text-sm font-bold transition-all whitespace-nowrap ${
+                        className={`flex items-center shrink-0 gap-2 px-4 py-3 border-b-2 text-sm font-bold transition-all whitespace-nowrap ${
                             isActive
                                 ? 'border-[#fbc037] text-slate-900'
                                 : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'

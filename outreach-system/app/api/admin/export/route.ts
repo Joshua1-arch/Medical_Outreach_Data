@@ -111,11 +111,20 @@ function escapeCSV(value: any): string {
 
 // ==================== MAIN EXPORT HANDLER ====================
 
-export async function GET() {
+export async function GET(req: Request) {
     try {
         const session = await auth();
         if (session?.user?.role !== 'admin') {
             return new NextResponse("Unauthorized", { status: 401 });
+        }
+
+        const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "127.0.0.1";
+        const { submissionRateLimit } = require('@/lib/rate-limit');
+        if (submissionRateLimit) {
+            const { success } = await submissionRateLimit.limit(ip + "_admin_export");
+            if (!success) {
+                return new NextResponse("Too many requests. Please try again later.", { status: 429 });
+            }
         }
 
         await dbConnect();

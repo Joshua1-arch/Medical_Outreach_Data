@@ -116,6 +116,8 @@ export async function createEvent(formData: FormData) {
 
 export async function updateEventSchema(eventId: string, formFields: any[]) {
     try {
+        if (typeof eventId !== 'string') return { success: false, message: 'Invalid format' };
+
         const session = await auth();
         if (!session?.user?.id) return { success: false, message: 'Unauthorized' };
 
@@ -143,6 +145,8 @@ export async function updateEventSchema(eventId: string, formFields: any[]) {
 
 export async function updateEventSettings(eventId: string, isPublic: boolean, accessCode: string) {
     try {
+        if (typeof eventId !== 'string' || typeof accessCode !== 'string') return { success: false, message: 'Invalid format' };
+
         const session = await auth();
         if (!session?.user?.id) return { success: false, message: 'Unauthorized' };
 
