@@ -8,11 +8,13 @@ import Link from 'next/link';
 import { AlertCircle, Mail, Lock, Eye, EyeOff, Globe, Building2 } from 'lucide-react';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 import GoogleSignupButton from '@/components/auth/GoogleSignupButton';
+import { Turnstile } from '@marsidev/react-turnstile';
 
 export default function LoginPage() {
     const router = useRouter();
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [turnstileToken, setTurnstileToken] = useState('');
     const searchParams = useSearchParams();
     const reason = searchParams.get('reason');
 
@@ -94,10 +96,16 @@ export default function LoginPage() {
                                 return;
                             }
 
+                            if (!turnstileToken) {
+                                setError('Please complete the security check.');
+                                return;
+                            }
+
                             try {
                                 const result = await signIn('credentials', {
                                     email,
                                     password,
+                                    turnstileToken,
                                     redirect: false,
                                 });
 
@@ -180,6 +188,16 @@ export default function LoginPage() {
                             <Link href="/forgot-password" className="text-sm font-semibold text-[#fbc037] hover:text-yellow-600 transition-colors">
                                 Forgot Password?
                             </Link>
+                        </div>
+
+                        {/* Cloudflare Turnstile */}
+                        <div className="flex justify-center my-2">
+                            <Turnstile 
+                                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+                                onSuccess={(token) => setTurnstileToken(token)}
+                                onError={() => setError('Security check failed. Please try again.')}
+                                onExpire={() => setTurnstileToken('')}
+                            />
                         </div>
 
                         {/* Submit */}

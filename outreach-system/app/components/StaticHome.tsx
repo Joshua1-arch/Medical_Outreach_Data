@@ -1,14 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
-import {
-  Heart, Activity, Brain, ArrowRight, ChevronDown,
-  CheckCircle, Globe, ShieldCheck, Database, LineChart,
-  Check, Users, Clock, BarChart3, Mail, Phone,
-  Facebook, Twitter, Linkedin,
-} from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import ContactSection from "@/components/ContactSection";
 import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
+import NewsletterForm from "./NewsletterForm";
 
 /**
  * Stats data
@@ -25,19 +21,16 @@ const STATS = [
  */
 const ABOUT_CARDS = [
   {
-    icon: Globe,
     title: "Global Reach",
     desc: "Connecting medical teams with communities in over 50 countries, ensuring no location is too remote for quality care.",
   },
   {
-    icon: Heart,
     title: "Our Mission",
     desc: "To empower outreach programs with the data they need to save lives, reducing administrative burden so focus remains on care.",
   },
   {
-    icon: ShieldCheck,
     title: "Trusted Security",
-    desc: "HIPAA-compliant data management you can rely on. Your patient data is encrypted, backed up, and secure.",
+    desc: "NDPR-compliant data management you can rely on. Your patient data is encrypted, backed up, and secure.",
   },
 ];
 
@@ -46,9 +39,8 @@ const ABOUT_CARDS = [
  */
 const FEATURES = [
   {
-    icon: Database,
     title: "Data Management",
-    desc: "Secure, HIPAA-compliant patient and event data storage. Digitize your intake forms, track patient history, and maintain continuity of care across different outreach events.",
+    desc: "Secure, NDPR-compliant patient and event data storage. Digitize your intake forms, track patient history, and maintain continuity of care across different outreach events.",
     bullets: [
       "Cloud-based centralized records",
       "Offline mode for remote areas",
@@ -58,7 +50,6 @@ const FEATURES = [
     imageLeft: false,
   },
   {
-    icon: LineChart,
     title: "Real-time Reporting",
     desc: "Instant analytics to measure impact and resource allocation. Generate reports for stakeholders with a single click and visualize your outreach success.",
     bullets: [
@@ -152,7 +143,6 @@ export default function Home() {
                     className="h-12 px-8 rounded-lg bg-[#fbc037] text-slate-900 font-bold hover:bg-[#fbc037]/90 transition-all shadow-lg shadow-[#fbc037]/25 flex items-center justify-center gap-2 group"
                   >
                     Get Started
-                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                   </Link>
                   <Link
                     href="/login"
@@ -173,19 +163,6 @@ export default function Home() {
                     alt="Medical team"
                     className="relative rounded-2xl shadow-2xl ring-1 ring-slate-900/10 object-cover w-full h-auto aspect-[4/3]"
                   />
-                  {/* Floating badge */}
-                  <div
-                    className="absolute -bottom-6 -left-6 hidden md:flex items-center gap-3 rounded-xl bg-white p-4 shadow-xl ring-1 ring-slate-900/5"
-                    style={{ animation: "bounce 3s infinite" }}
-                  >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-600">
-                      <CheckCircle size={20} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-slate-900">Patient Data Synced</p>
-                      <p className="text-xs text-slate-500">Just now</p>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -224,14 +201,11 @@ export default function Home() {
             </div>
 
             <div className="grid gap-8 md:grid-cols-3" id="mission">
-              {ABOUT_CARDS.map(({ icon: Icon, title, desc }, i) => (
+              {ABOUT_CARDS.map(({ title, desc }, i) => (
                 <div
                   key={i}
                   className="group relative flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-8 transition-all hover:border-[#fbc037]/50 hover:shadow-xl hover:-translate-y-1 duration-300"
                 >
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#fbc037]/10 text-[#fbc037] group-hover:bg-[#fbc037] group-hover:text-slate-900 transition-colors">
-                    <Icon size={24} />
-                  </div>
                   <h3 className="text-xl font-bold text-slate-900">{title}</h3>
                   <p className="text-slate-600 leading-relaxed">{desc}</p>
                 </div>
@@ -253,7 +227,7 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col gap-24">
-              {FEATURES.map(({ icon: Icon, title, desc, bullets, imageQuery, imageLeft }, i) => (
+              {FEATURES.map(({ title, desc, bullets, imageQuery, imageLeft }, i) => (
                 <div
                   key={i}
                   className="grid gap-12 lg:grid-cols-2 lg:items-center"
@@ -270,15 +244,11 @@ export default function Home() {
 
                   {/* Copy */}
                   <div className={`${imageLeft ? "order-1 lg:order-2" : "order-1 lg:order-1"} flex flex-col gap-6`}>
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#fbc037] text-slate-900 shadow-sm">
-                      <Icon size={24} />
-                    </div>
                     <h3 className="text-2xl font-bold text-slate-900 font-serif">{title}</h3>
                     <p className="text-lg text-slate-600 leading-relaxed">{desc}</p>
-                    <ul className="space-y-3">
+                    <ul className="space-y-3 list-disc pl-5">
                       {bullets.map((bullet, bi) => (
-                        <li key={bi} className="flex items-center gap-3 text-slate-600">
-                          <Check size={18} className="text-[#fbc037] shrink-0" />
+                        <li key={bi} className="text-slate-600 pl-1">
                           {bullet}
                         </li>
                       ))}
@@ -359,7 +329,7 @@ export default function Home() {
                     href="#contact"
                     className="text-sm font-semibold text-white hover:text-[#fbc037] transition-colors flex items-center gap-1"
                   >
-                    Contact Sales <ArrowRight size={16} />
+                    Contact Sales
                   </a>
                 </div>
               </div>
@@ -389,31 +359,25 @@ export default function Home() {
                   <Image src="/Reach.png" alt="ReachPoint Logo" width={40} height={40} className="object-contain" />
                   <span className="text-xl font-bold tracking-tight text-slate-900 font-serif">ReachPoint</span>
                 </div>
-                <p className="text-sm leading-6 text-slate-600 max-w-sm">
+                <p className="text-sm leading-6 text-slate-600 max-w-sm mt-6">
                   Empowering medical missions with technology. We help you focus on what matters most: saving lives.
                 </p>
-                <div className="mt-6 flex gap-4">
-                  <a href="#" aria-label="Facebook" className="text-slate-400 hover:text-[#fbc037] transition-colors">
-                    <Facebook size={22} />
-                  </a>
-                  <a href="#" aria-label="Twitter" className="text-slate-400 hover:text-[#fbc037] transition-colors">
-                    <Twitter size={22} />
-                  </a>
-                  <a href="#" aria-label="LinkedIn" className="text-slate-400 hover:text-[#fbc037] transition-colors">
-                    <Linkedin size={22} />
-                  </a>
-                </div>
               </div>
 
               {/* Resources */}
               <div>
                 <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-widest mb-6">Resources</h3>
                 <ul className="space-y-4">
-                  {["Documentation", "Guides", "API Status", "Case Studies"].map((link) => (
-                    <li key={link}>
-                      <a href="#" className="text-sm text-slate-600 hover:text-[#fbc037] transition-colors">
-                        {link}
-                      </a>
+                  {[
+                    { label: "Documentation", href: "/documentation" },
+                    { label: "Guides", href: "/help" },
+                    { label: "API Status", href: "/api-status" },
+                    { label: "Case Studies", href: "/case-studies" }
+                  ].map((item) => (
+                    <li key={item.label}>
+                      <Link href={item.href} className="text-sm text-slate-600 hover:text-[#fbc037] transition-colors">
+                        {item.label}
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -425,20 +389,7 @@ export default function Home() {
                 <p className="text-sm text-slate-600 mb-6">
                   The latest news, articles, and resources — sent to your inbox weekly.
                 </p>
-                <form className="flex flex-col sm:flex-row gap-3">
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    required
-                    className="flex-1 min-w-0 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#fbc037]"
-                  />
-                  <button
-                    type="submit"
-                    className="shrink-0 rounded-lg bg-[#fbc037] px-5 py-2.5 text-sm font-bold text-slate-900 hover:bg-[#fbc037]/90 transition-colors"
-                  >
-                    Subscribe
-                  </button>
-                </form>
+                <NewsletterForm />
               </div>
             </div>
 

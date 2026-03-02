@@ -9,6 +9,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import bcrypt from "bcryptjs";
 import nodeCrypto from "crypto";
 import { sendEventCreationConfirmationEmail, sendAdminNewEventAlert } from "@/lib/email";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 
 export async function createEvent(formData: FormData) {
     try {
@@ -39,7 +40,16 @@ export async function createEvent(formData: FormData) {
         const date = formData.get('date') as string;
         const location = formData.get('location') as string;
         const coverImage = formData.get('coverImage') as string;
+        const turnstileToken = formData.get('turnstileToken') as string;
         const inventory = JSON.parse(formData.get('inventory') as string || '[]');
+
+        if (!turnstileToken) {
+            return { success: false, message: 'Missing security token.' };
+        }
+        const isValidTurnstile = await verifyTurnstileToken(turnstileToken);
+        if (!isValidTurnstile) {
+            return { success: false, message: 'Security check failed. Please try again.' };
+        }
 
         if (coverImage && (!coverImage.startsWith('http') || coverImage.length > 1000)) {
             return { success: false, message: 'Invalid cover image URL provided.' };

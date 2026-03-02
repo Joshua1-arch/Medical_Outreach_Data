@@ -203,7 +203,7 @@ export default async function DashboardPage() {
 
                         <div className="relative z-10">
                             <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#fbc037]/20 border border-[#fbc037]/30 rounded-full mb-4">
-                                <Sparkles size={12} className="text-[#fbc037]" />
+
                                 <span className="text-[#fbc037] text-xs font-bold uppercase tracking-wider">Start collecting data</span>
                             </div>
                             <h2 className="text-xl font-bold text-white mb-2">

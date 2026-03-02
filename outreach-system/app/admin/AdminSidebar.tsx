@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
     LayoutDashboard, Users, CalendarCheck, LogOut, Menu, X,
-    ArrowLeft, Settings, Database, BriefcaseMedical, HeartPulse
+    ArrowLeft, Settings, Database, BriefcaseMedical, HeartPulse, Mail
 } from "lucide-react";
 import { useState } from "react";
 
@@ -13,6 +13,7 @@ const NAV_ITEMS = [
     { name: 'User Management', href: '/admin/users', icon: Users, hasBadge: true },
     { name: 'All Events', href: '/admin/events', icon: CalendarCheck },
     { name: 'Blood Bank Search', href: '/admin/blood-bank', icon: HeartPulse },
+    { name: 'Newsletter Blast', href: '/admin/newsletter', icon: Mail },
 ];
 
 const SETTINGS_ITEMS = [

@@ -12,7 +12,7 @@ import { useState } from 'react';
 
 const categories = [
     { title: 'Form Builder', desc: 'Creating and managing custom outreach forms and data collection templates.', icon: FileText },
-    { title: 'Patient Records', desc: 'Managing HIPAA-compliant data, patient profiles, and secure health histories.', icon: BriefcaseMedical },
+    { title: 'Patient Records', desc: 'Managing NDPR-compliant data, patient profiles, and secure health histories.', icon: BriefcaseMedical },
     { title: 'Inventory & Stock', desc: 'Tracking supplies, medical kits, and medication levels across multiple locations.', icon: Package },
     { title: 'Campaign Management', desc: 'Organizing outreach events, field clinics, and volunteer scheduling.', icon: Calendar },
     { title: 'Analytics', desc: 'Viewing impact metrics, real-time reports, and outreach performance data.', icon: BarChart3 },
@@ -71,7 +71,9 @@ export default function HelpCenterClient({ user }: { user?: any }) {
                         Guides
                     </Link>
                     <span className="text-sm font-medium text-slate-400 cursor-not-allowed">Forms</span>
-                    <span className="text-sm font-medium text-slate-400 cursor-not-allowed">Status</span>
+                    <Link href="/api-status" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+                        Status
+                    </Link>
                     {user ? (
                         <Link
                             href={user.role === 'admin' ? '/admin' : '/dashboard'}
@@ -106,7 +108,9 @@ export default function HelpCenterClient({ user }: { user?: any }) {
                         Guides
                     </Link>
                     <span className="text-lg text-slate-400 cursor-not-allowed">Forms</span>
-                    <span className="text-lg text-slate-400 cursor-not-allowed">Status</span>
+                    <Link href="/api-status" className="text-lg text-slate-700 hover:text-slate-900" onClick={() => setMobileMenuOpen(false)}>
+                        Status
+                    </Link>
                     
                     <div className="pt-6 border-t border-slate-100 flex flex-col gap-4">
                         {user ? (
@@ -313,10 +317,14 @@ export default function HelpCenterClient({ user }: { user?: any }) {
                     </div>
 
                     <div className="flex flex-wrap justify-center gap-8">
-                        {['Privacy Policy', 'Terms of Service', 'HIPAA Compliance'].map((link) => (
-                            <a key={link} href="#" className="text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors">
+                        {['Documentation', 'API Status', 'Privacy Policy', 'Terms of Service', 'NDPR Compliance'].map((link) => (
+                            <Link 
+                                key={link} 
+                                href={link === 'Documentation' ? '/documentation' : link === 'API Status' ? '/api-status' : '#'} 
+                                className="text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors"
+                            >
                                 {link}
-                            </a>
+                            </Link>
                         ))}
                     </div>
 

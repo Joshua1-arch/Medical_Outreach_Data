@@ -7,6 +7,7 @@ import bcrypt from "bcryptjs"
 import { z } from "zod"
 import { authConfig } from "./auth.config"
 import { sendAdminNewUserAlert } from "@/lib/email"
+import { verifyTurnstileToken } from "@/lib/turnstile"
 
 async function getUser(email: string) {
     try {
@@ -151,7 +152,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     const parsedCredentials = z
                         .object({
                             email: z.string().email().regex(/^[^<>\{\}'";]+$/, "Invalid format"),
-                            password: z.string().min(6).regex(/^[^<>\{\}'";]+$/, "Invalid format")
+                            password: z.string().min(6).regex(/^[^<>\{\}'";]+$/, "Invalid format"),
+                            turnstileToken: z.string().optional()
                         })
                         .safeParse(credentials);
 
@@ -159,7 +161,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                         return null; 
                     }
 
-                    const { email, password } = parsedCredentials.data;
+                    const { email, password, turnstileToken } = parsedCredentials.data;
+
+                    if (turnstileToken) {
+                        const isValid = await verifyTurnstileToken(turnstileToken);
+                        if (!isValid) return null;
+                    } else {
+                        // In production, we might want to strictly require this. 
+                        // For now, if passed, we verify it.
+                        return null;
+                    }
+
                     const user = await getUser(email);
 
                     if (!user) return null; 

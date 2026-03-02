@@ -12,10 +12,11 @@ import {
 } from 'lucide-react';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 import GoogleSignupButton from '@/components/auth/GoogleSignupButton';
+import { Turnstile } from '@marsidev/react-turnstile';
 
 /* ─── Left-panel bullet points ───────────────────────────── */
 const PERKS = [
-    { icon: HeartPulse, label: 'HIPAA-compliant patient records' },
+    { icon: HeartPulse, label: 'NDPR-compliant patient records' },
     { icon: BarChart3,  label: 'Real-time analytics dashboards' },
     { icon: Users,      label: 'Seamless team coordination' },
 ];
@@ -33,6 +34,7 @@ function SignupPageContent() {
     const [success, setSuccess]           = useState(false);
     const [autoApproved, setAutoApproved] = useState(false);
     const [hasConsented, setHasConsented] = useState(false);
+    const [turnstileToken, setTurnstileToken] = useState('');
 
     const searchParams = useSearchParams();
     const googleSuccess = searchParams.get('success') === 'google';
@@ -178,6 +180,11 @@ function SignupPageContent() {
                                     return;
                                 }
 
+                                if (!turnstileToken) {
+                                    setError('Please complete the security check.');
+                                    return;
+                                }
+
                                 try {
                                     const response = await fetch('/api/auth/register', {
                                         method: 'POST',
@@ -187,6 +194,7 @@ function SignupPageContent() {
                                             email,
                                             password,
                                             invitationCode: invitationCode || undefined,
+                                            turnstileToken
                                         }),
                                     });
 
@@ -360,6 +368,16 @@ function SignupPageContent() {
                                         and consent to the processing of my data.
                                     </label>
                                 </div>
+                            </div>
+
+                            {/* Cloudflare Turnstile */}
+                            <div className="flex justify-center my-4">
+                                <Turnstile 
+                                    siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+                                    onSuccess={(token) => setTurnstileToken(token)}
+                                    onError={() => setError('Security check failed. Please try again.')}
+                                    onExpire={() => setTurnstileToken('')}
+                                />
                             </div>
 
                             {/* Submit */}

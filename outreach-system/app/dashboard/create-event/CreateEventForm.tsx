@@ -12,11 +12,13 @@ import {
 import Link from 'next/link';
 import Image from 'next/image';
 import { SubmitButton } from '@/components/ui/SubmitButton';
+import { Turnstile } from '@marsidev/react-turnstile';
 
 export default function CreateEventForm() {
     const router = useRouter();
     const [error, setError]         = useState('');
     const [success, setSuccess]     = useState('');
+    const [turnstileToken, setTurnstileToken] = useState('');
     const [coverImage, setCoverImage] = useState('');
     const [isUploadingImage, setIsUploadingImage] = useState(false);
     const [trackInventory, setTrackInventory] = useState(false);
@@ -138,6 +140,12 @@ export default function CreateEventForm() {
                         setSuccess('');
 
                         formData.append('coverImage', coverImage);
+                        if (turnstileToken) {
+                            formData.append('turnstileToken', turnstileToken);
+                        } else {
+                            setError('Please complete the security check.');
+                            return;
+                        }
 
                         const validInventory = inventoryItems
                             .filter((i) => i.itemName.trim() !== '')
@@ -375,6 +383,16 @@ export default function CreateEventForm() {
                         />
                     </div>
 
+                    {/* Cloudflare Turnstile */}
+                    <div className="flex justify-center my-4">
+                        <Turnstile 
+                            siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+                            onSuccess={(token) => setTurnstileToken(token)}
+                            onError={() => setError('Security check failed. Please try again.')}
+                            onExpire={() => setTurnstileToken('')}
+                        />
+                    </div>
+
                     {/* Footer actions */}
                     <div className="flex items-center justify-between pt-4 border-t border-slate-100">
                         <Link
@@ -391,10 +409,10 @@ export default function CreateEventForm() {
                 </form>
             </div>
 
-            {/* HIPAA notice */}
+            {/* NDPR notice */}
             <div className="mt-6 flex items-center justify-center gap-2 text-slate-400 text-xs">
                 <Lock size={11} />
-                <span>All data is encrypted and stored under HIPAA compliance standards.</span>
+                <span>All data is encrypted and stored under NDPR compliance standards.</span>
             </div>
         </div>
     );

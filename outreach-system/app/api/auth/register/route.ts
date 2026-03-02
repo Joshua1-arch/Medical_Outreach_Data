@@ -5,6 +5,7 @@ import User from '@/models/User';
 import InvitationCode from '@/models/InvitationCode';
 import { z } from 'zod';
 import { sendWelcomeEmail, sendAdminNewUserAlert } from '@/lib/email';
+import { verifyTurnstileToken } from '@/lib/turnstile';
 
 // Strict Zod Validation (Anti-Injection)
 const registerSchema = z.object({
@@ -13,6 +14,7 @@ const registerSchema = z.object({
     username: z.string().min(3).regex(/^[^<>\{\}'";]+$/, "Invalid format").optional(),
     password: z.string().min(6).regex(/^[^<>\{\}'";]+$/, "Invalid format"),
     invitationCode: z.string().regex(/^[^<>\{\}'";]+$/, "Invalid format").optional(),
+    turnstileToken: z.string().optional(),
 });
 
 export async function POST(req: Request) {
@@ -24,6 +26,17 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'Invalid input format' }, { status: 400 });
         }
 
+        const validatedData = validationResult.data;
+
+        if (validatedData.turnstileToken) {
+            const isValidTurnstile = await verifyTurnstileToken(validatedData.turnstileToken);
+            if (!isValidTurnstile) {
+                return NextResponse.json({ message: 'Security check failed. Please try again.' }, { status: 400 });
+            }
+        } else {
+            return NextResponse.json({ message: 'Missing security token.' }, { status: 400 });
+        }
+
         const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "127.0.0.1";
         const { submissionRateLimit } = require('@/lib/rate-limit');
         if (submissionRateLimit) {
@@ -33,7 +46,6 @@ export async function POST(req: Request) {
             }
         }
 
-        const validatedData = validationResult.data;
 
         await dbConnect();
 
