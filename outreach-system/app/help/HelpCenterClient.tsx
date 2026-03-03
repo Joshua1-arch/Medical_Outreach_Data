@@ -20,11 +20,11 @@ const categories = [
 ];
 
 const guides = [
-    { title: 'Welcome to ReachPoint: Getting Started', tags: ['getting', 'started', 'welcome', 'beginner', 'overview'], href: '/help/guide' },
-    { title: 'Phase 1: Setting Up Basecamp (For Event Admins)', tags: ['event', 'admin', 'setup', 'basecamp', 'create'], href: '/help/guide#phase-1' },
-    { title: 'Phase 2: Equipping Your Team', tags: ['equip', 'team', 'form', 'builder', 'custom', 'questions'], href: '/help/guide#phase-2' },
-    { title: 'Phase 3: Boots on the Ground (For Volunteers)', tags: ['volunteers', 'link', 'data', 'entry', 'chat', 'mobile', 'sync'], href: '/help/guide#phase-3' },
-    { title: 'Phase 4: Making Sense of the Data', tags: ['data', 'analytics', 'charts', 'export', 'csv', 'ai', 'report'], href: '/help/guide#phase-4' },
+    { title: 'Welcome to ReachPoint: Getting Started', tags: ['getting', 'started', 'welcome', 'beginner', 'overview'], href: '/guide' },
+    { title: 'Phase 1: Setting Up Basecamp (For Event Admins)', tags: ['event', 'admin', 'setup', 'basecamp', 'create'], href: '/guide#phase-1' },
+    { title: 'Phase 2: Equipping Your Team', tags: ['equip', 'team', 'form', 'builder', 'custom', 'questions'], href: '/guide#phase-2' },
+    { title: 'Phase 3: Boots on the Ground (For Volunteers)', tags: ['volunteers', 'link', 'data', 'entry', 'chat', 'mobile', 'sync'], href: '/guide#phase-3' },
+    { title: 'Phase 4: Making Sense of the Data', tags: ['data', 'analytics', 'charts', 'export', 'csv', 'ai', 'report'], href: '/guide#phase-4' },
 ];
 
 const containerVariants: Variants = {
@@ -67,7 +67,7 @@ export default function HelpCenterClient({ user }: { user?: any }) {
 
                 {/* Desktop Nav */}
                 <nav className="hidden md:flex items-center gap-8">
-                    <Link href="/help/guide" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+                    <Link href="/guide" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
                         Guides
                     </Link>
                     <span className="text-sm font-medium text-slate-400 cursor-not-allowed">Forms</span>
@@ -104,7 +104,7 @@ export default function HelpCenterClient({ user }: { user?: any }) {
             {/* ── Mobile Menu Dropdown ── */}
             {mobileMenuOpen && (
                 <div className="md:hidden fixed top-16 left-0 w-full bg-white border-b border-slate-100 shadow-xl z-30 p-6 flex flex-col gap-6 font-medium">
-                    <Link href="/help/guide" className="text-lg text-slate-700 hover:text-slate-900" onClick={() => setMobileMenuOpen(false)}>
+                    <Link href="/guide" className="text-lg text-slate-700 hover:text-slate-900" onClick={() => setMobileMenuOpen(false)}>
                         Guides
                     </Link>
                     <span className="text-lg text-slate-400 cursor-not-allowed">Forms</span>

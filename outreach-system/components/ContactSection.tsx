@@ -20,7 +20,7 @@ export default function ContactSection() {
                 </p>
 
                 <div className="flex flex-col md:flex-row items-center justify-center gap-6">
-                    <a href="mailto:contact@reachpoint.com" className="flex items-center gap-3 px-6 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/10 rounded-xl transition-all group">
+                    <a href="mailto:contact@reachpoint.online" className="flex items-center gap-3 px-6 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/10 rounded-xl transition-all group">
                         <div className="p-2 bg-brand-gold text-brand-dark rounded-lg group-hover:scale-110 transition-transform">
                             <Mail size={20} />
                         </div>

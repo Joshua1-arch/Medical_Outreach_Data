@@ -6,7 +6,8 @@ export const publicRoutes = [
     '/auth-error',
     '/api/auth/register',
     '/api/auth/error',
-    '/maintenance' // New maintenance page
+    '/maintenance', // New maintenance page
+    '/guide'
 ];
 
 export const adminRoutes = [

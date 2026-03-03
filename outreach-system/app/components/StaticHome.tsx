@@ -370,7 +370,7 @@ export default function Home() {
                 <ul className="space-y-4">
                   {[
                     { label: "Documentation", href: "/documentation" },
-                    { label: "Guides", href: "/help" },
+                    { label: "Guides", href: "/guide" },
                     { label: "API Status", href: "/api-status" },
                     { label: "Case Studies", href: "/case-studies" }
                   ].map((item) => (
