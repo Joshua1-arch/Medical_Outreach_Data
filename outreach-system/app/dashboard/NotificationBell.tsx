@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Pusher from 'pusher-js';
-import { Bell, CheckCheck, X, Calendar, TrendingUp, AlertCircle } from 'lucide-react';
+import { Bell, CheckCheck, X, Calendar, TrendingUp, AlertCircle, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 
 interface Notification {
     _id: string;
-    type: 'event_approved' | 'event_rejected' | 'milestone';
+    type: 'event_approved' | 'event_rejected' | 'milestone' | 'message';
     title: string;
     message: string;
     eventId?: string;
@@ -27,6 +27,7 @@ function timeAgo(dateStr: string): string {
 }
 
 function NotifIcon({ type }: { type: Notification['type'] }) {
+    if (type === 'message') return <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0"><MessageCircle size={14} className="text-blue-600" /></div>;
     if (type === 'event_approved') return <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0"><Calendar size={14} className="text-emerald-600" /></div>;
     if (type === 'event_rejected') return <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0"><AlertCircle size={14} className="text-red-600" /></div>;
     return <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center shrink-0"><TrendingUp size={14} className="text-amber-600" /></div>;

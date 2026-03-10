@@ -27,10 +27,11 @@ export async function POST(req: NextRequest) {
         const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
         // Find user with valid hashed token and not expired
+        // Must select hidden fields explicitly since they are `select: false` on the schema
         const user = await User.findOne({
             resetPasswordToken: hashedToken,
             resetPasswordExpires: { $gt: Date.now() }
-        });
+        }).select('+resetPasswordToken +resetPasswordExpires +password');
 
         if (!user) {
             return NextResponse.json({ success: false, message: "Invalid or expired password reset token" }, { status: 400 });

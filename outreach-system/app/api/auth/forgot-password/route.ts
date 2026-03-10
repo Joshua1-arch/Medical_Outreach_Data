@@ -8,7 +8,7 @@ import { sendEmail } from '@/lib/email';
 export async function POST(req: NextRequest) {
     try {
         const { email } = await req.json();
-        
+
         if (!email || typeof email !== 'string') {
             return NextResponse.json({ success: false, message: "Invalid email format" }, { status: 400 });
         }
@@ -24,7 +24,8 @@ export async function POST(req: NextRequest) {
 
         await dbConnect();
 
-        const user = await User.findOne({ email });
+        // Select hidden fields so they can be written to
+        const user = await User.findOne({ email }).select('+resetPasswordToken +resetPasswordExpires');
 
         if (!user) {
             // For security, don't reveal if user exists (generic success message)
@@ -39,7 +40,7 @@ export async function POST(req: NextRequest) {
 
         // Generate plain text token to send to email
         const resetToken = crypto.randomBytes(32).toString('hex');
-        
+
         // Hash it before storing in DB
         const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
         const tokenExpiry = Date.now() + 3600000; // 1 hour

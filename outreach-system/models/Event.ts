@@ -2,8 +2,8 @@ import { Schema, model, models } from 'mongoose';
 
 const FormFieldSchema = new Schema({
     label: { type: String, required: true },
-    type: { type: String, required: true }, 
-    options: [String], 
+    type: { type: String, required: true },
+    options: [String],
     required: { type: Boolean, default: false },
     width: { type: String, enum: ['full', 'half'], default: 'full' }
 }, { _id: false });
@@ -16,8 +16,8 @@ const InventoryItemSchema = new Schema({
 const EventSchema = new Schema({
     title: { type: String, required: true },
     description: { type: String },
-    reason: { type: String }, 
-    purpose: { type: String }, 
+    reason: { type: String },
+    purpose: { type: String },
     date: { type: Date, required: true },
     location: { type: String, required: true },
     coverImage: { type: String },
@@ -27,7 +27,7 @@ const EventSchema = new Schema({
         enum: ['pending', 'approved', 'rejected'],
         default: 'pending'
     },
-    
+
     formFields: {
         type: [FormFieldSchema],
         default: []
@@ -38,8 +38,11 @@ const EventSchema = new Schema({
     },
     isPublic: { type: Boolean, default: false },
     accessCode: { type: String },
-    code: { type: String, unique: true, index: true }, 
-}, { timestamps: true });
+    code: { type: String, unique: true, index: true },
+}, {
+    timestamps: true,
+    strict: true, // OWASP: reject any fields not defined in this schema
+});
 
 const Event = models.Event || model('Event', EventSchema);
 

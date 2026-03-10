@@ -16,7 +16,10 @@ const MessageSchema = new Schema<IMessage>(
     text: { type: String, required: true },
     timestamp: { type: Date, default: Date.now },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    strict: true, // OWASP: reject any fields not defined in this schema
+  }
 );
 
 const Message: Model<IMessage> =

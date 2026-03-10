@@ -12,7 +12,7 @@ import { verifyTurnstileToken } from "@/lib/turnstile"
 async function getUser(email: string) {
     try {
         await dbConnect();
-        const user = await User.findOne({ email }).lean();
+        const user = await User.findOne({ email }).select('+password').lean();
         if (user) {
             // Ensure all MongoDB specific objects are converted to plain objects
             const serializedUser = JSON.parse(JSON.stringify({ ...user, id: user._id.toString() }));

@@ -11,12 +11,11 @@ import nodeCrypto from "crypto";
 import { sendEventCreationConfirmationEmail, sendAdminNewEventAlert } from "@/lib/email";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 
+import { requireServerActionAuth } from "@/lib/withAuth";
+
 export async function createEvent(formData: FormData) {
     try {
-        const session = await auth();
-        if (!session?.user?.id) {
-            return { success: false, message: 'Unauthorized' };
-        }
+        const { session, user: sessionUser } = await requireServerActionAuth();
 
         const { submissionRateLimit, getIP } = require('@/lib/rate-limit');
         const ip = await getIP();
@@ -27,8 +26,7 @@ export async function createEvent(formData: FormData) {
 
         await dbConnect();
 
-
-        const user = await User.findById(session.user.id);
+        const user = await User.findById(sessionUser.id);
         if (!user) {
             return { success: false, message: 'User not found' };
         }

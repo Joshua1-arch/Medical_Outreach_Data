@@ -157,3 +157,27 @@ export const sanitizeBasic = (input: string | null | undefined): string =>
 /** Full rich-text — headings, lists, tables, images. */
 export const sanitizeRich = (input: string | null | undefined): string =>
   sanitize(input, { preset: 'rich' });
+
+// ---------------------------------------------------------------------------
+// Chat-specific sanitizer (Pusher real-time messages)
+// ---------------------------------------------------------------------------
+
+/**
+ * Sanitize a chat message for the Pusher real-time chat system.
+ *
+ * - Strips ALL HTML tags (XSS prevention)
+ * - Trims whitespace
+ * - Enforces a maximum length to prevent message flooding
+ *
+ * @example
+ * // In the chat API route:
+ * import { sanitizeChatMessage } from '@/lib/sanitize';
+ * text = sanitizeChatMessage(text);
+ */
+export const sanitizeChatMessage = (
+  input: string | null | undefined,
+  maxLength: number = 2000
+): string => {
+  const cleaned = sanitize(input, { preset: 'text-only' }).trim();
+  return cleaned.length > maxLength ? cleaned.slice(0, maxLength) : cleaned;
+};

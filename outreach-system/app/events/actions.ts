@@ -58,6 +58,8 @@ function extractPatientPhone(data: Record<string, unknown>): string | undefined 
     return undefined;
 }
 
+import { requireServerActionAuth } from "@/lib/withAuth";
+
 export async function submitRecord(eventId: string, data: Record<string, unknown>) {
     try {
         if (typeof eventId !== 'string') return { success: false, message: 'Invalid format' };
@@ -69,7 +71,6 @@ export async function submitRecord(eventId: string, data: Record<string, unknown
             return { success: false, message: 'Too many submissions. Please wait a minute.' };
         }
 
-        const session = await auth();
         await dbConnect();
 
         const event = await Event.findById(eventId);
@@ -78,12 +79,17 @@ export async function submitRecord(eventId: string, data: Record<string, unknown
         let recordedBy = undefined;
 
         if (event.isPublic) {
+            // Unauthenticated allowed for public events, just optionally track if session exists via NextAuth directly
+            const session = await auth();
             recordedBy = session?.user?.id;
         } else {
-            if (!session?.user?.id) {
-                return { success: false, message: 'Unauthorized' };
+            // Private event: fully enforce the auth gate (must be active user)
+            try {
+                const { user: sessionUser } = await requireServerActionAuth();
+                recordedBy = sessionUser.id;
+            } catch (err: any) {
+                return { success: false, message: err.message || 'Unauthorized' };
             }
-            recordedBy = session.user.id;
         }
 
         const retrievalCode = generateRetrievalCode();
