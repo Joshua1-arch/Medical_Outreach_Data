@@ -4,11 +4,21 @@ import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import Event from "@/models/Event";
 import AuditLog from "@/models/AuditLog";
+import Notification from "@/models/Notification";
 import InvitationCode from "@/models/InvitationCode";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import crypto from "crypto";
+import Pusher from "pusher";
 import { sendUserApprovalEmail, sendEventApprovalEmail, sendUserRejectionEmail, sendEventRejectionEmail } from "@/lib/email";
+
+const pusher = new Pusher({
+    appId: process.env.PUSHER_APP_ID!,
+    key: process.env.NEXT_PUBLIC_PUSHER_KEY!,
+    secret: process.env.PUSHER_SECRET!,
+    cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+    useTLS: true,
+});
 
 // Helper for audit logging
 async function logAudit(action: string, targetResource: string, details: any) {
@@ -158,6 +168,27 @@ export async function approveEvent(eventId: string) {
         revalidatePath('/admin/events');
         await logAudit('EVENT_APPROVED', `Event:${eventId}`, { title: event.title });
 
+        // Create in-app notification for event owner
+        const ownerId = typeof event.createdBy === 'object' && '_id' in event.createdBy
+            ? event.createdBy._id.toString()
+            : event.createdBy?.toString();
+
+        if (ownerId) {
+            await Notification.create({
+                userId: ownerId,
+                type: 'event_approved',
+                title: '🎉 Event Approved!',
+                message: `Your outreach event "${event.title}" has been approved and is now live.`,
+                eventId: eventId,
+            });
+
+            // Push real-time update to owner's private channel
+            pusher.trigger(`private-user-${ownerId}`, 'new-notification', {
+                title: '🎉 Event Approved!',
+                message: `Your outreach event "${event.title}" has been approved and is now live.`,
+            }).catch(() => { }); // non-blocking, fire-and-forget
+        }
+
         // Send approval email to event creator (non-blocking)
         if (event.createdBy && typeof event.createdBy === 'object' && 'email' in event.createdBy) {
             sendEventApprovalEmail(
@@ -190,6 +221,26 @@ export async function rejectEvent(eventId: string) {
         await Event.findByIdAndUpdate(eventId, { status: 'rejected' });
         revalidatePath('/admin/events');
         await logAudit('EVENT_REJECTED', `Event:${eventId}`, { title: event.title });
+
+        // Create in-app notification for event owner
+        const ownerId = typeof event.createdBy === 'object' && '_id' in event.createdBy
+            ? event.createdBy._id.toString()
+            : event.createdBy?.toString();
+
+        if (ownerId) {
+            await Notification.create({
+                userId: ownerId,
+                type: 'event_rejected',
+                title: '❌ Event Not Approved',
+                message: `Your outreach event "${event.title}" was not approved. Please contact the admin for more details.`,
+                eventId: eventId,
+            });
+
+            pusher.trigger(`private-user-${ownerId}`, 'new-notification', {
+                title: '❌ Event Not Approved',
+                message: `Your outreach event "${event.title}" was not approved.`,
+            }).catch(() => { });
+        }
 
         // Send rejection email to event creator (non-blocking)
         if (event.createdBy && typeof event.createdBy === 'object' && 'email' in event.createdBy) {

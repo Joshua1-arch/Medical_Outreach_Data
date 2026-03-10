@@ -31,6 +31,9 @@ export default async function EventHubPage({ params }: { params: Promise<{ id: s
         <ResponsesClient
             event={JSON.parse(JSON.stringify(event))}
             records={JSON.parse(JSON.stringify(records))}
+            isPremium={session.user.isPremium ?? false}
+            userEmail={session.user.email ?? ''}
+            userId={session.user.id}
         />
     );
 }

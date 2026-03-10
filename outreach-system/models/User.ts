@@ -27,6 +27,7 @@ const UserSchema = new Schema({
     exportFormat: { type: String, enum: ['csv', 'word'], default: 'csv' },
     deletionRequested: { type: Boolean, default: false },
     deletionRequestedAt: { type: Date },
+    isPremium: { type: Boolean, default: false },
 
     resetPasswordToken: { type: String, sparse: true },
     resetPasswordExpires: { type: Date, sparse: true },

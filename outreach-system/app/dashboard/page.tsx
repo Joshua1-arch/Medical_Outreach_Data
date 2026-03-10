@@ -140,7 +140,7 @@ export default async function DashboardPage() {
                             )}
                             {stats.isTrusted && !stats.isAdmin && (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold border border-amber-200">
-                                    <Zap size={11} /> Trusted Creator
+                                    Trusted Creator
                                 </span>
                             )}
                         </div>
@@ -159,7 +159,6 @@ export default async function DashboardPage() {
                 {/* Trusted notice */}
                 {stats.isTrusted && !stats.isAdmin && (
                     <div className="flex items-center gap-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
-                        <Sparkles size={16} className="text-amber-500 shrink-0" />
                         <span><strong>Auto-Approval Active</strong> — Your projects are published instantly without waiting for admin review.</span>
                     </div>
                 )}

@@ -13,7 +13,13 @@ import Image from "next/image";
 
 export const dynamic = 'force-dynamic';
 
-export default async function MyEventsPage() {
+export default async function MyEventsPage({
+    searchParams,
+}: {
+    searchParams: Promise<{ q?: string }>;
+}) {
+    const { q } = await searchParams;
+    const searchQuery = q?.trim() || '';
     try {
         const session = await auth();
         await dbConnect();
@@ -21,12 +27,22 @@ export default async function MyEventsPage() {
         const userId = session?.user?.id;
         const isValidId = userId && /^[0-9a-fA-F]{24}$/.test(userId);
 
-        const events = isValidId 
-            ? await Event.find({ createdBy: userId }).sort({ createdAt: -1 }).lean() as any[]
+        const events = isValidId
+            ? await Event.find({
+                createdBy: userId,
+                ...(searchQuery && {
+                    $or: [
+                        { title: { $regex: searchQuery, $options: 'i' } },
+                        { description: { $regex: searchQuery, $options: 'i' } },
+                        { location: { $regex: searchQuery, $options: 'i' } },
+                    ],
+                }),
+            }).sort({ createdAt: -1 }).lean() as any[]
             : [];
 
-        const featuredEvent = events.length > 0 ? events[0] : null;
-        const regularEvents = events.length > 0 ? events.slice(1) : [];
+        // For the featured/regular split we only split when NOT searching
+        const featuredEvent = !searchQuery && events.length > 0 ? events[0] : null;
+        const regularEvents = !searchQuery ? events.slice(1) : events;
 
         return (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 font-sans max-w-7xl mx-auto pb-10">
@@ -50,23 +66,47 @@ export default async function MyEventsPage() {
                     </div>
                 </div>
 
+                {/* Search results banner */}
+                {searchQuery && (
+                    <div className="flex items-center justify-between px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-xl text-sm">
+                        <span className="text-amber-800">
+                            <span className="font-bold">{events.length}</span> result{events.length !== 1 ? 's' : ''} for{' '}
+                            <span className="font-bold">&ldquo;{searchQuery}&rdquo;</span>
+                        </span>
+                        <a href="/dashboard/my-events" className="text-amber-600 hover:text-amber-800 font-semibold text-xs transition-colors">
+                            Clear search ×
+                        </a>
+                    </div>
+                )}
+
                 {events.length === 0 ? (
-                    /* Initial Empty State */
+                    /* Empty State */
                     <div className="bg-white rounded-2xl border-2 border-dashed border-slate-200 py-24 text-center">
                         <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-5 shadow-sm">
                             <FolderOpen size={28} className="text-[#fbc037]" />
                         </div>
-                        <h3 className="text-xl font-black text-slate-900 mb-2">No campaigns yet</h3>
-                        <p className="text-slate-500 mb-8 max-w-sm mx-auto text-sm">
-                            Create your first medical outreach campaign to start collecting vital health data from participants.
-                        </p>
-                        <Link
-                            href="/dashboard/create-event"
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-[#111] text-white rounded-xl font-bold hover:bg-black transition-colors shadow-md group"
-                        >
-                            <Plus size={18} />
-                            Start a new campaign
-                        </Link>
+                        {searchQuery ? (
+                            <>
+                                <h3 className="text-xl font-black text-slate-900 mb-2">No results found</h3>
+                                <p className="text-slate-500 mb-6 max-w-sm mx-auto text-sm">
+                                    No campaigns matched &ldquo;{searchQuery}&rdquo;. Try a different search term.
+                                </p>
+                                <a href="/dashboard/my-events" className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#111] text-white rounded-xl font-bold hover:bg-black transition-colors text-sm">
+                                    Clear search
+                                </a>
+                            </>
+                        ) : (
+                            <>
+                                <h3 className="text-xl font-black text-slate-900 mb-2">No campaigns yet</h3>
+                                <p className="text-slate-500 mb-8 max-w-sm mx-auto text-sm">
+                                    Create your first medical outreach campaign to start collecting vital health data from participants.
+                                </p>
+                                <Link href="/dashboard/create-event" className="inline-flex items-center gap-2 px-6 py-3 bg-[#111] text-white rounded-xl font-bold hover:bg-black transition-colors shadow-md group">
+                                    <Plus size={18} />
+                                    Start a new campaign
+                                </Link>
+                            </>
+                        )}
                     </div>
                 ) : (
                     <>
@@ -89,14 +129,14 @@ export default async function MyEventsPage() {
                                         </span>
                                     </div>
                                 </div>
-                                
+
                                 {/* right content */}
                                 <div className="p-6 sm:p-8 md:p-10 flex flex-col justify-center flex-1">
                                     <div className="flex items-center gap-3 mb-2">
                                         <h2 className="text-2xl sm:text-3xl font-black text-slate-900">{featuredEvent.title}</h2>
                                     </div>
                                     <p className="text-sm text-slate-500 mb-6">{featuredEvent.description || 'Medical Outreach Initiative'}</p>
-                                    
+
                                     <div className="space-y-3 mb-8">
                                         <div className="flex items-center gap-3 text-sm text-slate-600 font-medium tracking-tight">
                                             <Calendar size={18} className="text-[#fbc037]" />

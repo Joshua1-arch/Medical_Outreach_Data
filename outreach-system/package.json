@@ -26,6 +26,8 @@
     "bcryptjs": "^3.0.3",
     "framer-motion": "^12.29.0",
     "isomorphic-dompurify": "^2.36.0",
+    "jspdf": "^4.2.0",
+    "jspdf-autotable": "^5.0.7",
     "lucide-react": "^0.563.0",
     "mongo-sanitize": "^1.1.0",
     "mongoose": "^9.1.5",
@@ -39,6 +41,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-markdown": "^10.1.0",
+    "react-paystack": "^6.0.0",
     "recharts": "^3.7.0"
   },
   "devDependencies": {

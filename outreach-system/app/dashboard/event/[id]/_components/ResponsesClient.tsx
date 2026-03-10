@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { Spinner } from '@/components/ui/Spinner';
+import UpgradeToProButton from '@/components/UpgradeToProButton';
 
 type FormField = {
     label: string;
@@ -19,7 +20,19 @@ type FormField = {
     width?: 'full' | 'half';
 };
 
-export default function ResponsesClient({ event, records }: { event: any; records: any[] }) {
+export default function ResponsesClient({
+    event,
+    records,
+    isPremium,
+    userEmail,
+    userId,
+}: {
+    event: any;
+    records: any[];
+    isPremium: boolean;
+    userEmail: string;
+    userId: string;
+}) {
     const router = useRouter();
     const formFields: FormField[] = event.formFields || [];
 
@@ -29,6 +42,9 @@ export default function ResponsesClient({ event, records }: { event: any; record
     const [sendingIds, setSendingIds] = useState<Set<string>>(new Set());
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [copied, setCopied] = useState(false);
+    // Premium logo modal
+    const [showLogoModal, setShowLogoModal] = useState(false);
+    const [pendingPrintAction, setPendingPrintAction] = useState<((logo?: string) => void) | null>(null);
 
     const publicUrl =
         typeof window !== 'undefined' ? `${window.location.origin}/e/${event._id}` : `/e/${event._id}`;
@@ -75,14 +91,45 @@ export default function ResponsesClient({ event, records }: { event: any; record
         }
     };
 
+    // ── Premium logo gate: opens the choice modal for premium users,
+    //    or fires the action immediately with the system logo for free users.
+    const triggerPdf = (action: (logo?: string) => void) => {
+        if (!isPremium) {
+            // Free users: export straight away with the default logo
+            action(undefined);
+            return;
+        }
+        // Premium users: let them choose
+        setPendingPrintAction(() => action);
+        setShowLogoModal(true);
+    };
+
+    // Called when user picks a file inside the logo modal
+    const handleModalLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !pendingPrintAction) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+            const base64 = reader.result as string;
+            setShowLogoModal(false);
+            setPendingPrintAction(null);
+            pendingPrintAction(base64);
+        };
+        reader.readAsDataURL(file);
+    };
+
     // ── Download: single record PDF ────────────────────────────────────
-    const handleDownloadSingleRecord = (rec: any) => {
+    const handleDownloadSingleRecord = (rec: any, customLogo?: string) => {
         const printWindow = window.open('', '_blank');
         if (!printWindow) { alert('Please allow popups to download'); return; }
 
         const patientName = rec.data?.['Full Name'] || rec.data?.['Name'] || `Record ${rec.retrievalCode || ''}`.trim();
         const dateStr = new Date(rec.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-        const baseUrl = window.location.origin;
+
+        const logoSrc = customLogo || `${window.location.origin}/Reach.png`;
+        const logoStyle = customLogo
+            ? 'max-height:48px; max-width:160px; object-fit:contain;'
+            : 'height:40px;';
 
         const fieldRows = formFields.map(f => {
             const val = (rec.data?.[f.label] || '—').toString().replace(/\n/g, '<br />');
@@ -100,7 +147,7 @@ export default function ResponsesClient({ event, records }: { event: any; record
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', Arial, sans-serif; background: #fff; color: #1a1a1a; }
     .header { background: #000; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; }
-    .header img { height: 40px; }
+    .header img { ${logoStyle} }
     .accent { height: 4px; background: #fbbf38; }
     .patient-bar { background: #000; color: #fff; padding: 14px 32px; display: flex; justify-content: space-between; align-items: center; margin: 24px 0 0; }
     .patient-bar .lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #fbbf38; margin-bottom: 3px; }
@@ -120,7 +167,7 @@ export default function ResponsesClient({ event, records }: { event: any; record
 </head>
 <body>
     <div class="header">
-        <img src="${baseUrl}/Reach.png" alt="ReachPoint" />
+        <img src="${logoSrc}" alt="Logo" />
         <div style="text-align:right; color:#fff;">
             <div style="font-size:10px; color:#fbbf38; font-weight:700; text-transform:uppercase; letter-spacing:1px;">Date</div>
             <div style="font-size:13px; font-weight:600;">${dateStr}</div>
@@ -183,7 +230,7 @@ export default function ResponsesClient({ event, records }: { event: any; record
     };
 
     // ── Download: Print PDF (all records) ──────────────────────────────
-    const handlePrint = () => {
+    const handlePrint = (customLogo?: string) => {
         if (!records.length) return alert('No records to print');
         const printWindow = window.open('', '_blank');
         if (!printWindow) { alert('Please allow popups for printing'); return; }
@@ -232,7 +279,7 @@ export default function ResponsesClient({ event, records }: { event: any; record
                 ${records.map((rec, i) => `
                     <div class="record-card">
                         <div class="watermark-container">
-                            <img src="/Reach.png" class="watermark" />
+                            <img src="${customLogo || '/Reach.png'}" class="watermark" />
                         </div>
                         <div class="content">
                             <div class="header">
@@ -393,11 +440,10 @@ export default function ResponsesClient({ event, records }: { event: any; record
                             </div>
                             <button
                                 onClick={handleCopy}
-                                className={`h-10 px-4 rounded-lg font-bold text-sm flex items-center gap-2 transition-all ${
-                                    copied
-                                        ? 'bg-emerald-500 text-white'
-                                        : 'bg-[#fbc037] hover:bg-yellow-400 text-slate-900'
-                                }`}
+                                className={`h-10 px-4 rounded-lg font-bold text-sm flex items-center gap-2 transition-all ${copied
+                                    ? 'bg-emerald-500 text-white'
+                                    : 'bg-[#fbc037] hover:bg-yellow-400 text-slate-900'
+                                    }`}
                             >
                                 <Copy size={15} />
                                 {copied ? 'Copied!' : 'Copy'}
@@ -476,7 +522,10 @@ export default function ResponsesClient({ event, records }: { event: any; record
                         <button onClick={handleDownloadDoc} className="h-9 flex items-center gap-2 px-3 rounded-lg bg-white border border-slate-200 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors">
                             <FileText size={16} /> Word
                         </button>
-                        <button onClick={handlePrint} className="h-9 flex items-center gap-2 px-3 rounded-lg bg-white border border-slate-200 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors">
+                        <button
+                            onClick={() => triggerPdf((logo) => handlePrint(logo))}
+                            className="h-9 flex items-center gap-2 px-3 rounded-lg bg-white border border-slate-200 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+                        >
                             <Printer size={16} /> Print PDF
                         </button>
                     </div>
@@ -529,11 +578,10 @@ export default function ResponsesClient({ event, records }: { event: any; record
                                                     </td>
                                                 ))}
                                                 <td className="px-6 py-5">
-                                                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold border ${
-                                                        rec.recordedBy
-                                                            ? 'bg-purple-50 text-purple-700 border-purple-100'
-                                                            : 'bg-blue-50 text-blue-700 border-blue-100'
-                                                    }`}>
+                                                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold border ${rec.recordedBy
+                                                        ? 'bg-purple-50 text-purple-700 border-purple-100'
+                                                        : 'bg-blue-50 text-blue-700 border-blue-100'
+                                                        }`}>
                                                         {rec.recordedBy ? 'Staff' : 'Public'}
                                                     </span>
                                                 </td>
@@ -542,11 +590,10 @@ export default function ResponsesClient({ event, records }: { event: any; record
                                                         <button
                                                             onClick={() => handleSendResult(rec._id)}
                                                             disabled={sendingIds.has(rec._id)}
-                                                            className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-bold transition-colors border ${
-                                                                rec.resultEmailSent
-                                                                    ? 'bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100'
-                                                                    : 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100'
-                                                            }`}
+                                                            className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-bold transition-colors border ${rec.resultEmailSent
+                                                                ? 'bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100'
+                                                                : 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100'
+                                                                }`}
                                                             title={rec.resultEmailSent ? 'Re-send result' : 'Send result email'}
                                                         >
                                                             {sendingIds.has(rec._id)
@@ -556,7 +603,7 @@ export default function ResponsesClient({ event, records }: { event: any; record
                                                             {rec.resultEmailSent ? 'Re-send' : 'Send'}
                                                         </button>
                                                         <button
-                                                            onClick={() => handleDownloadSingleRecord(rec)}
+                                                            onClick={() => triggerPdf((logo) => handleDownloadSingleRecord(rec, logo))}
                                                             className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors"
                                                             title="Download as PDF"
                                                         >
@@ -665,6 +712,84 @@ export default function ResponsesClient({ event, records }: { event: any; record
                                 Save Changes
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── Premium Logo Choice Modal ───────────────────────── */}
+            {showLogoModal && (
+                <div
+                    className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+                    onClick={() => { setShowLogoModal(false); setPendingPrintAction(null); }}
+                >
+                    <div
+                        className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-7 flex flex-col gap-5"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Header */}
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900">Choose Watermark / Logo</h3>
+                                <p className="mt-1 text-sm text-slate-500">
+                                    Which logo should appear on this PDF? 
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => { setShowLogoModal(false); setPendingPrintAction(null); }}
+                                className="text-slate-400 hover:text-slate-600 transition-colors p-1"
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        {/* Option A — Keep default */}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setShowLogoModal(false);
+                                const action = pendingPrintAction;
+                                setPendingPrintAction(null);
+                                action?.(undefined); // pass no logo → system logo used
+                            }}
+                            className="
+                                w-full flex items-center gap-4 p-4 rounded-xl border-2 border-slate-200
+                                hover:border-slate-400 hover:bg-slate-50 transition-all text-left
+                            "
+                        >
+                            <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-slate-500">
+                                    <path fillRule="evenodd" d="M1.5 6a2.25 2.25 0 012.25-2.25h16.5A2.25 2.25 0 0122.5 6v12a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18V6zM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0021 18v-1.94l-2.69-2.689a1.5 1.5 0 00-2.12 0l-.88.879.97.97a.75.75 0 11-1.06 1.06l-5.16-5.159a1.5 1.5 0 00-2.12 0L3 16.061zm10.125-7.81a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0z" clipRule="evenodd" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p className="font-semibold text-slate-800 text-sm">Keep Default (ReachPoint)</p>
+                                <p className="text-xs text-slate-500 mt-0.5">Use the ReachPoint logo as the watermark</p>
+                            </div>
+                        </button>
+
+                        {/* Option B — Upload custom */}
+                        <label
+                            className="
+                                w-full flex items-center gap-4 p-4 rounded-xl border-2 border-dashed border-amber-300
+                                hover:border-amber-500 hover:bg-amber-50 transition-all text-left cursor-pointer
+                            "
+                        >
+                            <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-amber-600">
+                                    <path fillRule="evenodd" d="M11.47 2.47a.75.75 0 011.06 0l4.5 4.5a.75.75 0 01-1.06 1.06l-3.22-3.22V16.5a.75.75 0 01-1.5 0V4.81L8.03 8.03a.75.75 0 01-1.06-1.06l4.5-4.5zM3 15.75a.75.75 0 01.75.75v2.25a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5V16.5a.75.75 0 011.5 0v2.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V16.5a.75.75 0 01.75-.75z" clipRule="evenodd" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p className="font-semibold text-amber-700 text-sm">Upload My Logo</p>
+                                <p className="text-xs text-slate-500 mt-0.5">PNG, JPG or SVG — replaces the watermark</p>
+                            </div>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="sr-only"
+                                onChange={handleModalLogoUpload}
+                            />
+                        </label>
                     </div>
                 </div>
             )}

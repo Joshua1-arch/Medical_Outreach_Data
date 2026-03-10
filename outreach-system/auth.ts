@@ -74,6 +74,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 if (account.provider === 'credentials') {
                     token.role = (user as any).role || 'member';
                     token.accountStatus = (user as any).accountStatus || 'active';
+                    token.isPremium = (user as any).isPremium ?? false;
                     token.id = user.id;
                     token.provider = 'credentials';
                 } else {
@@ -85,13 +86,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                             token.id = dbUser._id.toString();
                             token.role = dbUser.role;
                             token.accountStatus = dbUser.accountStatus;
+                            token.isPremium = dbUser.isPremium ?? false;
                         } else {
                             // Should theoretically not happen if signIn callback handles creation
-                            token.id = user.id; 
+                            token.id = user.id;
+                            token.isPremium = false;
                         }
                     } catch (error) {
                         console.error("Error fetching user in social jwt callback:", error);
                         token.id = user.id;
+                        token.isPremium = false;
                     }
                     token.provider = account.provider;
                 }
@@ -103,7 +107,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     // Basic check to ensure the ID is a valid ObjectId before querying
                     // This prevents the common "Cast to ObjectId failed" error
                     const isValidId = /^[0-9a-fA-F]{24}$/.test(token.id as string);
-                    
+
                     if (!isValidId) {
                         // If it's not a valid ObjectId (e.g. Google UUID), try linking it via email
                         const dbUser = await User.findOne({ email: token.email }).lean() as any;
@@ -114,10 +118,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                         }
                     }
 
-                    const dbUser = await User.findById(token.id).select('accountStatus role').lean() as any;
+                    const dbUser = await User.findById(token.id).select('accountStatus role isPremium').lean() as any;
                     if (dbUser && dbUser.accountStatus === 'active') {
                         token.accountStatus = dbUser.accountStatus;
                         token.role = dbUser.role;
+                        token.isPremium = dbUser.isPremium ?? false;
                     } else {
                         return null;
                     }
@@ -132,6 +137,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 session.user.role = token.role as string;
                 session.user.accountStatus = token.accountStatus as string;
                 session.user.id = token.id as string;
+                session.user.isPremium = token.isPremium as boolean ?? false;
             }
             return session;
         },
@@ -158,7 +164,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                         .safeParse(credentials);
 
                     if (!parsedCredentials.success) {
-                        return null; 
+                        return null;
                     }
 
                     const { email, password, turnstileToken } = parsedCredentials.data;
@@ -174,18 +180,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
                     const user = await getUser(email);
 
-                    if (!user) return null; 
+                    if (!user) return null;
 
                     const passwordsMatch = await bcrypt.compare(password, user.password);
-                    if (!passwordsMatch) return null; 
+                    if (!passwordsMatch) return null;
 
                     if (user.accountStatus !== 'active') {
-                        return null; 
+                        return null;
                     }
 
                     return user;
                 } catch {
-                    return null; 
+                    return null;
                 }
             },
         }),

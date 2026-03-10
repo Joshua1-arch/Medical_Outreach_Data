@@ -3,12 +3,21 @@
 import dbConnect from "@/lib/db";
 import { sendMedicalResultEmail } from "@/lib/medical-email";
 import Record from "@/models/Record";
+import Notification from "@/models/Notification";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import crypto from "crypto";
-
+import Pusher from "pusher";
 import Event from "@/models/Event";
 import { submissionRateLimit, getIP } from "@/lib/rate-limit";
+
+const pusher = new Pusher({
+    appId: process.env.PUSHER_APP_ID!,
+    key: process.env.NEXT_PUBLIC_PUSHER_KEY!,
+    secret: process.env.PUSHER_SECRET!,
+    cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+    useTLS: true,
+});
 
 function generateRetrievalCode() {
     return crypto.randomBytes(3).toString('hex').toUpperCase();
@@ -85,16 +94,16 @@ export async function submitRecord(eventId: string, data: Record<string, unknown
         };
 
         const sanitizeData = (obj: any): any => {
-           if (typeof obj === 'string') return sanitizeHtml(obj);
-           if (Array.isArray(obj)) return obj.map(sanitizeData);
-           if (typeof obj === 'object' && obj !== null) {
-               const cleaned: any = {};
-               for (const key of Object.keys(obj)) {
-                  cleaned[sanitizeHtml(key)] = sanitizeData(obj[key]);
-               }
-               return cleaned;
-           }
-           return obj;
+            if (typeof obj === 'string') return sanitizeHtml(obj);
+            if (Array.isArray(obj)) return obj.map(sanitizeData);
+            if (typeof obj === 'object' && obj !== null) {
+                const cleaned: any = {};
+                for (const key of Object.keys(obj)) {
+                    cleaned[sanitizeHtml(key)] = sanitizeData(obj[key]);
+                }
+                return cleaned;
+            }
+            return obj;
         };
 
         const safeData = sanitizeData(data);
@@ -114,13 +123,41 @@ export async function submitRecord(eventId: string, data: Record<string, unknown
 
         await Record.create({
             eventId,
-            projectID: eventId, 
+            projectID: eventId,
             data: safeData,
             recordedBy,
             retrievalCode,
             patientHash,
             patientPhone
         });
+
+        // ── Milestone notification (every 10 submissions) ─────────────────
+        try {
+            const totalRecords = await Record.countDocuments({ eventId });
+            if (totalRecords > 0 && totalRecords % 10 === 0) {
+                const ownerId = event.createdBy?.toString();
+                if (ownerId) {
+                    const notifTitle = `📊 ${totalRecords} Submissions Reached!`;
+                    const notifMsg = `${totalRecords} people have now filled the "${event.title}" outreach form.`;
+
+                    await Notification.create({
+                        userId: ownerId,
+                        type: 'milestone',
+                        title: notifTitle,
+                        message: notifMsg,
+                        eventId,
+                    });
+
+                    pusher.trigger(`private-user-${ownerId}`, 'new-notification', {
+                        title: notifTitle,
+                        message: notifMsg,
+                    }).catch(() => { });
+                }
+            }
+        } catch (milestoneErr) {
+            // Non-critical — don't fail the submission if notification fails
+            console.error('[submitRecord] Milestone notification error:', milestoneErr);
+        }
 
         revalidatePath(`/events/${eventId}/enter-data`);
         revalidatePath(`/e/${eventId}`);
@@ -315,16 +352,16 @@ export async function updateRecordByCode(code: string, data: Record<string, unkn
         };
 
         const sanitizeData = (obj: any): any => {
-           if (typeof obj === 'string') return sanitizeHtml(obj);
-           if (Array.isArray(obj)) return obj.map(sanitizeData);
-           if (typeof obj === 'object' && obj !== null) {
-               const cleaned: any = {};
-               for (const key of Object.keys(obj)) {
-                  cleaned[sanitizeHtml(key)] = sanitizeData(obj[key]);
-               }
-               return cleaned;
-           }
-           return obj;
+            if (typeof obj === 'string') return sanitizeHtml(obj);
+            if (Array.isArray(obj)) return obj.map(sanitizeData);
+            if (typeof obj === 'object' && obj !== null) {
+                const cleaned: any = {};
+                for (const key of Object.keys(obj)) {
+                    cleaned[sanitizeHtml(key)] = sanitizeData(obj[key]);
+                }
+                return cleaned;
+            }
+            return obj;
         };
 
         const query: any = { retrievalCode: sanitizeHtml(code) };
@@ -445,8 +482,8 @@ export async function sendResultEmail(recordId: string) {
             email,
             name,
             eventName,
-            data, 
-            {}    
+            data,
+            {}
         );
 
         if (!emailResult.success) {
@@ -471,12 +508,12 @@ export async function verifyEventAccess(eventId: string, accessCode: string) {
         if (typeof eventId !== 'string' || typeof accessCode !== 'string') return { success: false, message: 'Invalid format' };
 
         await dbConnect();
-        
+
         const event = await Event.findById(eventId);
         if (!event) {
             return { success: false, message: 'Event not found' };
         }
-        
+
         if (event.accessCode === accessCode) {
             return { success: true };
         } else {

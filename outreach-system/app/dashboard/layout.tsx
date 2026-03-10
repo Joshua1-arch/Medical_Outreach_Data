@@ -1,6 +1,8 @@
 import { signOut, auth } from '@/auth';
 import Sidebar from './Sidebar';
-import { Search, Bell } from 'lucide-react';
+import SearchBar from './SearchBar';
+import NotificationBell from './NotificationBell';
+import { Suspense } from 'react';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
 
@@ -49,24 +51,21 @@ export default async function DashboardLayout({
                 <header className="hidden md:flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-6 md:px-8 z-10">
 
                     {/* Search */}
-                    <div className="relative w-full max-w-sm hidden sm:block">
-                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                            <Search size={17} />
+                    <Suspense fallback={
+                        <div className="relative w-full max-w-sm hidden sm:block">
+                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                                <span className="w-4 h-4 rounded bg-slate-200 animate-pulse" />
+                            </div>
+                            <div className="block w-full rounded-lg bg-slate-100 py-2 pl-9 pr-3 h-9 animate-pulse" />
                         </div>
-                        <input
-                            type="text"
-                            placeholder="Search projects, records…"
-                            className="block w-full rounded-lg border-none bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#fbc037]/50"
-                        />
-                    </div>
+                    }>
+                        <SearchBar />
+                    </Suspense>
 
                     {/* Right actions */}
                     <div className="flex items-center gap-3 ml-auto">
-                        {/* Notification bell */}
-                        <button className="relative flex h-9 w-9 items-center justify-center rounded-full text-slate-500 hover:bg-slate-50 transition-colors">
-                            <Bell size={19} />
-                            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500 border-2 border-white" />
-                        </button>
+                        {/* Notification Bell */}
+                        <NotificationBell userId={sessionUser?.id ?? ''} />
 
                         <div className="h-7 w-px bg-slate-200" />
 
