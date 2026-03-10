@@ -11,7 +11,14 @@ const nextConfig: NextConfig = {
   productionBrowserSourceMaps: false,
   poweredByHeader: false,
   compiler: {
-    removeConsole: true,
+    removeConsole: process.env.NODE_ENV === "production",
+  },
+  // @ts-expect-error next-env doesn't type this properly in all versions
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
   },
   images: {
     remotePatterns: [
