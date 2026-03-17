@@ -21,11 +21,11 @@ const SETTINGS_ITEMS = [
     { name: 'Master Data', href: '/admin/settings/data', icon: Database },
 ];
 
+import { signOut } from 'next-auth/react';
+
 export default function AdminSidebar({
-    onSignOut,
     deletionRequestCount = 0,
 }: {
-    onSignOut: () => Promise<void>;
     deletionRequestCount?: number;
 }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -101,9 +101,9 @@ export default function AdminSidebar({
             {/* Sign out */}
             <div className="p-4 border-t border-slate-700/50">
                 <button
-                    onClick={() => {
+                    onClick={async () => {
                         sessionStorage.setItem('logging-out', 'true');
-                        onSignOut();
+                        await signOut({ callbackUrl: '/login' });
                     }}
                     className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-white/5 transition-all"
                 >

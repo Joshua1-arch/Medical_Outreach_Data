@@ -104,7 +104,7 @@ const FAQ_ITEMS = [
   },
 ];
 
-export default function Home() {
+export default function StaticHome({ config }: { config?: any }) {
   return (
     <div className="min-h-screen bg-white font-sans text-brand-dark flex flex-col">
       {/* ── Navbar (untouched) ── */}
@@ -112,9 +112,6 @@ export default function Home() {
 
       <main className="flex-1">
 
-        {/* ═══════════════════════════════════════════════════
-            HERO SECTION
-        ════════════════════════════════════════════════════ */}
         <section className="relative overflow-hidden py-20 sm:py-28 lg:py-36 pt-36">
           {/* Background glow */}
           <div className="pointer-events-none absolute inset-0 -z-10">
@@ -159,7 +156,7 @@ export default function Home() {
                   <div className="absolute -top-6 -right-6 h-64 w-64 rounded-full bg-[#fbc037]/20 blur-3xl" />
                   <div className="absolute -bottom-6 -left-6 h-64 w-64 rounded-full bg-blue-400/20 blur-3xl" />
                   <img
-                    src="https://picsum.photos/seed/medical/800/600"
+                    src={config?.images?.landingHero || "https://images.unsplash.com/photo-1581056771107-24ca5f033842?auto=format&fit=crop&q=80&w=800"}
                     alt="Medical team"
                     className="relative rounded-2xl shadow-2xl ring-1 ring-slate-900/10 object-cover w-full h-auto aspect-[4/3]"
                   />
@@ -235,7 +232,7 @@ export default function Home() {
                   {/* Image */}
                   <div className={`${imageLeft ? "order-2 lg:order-1" : "order-2 lg:order-2"} relative overflow-hidden rounded-2xl shadow-xl border border-slate-200`}>
                     <img
-                      src={`https://picsum.photos/seed/${imageQuery}/800/600`}
+                      src={config?.images?.[imageQuery === 'medical-data' ? 'dataManagement' : 'reporting'] || `https://images.unsplash.com/photo-${imageQuery === 'medical-data' ? '1551288049-bebda4e38f71' : '1460925895917-afdab827c52f'}?auto=format&fit=crop&q=80&w=800`}
                       alt={title}
                       className="w-full h-auto object-cover"
                     />
@@ -302,7 +299,7 @@ export default function Home() {
               {/* Background image */}
               <div className="absolute inset-0">
                 <img
-                  src="https://picsum.photos/seed/outreach-cta/1200/800"
+                  src={config?.images?.ctaBg || "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=1200"}
                   alt=""
                   className="h-full w-full object-cover opacity-20"
                 />

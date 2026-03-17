@@ -11,6 +11,17 @@ interface SiteConfig {
     announcementBanner: string;
     whatsappNumber: string;
     isActive: boolean;
+    images?: {
+        landingHero?: string;
+        dataManagement?: string;
+        reporting?: string;
+        loginBg?: string;
+        signupBg?: string;
+        caseStudy1?: string;
+        caseStudy2?: string;
+        caseStudy3?: string;
+        ctaBg?: string;
+    };
 }
 
 const defaultContext: SiteConfig = {

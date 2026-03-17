@@ -16,6 +16,17 @@ export interface ISiteConfig extends Document {
         linkedin?: { enabled: boolean; url: string };
         facebook?: { enabled: boolean; url: string };
     };
+    images?: {
+        landingHero?: string;
+        dataManagement?: string;
+        reporting?: string;
+        loginBg?: string;
+        signupBg?: string;
+        caseStudy1?: string;
+        caseStudy2?: string;
+        caseStudy3?: string;
+        ctaBg?: string;
+    };
 }
 
 const SiteConfigSchema: Schema<ISiteConfig> = new Schema({
@@ -29,6 +40,17 @@ const SiteConfigSchema: Schema<ISiteConfig> = new Schema({
         twitter: { enabled: Boolean, url: String },
         linkedin: { enabled: Boolean, url: String },
         facebook: { enabled: Boolean, url: String }
+    },
+    images: {
+        landingHero: { type: String, default: '' },
+        dataManagement: { type: String, default: '' },
+        reporting: { type: String, default: '' },
+        loginBg: { type: String, default: '' },
+        signupBg: { type: String, default: '' },
+        caseStudy1: { type: String, default: '' },
+        caseStudy2: { type: String, default: '' },
+        caseStudy3: { type: String, default: '' },
+        ctaBg: { type: String, default: '' }
     },
     primaryColor: {
         type: String,

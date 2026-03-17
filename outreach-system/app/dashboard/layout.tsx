@@ -1,4 +1,4 @@
-import { signOut, auth } from '@/auth';
+import { auth } from '@/auth';
 import Sidebar from './Sidebar';
 import SearchBar from './SearchBar';
 import NotificationBell from './NotificationBell';
@@ -36,13 +36,7 @@ export default async function DashboardLayout({
         <div className="flex h-screen w-full overflow-hidden bg-slate-50 font-sans">
 
             {/* Sidebar */}
-            <Sidebar
-                user={user}
-                onSignOut={async () => {
-                    'use server';
-                    await signOut({ redirectTo: '/login' });
-                }}
-            />
+            <Sidebar user={user} />
 
             {/* Right column: header + scrollable content */}
             <div className="flex flex-1 flex-col h-full overflow-hidden">

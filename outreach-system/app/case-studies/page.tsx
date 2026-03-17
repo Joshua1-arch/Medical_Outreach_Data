@@ -1,7 +1,10 @@
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
+import { getSiteConfig } from "@/app/admin/settings/actions";
 
-export default function CaseStudiesPage() {
+export default async function CaseStudiesPage() {
+  const config = await getSiteConfig();
+
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900 flex flex-col">
       <Navbar />
@@ -26,11 +29,13 @@ export default function CaseStudiesPage() {
           {/* Case Study 1 */}
           <section className="grid md:grid-cols-2 gap-12 items-center">
             <div className="order-2 md:order-1 relative overflow-hidden rounded-2xl shadow-xl border border-slate-200 aspect-[4/3]">
-              <img 
-                src="https://picsum.photos/seed/cs1/800/600" 
-                alt="Community health workers processing patients" 
-                className="object-cover w-full h-full" 
-              />
+              {config?.images?.caseStudy1 && (
+                <img 
+                  src={config.images.caseStudy1} 
+                  alt="Community health workers processing patients" 
+                  className="object-cover w-full h-full" 
+                />
+              )}
             </div>
             <div className="order-1 md:order-2 space-y-6">
               <h2 className="text-3xl font-bold tracking-tight text-slate-900 font-serif">
@@ -93,22 +98,26 @@ export default function CaseStudiesPage() {
               </div>
             </div>
             <div className="relative overflow-hidden rounded-2xl shadow-xl border border-slate-200 aspect-[4/3]">
-              <img 
-                src="https://picsum.photos/seed/cs2/800/600" 
-                alt="Blood drive logistics" 
-                className="object-cover w-full h-full" 
-              />
+              {config?.images?.caseStudy2 && (
+                <img 
+                  src={config.images.caseStudy2} 
+                  alt="Blood drive logistics" 
+                  className="object-cover w-full h-full" 
+                />
+              )}
             </div>
           </section>
 
           {/* Case Study 3 */}
           <section className="grid md:grid-cols-2 gap-12 items-center">
             <div className="order-2 md:order-1 relative overflow-hidden rounded-2xl shadow-xl border border-slate-200 aspect-[4/3]">
-              <img 
-                src="https://picsum.photos/seed/cs3/800/600" 
-                alt="Remote medical logistics" 
-                className="object-cover w-full h-full" 
-              />
+              {config?.images?.caseStudy3 && (
+                <img 
+                  src={config.images.caseStudy3} 
+                  alt="Remote medical logistics" 
+                  className="object-cover w-full h-full" 
+                />
+              )}
             </div>
             <div className="order-1 md:order-2 space-y-6">
               <h2 className="text-3xl font-bold tracking-tight text-slate-900 font-serif">

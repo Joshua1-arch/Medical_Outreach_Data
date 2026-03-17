@@ -13,6 +13,7 @@ import {
 import { SubmitButton } from '@/components/ui/SubmitButton';
 import GoogleSignupButton from '@/components/auth/GoogleSignupButton';
 import { Turnstile } from '@marsidev/react-turnstile';
+import { useSiteConfig } from '@/app/context/SiteConfigProvider';
 
 /* ─── Left-panel bullet points ───────────────────────────── */
 const PERKS = [
@@ -30,6 +31,7 @@ export default function SignupPage() {
 }
 
 function SignupPageContent() {
+    const config = useSiteConfig();
     const [error, setError]               = useState('');
     const [success, setSuccess]           = useState(false);
     const [autoApproved, setAutoApproved] = useState(false);
@@ -86,11 +88,13 @@ function SignupPageContent() {
             <div className="hidden lg:flex w-5/12 xl:w-2/5 relative bg-slate-900 flex-col gap-8 overflow-hidden">
                 {/* Background image */}
                 <div className="absolute inset-0 z-0">
-                    <img
-                        src="https://picsum.photos/seed/signupbg/900/1200"
-                        alt="Background"
-                        className="w-full h-full object-cover opacity-30 mix-blend-overlay"
-                    />
+                    {config?.images?.signupBg && (
+                        <img
+                            src={config.images.signupBg}
+                            alt="Background"
+                            className="w-full h-full object-cover opacity-30 mix-blend-overlay"
+                        />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-b from-slate-900/80 via-slate-900/70 to-[#fbc037]/30" />
                 </div>
 

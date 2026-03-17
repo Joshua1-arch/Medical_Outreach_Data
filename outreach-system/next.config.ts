@@ -10,6 +10,12 @@ const withPWA = require('next-pwa')({
 const nextConfig: NextConfig = {
   productionBrowserSourceMaps: false,
   poweredByHeader: false,
+  // Increase payload limit for multiple image uploads via Server Actions
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '50mb',
+    },
+  },
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
   },

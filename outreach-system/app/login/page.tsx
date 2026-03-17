@@ -9,8 +9,10 @@ import { AlertCircle, Mail, Lock, Eye, EyeOff, Globe, Building2 } from 'lucide-r
 import { SubmitButton } from '@/components/ui/SubmitButton';
 import GoogleSignupButton from '@/components/auth/GoogleSignupButton';
 import { Turnstile } from '@marsidev/react-turnstile';
+import { useSiteConfig } from '@/app/context/SiteConfigProvider';
 
 export default function LoginPage() {
+    const config = useSiteConfig();
     const router = useRouter();
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -25,11 +27,13 @@ export default function LoginPage() {
             <div className="hidden lg:flex lg:w-5/12 xl:w-2/5 relative bg-slate-900 items-center justify-center overflow-hidden">
                 {/* BG image + gradient overlay */}
                 <div className="absolute inset-0 z-0">
-                    <img
-                        src="https://picsum.photos/seed/loginbg/1200/1200"
-                        alt="Background"
-                        className="w-full h-full object-cover opacity-40 mix-blend-overlay"
-                    />
+                    {config?.images?.loginBg && (
+                        <img
+                            src={config.images.loginBg}
+                            alt="Background"
+                            className="w-full h-full object-cover opacity-40 mix-blend-overlay"
+                        />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-900/90 to-[#fbc037]/20 mix-blend-multiply" />
                 </div>
 

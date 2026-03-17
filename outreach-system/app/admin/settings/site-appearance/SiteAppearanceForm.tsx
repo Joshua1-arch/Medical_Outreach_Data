@@ -5,6 +5,18 @@ import { updateSiteConfig } from '@/app/admin/settings/actions';
 import { Button } from '@/components/ui/Button';
 import { useFormStatus } from 'react-dom';
 
+const EXTRA_IMAGES = [
+    { name: 'landingHero', label: 'Landing Page Hero Image' },
+    { name: 'dataManagement', label: 'Data Management Feature Image' },
+    { name: 'reporting', label: 'Reporting Feature Image' },
+    { name: 'loginBg', label: 'Login Page Background' },
+    { name: 'signupBg', label: 'Signup Page Background' },
+    { name: 'caseStudy1', label: 'Case Study 1 Image' },
+    { name: 'caseStudy2', label: 'Case Study 2 Image' },
+    { name: 'caseStudy3', label: 'Case Study 3 Image' },
+    { name: 'ctaBg', label: 'Call to Action Background' },
+];
+
 function SubmitButton() {
     const { pending } = useFormStatus();
     return (
@@ -135,7 +147,7 @@ export default function SiteAppearanceForm({ initialConfig }: { initialConfig: a
                     <div className="space-y-2">
                         <label className="text-xs font-semibold text-slate-500 uppercase">Or Image URL</label>
                         <input
-                            type="url"
+                            type="text"
                             name="logoUrl"
                             defaultValue={initialConfig.logoUrl || '/Reach.png'}
                             className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-gold/50 outline-none placeholder:text-slate-400 text-sm"
@@ -168,6 +180,53 @@ export default function SiteAppearanceForm({ initialConfig }: { initialConfig: a
                 />
             </div>
 
+            <div className="space-y-4 pt-6 border-t border-slate-100">
+                <h3 className="text-lg font-bold text-slate-800">Site Imagery</h3>
+                <p className="text-sm text-slate-500 mb-4">Upload pictures for different sections of the website to avoid hardcoded placeholders. Leave blank to show nothing.</p>
+
+                <div className="grid md:grid-cols-2 gap-8">
+                    {EXTRA_IMAGES.map(({ name, label }) => {
+                        const currentUrl = initialConfig.images?.[name];
+                        return (
+                            <div key={name} className="space-y-3 p-4 border border-slate-100 rounded-xl bg-slate-50">
+                                <label className="text-sm font-bold text-slate-700">{label}</label>
+                                
+                                <div>
+                                    <label className="text-xs font-semibold text-slate-500 uppercase">Upload File</label>
+                                    <input
+                                        type="file"
+                                        name={`${name}File`}
+                                        accept="image/*"
+                                        className="block w-full mt-1 text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brand-cream file:text-brand-dark hover:file:bg-brand-gold/20"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="text-xs font-semibold text-slate-500 uppercase">Or Image URL</label>
+                                    <input
+                                        type="text"
+                                        name={`${name}Url`}
+                                        defaultValue={currentUrl || ''}
+                                        className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-gold/50 outline-none placeholder:text-slate-400"
+                                    />
+                                </div>
+
+                                {currentUrl && (
+                                    <div className="mt-2">
+                                        <p className="text-[10px] text-slate-500 mb-1 font-semibold uppercase">Current:</p>
+                                        <img 
+                                            src={currentUrl} 
+                                            alt={label} 
+                                            className="h-16 w-auto object-cover rounded shadow-sm border border-slate-200"
+                                            onError={(e) => (e.currentTarget.style.display = 'none')} 
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
             <div className="space-y-4 pt-6 border-t border-slate-100">
                 <h3 className="text-lg font-bold text-slate-800">Social Media Links</h3>
                 <p className="text-sm text-slate-500 mb-4">Toggle on/off the social icons you want to display on the homepage.</p>

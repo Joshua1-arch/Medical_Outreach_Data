@@ -23,12 +23,12 @@ interface NavItem {
     icon: React.ReactNode;
 }
 
+import { signOut } from 'next-auth/react';
+
 export default function Sidebar({
     user,
-    onSignOut,
 }: {
     user: any;
-    onSignOut: () => Promise<void>;
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const pathname = usePathname();
@@ -149,9 +149,9 @@ export default function Sidebar({
                     Help Center
                 </Link>
                 <button
-                    onClick={() => {
+                    onClick={async () => {
                         sessionStorage.setItem('logging-out', 'true');
-                        onSignOut();
+                        await signOut({ callbackUrl: '/login' });
                     }}
                     className="w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-500 hover:text-red-500 hover:bg-red-50 transition-colors"
                 >

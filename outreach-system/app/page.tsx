@@ -1,6 +1,7 @@
 import { auth } from '@/auth';
 import StaticHome from '@/app/components/StaticHome';
 import { redirect } from 'next/navigation';
+import { getSiteConfig } from '@/app/admin/settings/actions';
 
 export default async function HomePage() {
   const session = await auth();
@@ -10,6 +11,8 @@ export default async function HomePage() {
     redirect('/dashboard');
   }
   
+  const siteConfig = await getSiteConfig();
+  
   // Otherwise, show the home page
-  return <StaticHome />;
+  return <StaticHome config={siteConfig} />;
 }

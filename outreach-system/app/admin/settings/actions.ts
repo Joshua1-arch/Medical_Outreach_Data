@@ -68,40 +68,42 @@ export async function updateSiteConfig(formData: FormData) {
             }
         };
 
-        let logoUrl = formData.get('logoUrl') as string;
-        const logoFile = formData.get('logoFile') as File;
+        async function handleImageField(fieldName: string): Promise<string | undefined> {
+            let url = formData.get(`${fieldName}Url`) as string;
+            const file = formData.get(`${fieldName}File`) as File;
 
-        if (logoFile && logoFile.size > 0 && logoFile.name !== 'undefined') {
-            // Validate MIME type initially
-            if (!logoFile.type.startsWith('image/')) {
-                return { success: false, message: 'Invalid file type. Please upload an image.' };
+            if (file && file.size > 0 && file.name !== 'undefined') {
+                if (!file.type.startsWith('image/')) return url;
+                const ext = file.name.slice((file.name.lastIndexOf(".") - 1 >>> 0) + 2).toLowerCase();
+                const allowedExts = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'];
+                if (!allowedExts.includes(ext)) return url;
+
+                const bytes = await file.arrayBuffer();
+                const buffer = Buffer.from(bytes);
+                const baseName = file.name.substring(0, file.name.lastIndexOf('.')).replace(/[^a-zA-Z0-9-]/g, '') || 'upload';
+                const filename = `${fieldName}-${Date.now()}-${baseName}.${ext}`;
+                const uploadDir = join(cwd(), 'public', 'uploads');
+                await mkdir(uploadDir, { recursive: true });
+                const filepath = join(uploadDir, filename);
+                await writeFile(filepath, buffer);
+                url = `/uploads/${filename}`;
             }
-
-            // Strictly validate extensions to prevent Server-Side XSS via HTML file uploads
-            const ext = logoFile.name.slice((logoFile.name.lastIndexOf(".") - 1 >>> 0) + 2).toLowerCase();
-            const allowedExts = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'];
-            if (!allowedExts.includes(ext)) {
-                return { success: false, message: 'Invalid file extension. Only valid image files are allowed.' };
-            }
-
-            const bytes = await logoFile.arrayBuffer();
-            const buffer = Buffer.from(bytes);
-
-            // Create unique filename, strictly alphanumerics for basename to prevent directory traversal
-            const baseName = logoFile.name.substring(0, logoFile.name.lastIndexOf('.')).replace(/[^a-zA-Z0-9-]/g, '') || 'upload';
-            const filename = `logo-${Date.now()}-${baseName}.${ext}`;
-            
-            // Ensure uploads directory exists
-            const uploadDir = join(cwd(), 'public', 'uploads');
-            await mkdir(uploadDir, { recursive: true });
-            
-            // Write file
-            const filepath = join(uploadDir, filename);
-            await writeFile(filepath, buffer);
-            
-            // Update logoUrl to point to the new file
-            logoUrl = `/uploads/${filename}`;
+            return url;
         }
+
+        const logoUrl = await handleImageField('logo') || formData.get('logoUrl') as string;
+
+        const images = {
+            landingHero: await handleImageField('landingHero'),
+            dataManagement: await handleImageField('dataManagement'),
+            reporting: await handleImageField('reporting'),
+            loginBg: await handleImageField('loginBg'),
+            signupBg: await handleImageField('signupBg'),
+            caseStudy1: await handleImageField('caseStudy1'),
+            caseStudy2: await handleImageField('caseStudy2'),
+            caseStudy3: await handleImageField('caseStudy3'),
+            ctaBg: await handleImageField('ctaBg'),
+        };
 
         // Update the singleton
         await SiteConfig.findOneAndUpdate({}, {
@@ -111,7 +113,8 @@ export async function updateSiteConfig(formData: FormData) {
             logoUrl,
             isActive,
             maintenanceMode,
-            socialMediaLinks
+            socialMediaLinks,
+            images
         }, { upsert: true, new: true, setDefaultsOnInsert: true });
 
         revalidatePath('/');
