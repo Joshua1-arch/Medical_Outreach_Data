@@ -6,8 +6,18 @@ import User from "@/models/User";
 import Notification from "@/models/Notification";
 import Pusher from "pusher";
 import { auth } from "@/auth";
-import { sanitizeChatMessage } from "@/lib/sanitize";
 import { isValidObjectId, stripMongoOperators, ensureString } from "@/lib/nosql-sanitize";
+
+/**
+ * Lightweight chat message sanitizer that doesn't depend on jsdom/DOMPurify.
+ * Strips all HTML tags and enforces a max length — same behavior as
+ * sanitizeChatMessage but compatible with serverless runtimes.
+ */
+function sanitizeChatMessage(input: string | null | undefined, maxLength = 2000): string {
+  if (!input) return "";
+  const cleaned = input.replace(/<[^>]*>/g, "").trim();
+  return cleaned.length > maxLength ? cleaned.slice(0, maxLength) : cleaned;
+}
 
 const pusher = new Pusher({
   appId: process.env.PUSHER_APP_ID!,
@@ -154,9 +164,12 @@ export async function POST(
     }
 
     return NextResponse.json({ success: true, message: newMessage });
-  } catch (error) {
+  } catch (error: any) {
     console.error("POST Chat Error:", error);
-    return NextResponse.json({ success: false, message: "Failed to send message." }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: "Failed to send message.", error: error?.message || String(error) },
+      { status: 500 }
+    );
   }
 }
 
