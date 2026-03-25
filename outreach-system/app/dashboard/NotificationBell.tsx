@@ -119,7 +119,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
 
             {/* Dropdown panel */}
             {open && (
-                <div className="absolute right-0 top-11 z-50 w-80 rounded-2xl border border-slate-200 bg-white shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="fixed md:absolute left-2 right-2 top-16 md:left-auto md:right-0 md:top-11 z-50 md:w-80 rounded-2xl border border-slate-200 bg-white shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
                     {/* Header */}
                     <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
                         <span className="text-sm font-bold text-slate-900">Notifications</span>

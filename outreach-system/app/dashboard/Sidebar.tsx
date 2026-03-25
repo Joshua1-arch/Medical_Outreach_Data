@@ -16,6 +16,7 @@ import {
     ChevronRight,
 } from 'lucide-react';
 import { useState } from 'react';
+import NotificationBell from './NotificationBell';
 
 interface NavItem {
     label: string;
@@ -170,12 +171,15 @@ export default function Sidebar({
                     <Image src="/Reach.png" alt="ReachPoint" width={28} height={28} className="object-contain" />
                     <span className="font-bold text-slate-900">ReachPoint</span>
                 </div>
-                <button
-                    onClick={() => setIsOpen(!isOpen)}
-                    className="text-slate-500 hover:text-slate-900 transition-colors p-1"
-                >
-                    {isOpen ? <X size={22} /> : <Menu size={22} />}
-                </button>
+                <div className="flex items-center gap-1">
+                    <NotificationBell userId={user?.id ?? ''} />
+                    <button
+                        onClick={() => setIsOpen(!isOpen)}
+                        className="text-slate-500 hover:text-slate-900 transition-colors p-1"
+                    >
+                        {isOpen ? <X size={22} /> : <Menu size={22} />}
+                    </button>
+                </div>
             </div>
 
             {/* Desktop sidebar */}
