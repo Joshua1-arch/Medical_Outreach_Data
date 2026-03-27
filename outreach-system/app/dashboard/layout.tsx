@@ -2,6 +2,7 @@ import { auth } from '@/auth';
 import Sidebar from './Sidebar';
 import SearchBar from './SearchBar';
 import NotificationBell from './NotificationBell';
+import BackgroundHydrator from '@/components/BackgroundHydrator';
 import { Suspense } from 'react';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
@@ -34,6 +35,7 @@ export default async function DashboardLayout({
 
     return (
         <div className="flex h-screen w-full overflow-hidden bg-slate-50 font-sans">
+            <BackgroundHydrator />
 
             {/* Sidebar */}
             <Sidebar user={user} />
