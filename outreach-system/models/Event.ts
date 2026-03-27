@@ -44,6 +44,11 @@ const EventSchema = new Schema({
     strict: true, // OWASP: reject any fields not defined in this schema
 });
 
+// Performance indexes for dashboard queries
+EventSchema.index({ createdBy: 1, status: 1 });      // countDocuments({ createdBy, status })
+EventSchema.index({ createdBy: 1, createdAt: -1 });   // recent events sorted by date
+EventSchema.index({ status: 1, date: -1 });           // admin event listing
+
 const Event = models.Event || model('Event', EventSchema);
 
 export default Event;

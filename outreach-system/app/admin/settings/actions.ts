@@ -2,17 +2,18 @@
 
 import dbConnect from "@/lib/db";
 import SiteConfig from "@/models/SiteConfig";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { auth } from "@/auth";
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { cwd } from 'process';
+import { unstable_cache } from 'next/cache';
 
-export async function getSiteConfig() {
+// Internal fetcher — actually hits the database
+async function _fetchSiteConfig() {
     try {
         await dbConnect();
-        // Singleton: Check if exists, if not create default
-        let config = await SiteConfig.findOne();
+        let config = await SiteConfig.findOne().lean();
         if (!config) {
             config = await SiteConfig.create({
                 themeMode: 'default',
@@ -23,6 +24,7 @@ export async function getSiteConfig() {
                 whatsappNumber: '+2349126461386',
                 isActive: true
             });
+            config = config.toObject();
         }
         return JSON.parse(JSON.stringify(config));
     } catch (error) {
@@ -30,6 +32,13 @@ export async function getSiteConfig() {
         return null;
     }
 }
+
+// Cached version — only hits DB every 5 minutes
+export const getSiteConfig = unstable_cache(
+    _fetchSiteConfig,
+    ['site-config'],
+    { revalidate: 300, tags: ['site-config'] } // 5 minutes, invalidated by revalidateTag
+);
 
 export async function updateSiteConfig(formData: FormData) {
     try {
@@ -117,6 +126,7 @@ export async function updateSiteConfig(formData: FormData) {
             images
         }, { upsert: true, new: true, setDefaultsOnInsert: true });
 
+        revalidateTag('site-config'); // Bust the getSiteConfig cache
         revalidatePath('/');
         return { success: true, message: 'Site configuration updated successfully' };
     } catch (error) {

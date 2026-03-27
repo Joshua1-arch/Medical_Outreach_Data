@@ -185,45 +185,69 @@ export async function generateMedicalReport(stats: any) {
             return { success: false, message: 'Data payload too large for processing.' };
         }
 
-        if (!process.env.GOOGLE_API_KEY) {
-            return { success: false, message: 'Google API Key is missing. Please add it to .env' };
-        }
-
-        const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
-
-        // Use a fallback strategy to find a working model
-        const models = ["gemini-1.5-flash", "gemini-pro", "gemini-1.0-pro"];
         let report = null;
         let lastError = null;
 
-        const prompt = `You are a Chief Medical Officer analyzing aggregate health data from an outreach event. Identify public health trends, correlations, and suggest interventions. Format the response in Markdown. Data: ${statsString}`;
+        // First attempt: Google Gemini (if API key is present)
+        if (process.env.GOOGLE_API_KEY && process.env.GOOGLE_API_KEY.length > 5) {
+            const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+            const models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite"];
+            const prompt = `You are a Chief Medical Officer analyzing aggregate health data from an outreach event. Identify public health trends, correlations, and suggest interventions. Format the response in Markdown. Data: ${statsString}`;
+            
+            for (const modelName of models) {
+                try {
+                    const model = genAI.getGenerativeModel({ model: modelName });
+                    const result = await model.generateContent(prompt);
+                    const response = await result.response;
+                    report = response.text();
 
-        for (const modelName of models) {
-            try {
-
-                const model = genAI.getGenerativeModel({ model: modelName });
-                const result = await model.generateContent(prompt);
-                const response = await result.response;
-                report = response.text();
-
-                if (report) {
-
-                    break;
+                    if (report) break;
+                } catch (e: any) {
+                    lastError = `${modelName}: ${e?.message || String(e)}`;
                 }
-            } catch (e: any) {
+            }
+        } else {
+            lastError = "Google API Key missing";
+        }
 
-                lastError = e;
+        // --- FREE KEYLESS FALLBACK ---
+        // If Gemini failed (quota limit 0, invalid key, or missing key), use Pollinations AI
+        if (!report) {
+            console.log("Gemini failed, falling back to free open API...", lastError);
+            try {
+                const fallbackRes = await fetch("https://text.pollinations.ai/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        messages: [
+                            { role: "system", content: "You are a Chief Medical Officer. Analyze this event data and output a Markdown report. Do not use generic filler." },
+                            { role: "user", content: `Data: ${statsString}` }
+                        ],
+                        model: "openai" // Automatically routed to a free ChatGPT instruction-tuned model
+                    }),
+                    // 60-second timeout to handle high load on free APIs
+                    signal: AbortSignal.timeout(60000)
+                });
+                
+                if (fallbackRes.ok) {
+                    report = await fallbackRes.text();
+                } else {
+                    throw new Error(`Fallback API failed with status: ${fallbackRes.status}`);
+                }
+            } catch (fallbackError: any) {
+                throw new Error(`Primary error: ${lastError}. Fallback error: ${fallbackError?.message || String(fallbackError)}`);
             }
         }
 
-        if (!report) {
-            throw lastError || new Error("All Gemini models failed to generate content.");
+        if (!report || report.trim() === '') {
+            throw new Error(`Models failed to generate context. Last error: ${lastError}`);
         }
 
         return { success: true, report };
     } catch (error: any) {
         console.error('Generate Report Error:', error);
-        return { success: false, message: 'Failed to generate report. Please try again later.' };
+        const errorMsg = error?.message || String(error);
+        return { success: false, message: `AI analysis failed: ${errorMsg}` };
     }
 }
 

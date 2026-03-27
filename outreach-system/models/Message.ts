@@ -22,6 +22,9 @@ const MessageSchema = new Schema<IMessage>(
   }
 );
 
+// Index for fetching event chat messages sorted by time
+MessageSchema.index({ eventId: 1, createdAt: -1 });
+
 const Message: Model<IMessage> =
   mongoose.models.Message || mongoose.model<IMessage>("Message", MessageSchema);
 

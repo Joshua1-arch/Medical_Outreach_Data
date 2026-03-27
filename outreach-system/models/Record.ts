@@ -16,6 +16,8 @@ const RecordSchema = new Schema({
 
 RecordSchema.index({ patientHash: 1, createdAt: -1 });
 RecordSchema.index({ projectID: 1, createdAt: -1 });
+RecordSchema.index({ recordedBy: 1 });                // Dashboard "Records Entered" count
+RecordSchema.index({ eventId: 1, createdAt: -1 });    // Records per event
 
 const Record = models.Record || model('Record', RecordSchema);
 

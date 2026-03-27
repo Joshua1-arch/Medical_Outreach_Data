@@ -100,34 +100,38 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     token.provider = account.provider;
                 }
             }
-            // Subsequent calls
+            // Subsequent calls — only refresh from DB every 5 minutes
             else if (token?.id) {
-                try {
-                    await dbConnect();
-                    // Basic check to ensure the ID is a valid ObjectId before querying
-                    // This prevents the common "Cast to ObjectId failed" error
-                    const isValidId = /^[0-9a-fA-F]{24}$/.test(token.id as string);
+                const REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+                const lastRefresh = (token.lastRefresh as number) || 0;
+                const needsRefresh = Date.now() - lastRefresh > REFRESH_INTERVAL_MS;
 
-                    if (!isValidId) {
-                        // If it's not a valid ObjectId (e.g. Google UUID), try linking it via email
-                        const dbUser = await User.findOne({ email: token.email }).lean() as any;
-                        if (dbUser) {
-                            token.id = dbUser._id.toString();
+                if (needsRefresh) {
+                    try {
+                        await dbConnect();
+                        const isValidId = /^[0-9a-fA-F]{24}$/.test(token.id as string);
+
+                        if (!isValidId) {
+                            const dbUser = await User.findOne({ email: token.email }).select('_id').lean() as any;
+                            if (dbUser) {
+                                token.id = dbUser._id.toString();
+                            } else {
+                                return null;
+                            }
+                        }
+
+                        const dbUser = await User.findById(token.id).select('accountStatus role isPremium').lean() as any;
+                        if (dbUser && dbUser.accountStatus === 'active') {
+                            token.accountStatus = dbUser.accountStatus;
+                            token.role = dbUser.role;
+                            token.isPremium = dbUser.isPremium ?? false;
+                            token.lastRefresh = Date.now();
                         } else {
                             return null;
                         }
+                    } catch (error) {
+                        console.error("Error fetching user in JWT callback:", error);
                     }
-
-                    const dbUser = await User.findById(token.id).select('accountStatus role isPremium').lean() as any;
-                    if (dbUser && dbUser.accountStatus === 'active') {
-                        token.accountStatus = dbUser.accountStatus;
-                        token.role = dbUser.role;
-                        token.isPremium = dbUser.isPremium ?? false;
-                    } else {
-                        return null;
-                    }
-                } catch (error) {
-                    console.error("Error fetching user in JWT callback:", error);
                 }
             }
             return token;

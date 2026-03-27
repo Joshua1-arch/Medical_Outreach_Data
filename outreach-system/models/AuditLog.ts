@@ -31,6 +31,10 @@ const AuditLogSchema: Schema = new Schema({
     timestamps: true, // This adds createdAt and updatedAt
 });
 
+// Indexes for admin audit trail
+AuditLogSchema.index({ performedBy: 1, createdAt: -1 });
+AuditLogSchema.index({ action: 1, createdAt: -1 });
+
 // Prevent model recompilation error in development
 const AuditLog: Model<IAuditLog> = mongoose.models.AuditLog || mongoose.model<IAuditLog>("AuditLog", AuditLogSchema);
 

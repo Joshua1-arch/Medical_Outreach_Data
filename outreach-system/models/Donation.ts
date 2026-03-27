@@ -69,6 +69,9 @@ DonationSchema.pre('save', async function () {
     }
 });
 
+// Index for fetching donations by event
+DonationSchema.index({ eventId: 1, isFitToDonate: 1 });
+
 const Donation = models.Donation || model('Donation', DonationSchema);
 
 export default Donation;
