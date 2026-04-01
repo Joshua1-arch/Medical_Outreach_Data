@@ -60,6 +60,25 @@ function extractPatientPhone(data: Record<string, unknown>): string | undefined 
 
 import { requireServerActionAuth } from "@/lib/withAuth";
 
+// Lightweight HTML Sanitizer to strip tags and prevent XSS
+const sanitizeHtml = (str: string) => {
+    if (!str) return str;
+    return str.replace(/(<([^>]+)>)/gi, "").trim();
+};
+
+const sanitizeData = (obj: any): any => {
+    if (typeof obj === 'string') return sanitizeHtml(obj);
+    if (Array.isArray(obj)) return obj.map(sanitizeData);
+    if (typeof obj === 'object' && obj !== null) {
+        const cleaned: any = {};
+        for (const key of Object.keys(obj)) {
+            cleaned[sanitizeHtml(key)] = sanitizeData(obj[key]);
+        }
+        return cleaned;
+    }
+    return obj;
+};
+
 export async function submitRecord(eventId: string, data: Record<string, unknown>) {
     try {
         if (typeof eventId !== 'string') return { success: false, message: 'Invalid format' };
@@ -93,25 +112,6 @@ export async function submitRecord(eventId: string, data: Record<string, unknown
         }
 
         const retrievalCode = generateRetrievalCode();
-        // Lightweight HTML Sanitizer to strip tags and prevent XSS
-        const sanitizeHtml = (str: string) => {
-            if (!str) return str;
-            return str.replace(/(<([^>]+)>)/gi, "").trim();
-        };
-
-        const sanitizeData = (obj: any): any => {
-            if (typeof obj === 'string') return sanitizeHtml(obj);
-            if (Array.isArray(obj)) return obj.map(sanitizeData);
-            if (typeof obj === 'object' && obj !== null) {
-                const cleaned: any = {};
-                for (const key of Object.keys(obj)) {
-                    cleaned[sanitizeHtml(key)] = sanitizeData(obj[key]);
-                }
-                return cleaned;
-            }
-            return obj;
-        };
-
         const safeData = sanitizeData(data);
         const patientHash = generatePatientHash(safeData);
         const patientPhone = extractPatientPhone(safeData);
@@ -351,25 +351,6 @@ export async function updateRecordByCode(code: string, data: Record<string, unkn
 
         await dbConnect();
 
-        // Lightweight HTML Sanitizer to strip tags and prevent XSS
-        const sanitizeHtml = (str: string) => {
-            if (!str) return str;
-            return str.replace(/(<([^>]+)>)/gi, "").trim();
-        };
-
-        const sanitizeData = (obj: any): any => {
-            if (typeof obj === 'string') return sanitizeHtml(obj);
-            if (Array.isArray(obj)) return obj.map(sanitizeData);
-            if (typeof obj === 'object' && obj !== null) {
-                const cleaned: any = {};
-                for (const key of Object.keys(obj)) {
-                    cleaned[sanitizeHtml(key)] = sanitizeData(obj[key]);
-                }
-                return cleaned;
-            }
-            return obj;
-        };
-
         const query: any = { retrievalCode: sanitizeHtml(code) };
         if (eventId) query.eventId = eventId;
 
@@ -432,7 +413,8 @@ export async function updateRecordById(recordId: string, data: Record<string, un
             return { success: false, message: 'Unauthorized: You do not have permission to update this record' };
         }
 
-        const record = await Record.findByIdAndUpdate(recordId, { data }, { new: true });
+        const safeData = sanitizeData(data);
+        const record = await Record.findByIdAndUpdate(recordId, { data: safeData }, { new: true });
 
         revalidatePath(`/dashboard/event/${record.eventId}/builder`);
         return { success: true, message: 'Record updated' };

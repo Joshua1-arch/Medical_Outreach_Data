@@ -26,12 +26,18 @@ export default function ResponsesClient({
     isPremium,
     userEmail,
     userId,
+    currentPage = 1,
+    totalPages = 1,
+    totalCount = 0,
 }: {
     event: any;
     records: any[];
     isPremium: boolean;
     userEmail: string;
     userId: string;
+    currentPage?: number;
+    totalPages?: number;
+    totalCount?: number;
 }) {
     const router = useRouter();
     const formFields: FormField[] = event.formFields || [];
@@ -634,15 +640,31 @@ export default function ResponsesClient({
                             {/* Pagination display */}
                             <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
                                 <p className="text-sm text-slate-500">
-                                    Showing <span className="font-bold text-slate-900">1</span> to{' '}
-                                    <span className="font-bold text-slate-900">{records.length}</span> of{' '}
-                                    <span className="font-bold text-slate-900">{records.length}</span> responses
+                                    Showing <span className="font-bold text-slate-900">{records.length > 0 ? (currentPage - 1) * 50 + 1 : 0}</span> to{' '}
+                                    <span className="font-bold text-slate-900">{Math.min(currentPage * 50, totalCount)}</span> of{' '}
+                                    <span className="font-bold text-slate-900">{totalCount}</span> responses
                                 </p>
                                 <div className="flex items-center gap-3">
-                                    <button className="text-sm font-bold text-slate-300 flex items-center gap-1" disabled>
+                                    <button 
+                                        className="text-sm font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1 disabled:text-slate-300 disabled:hover:text-slate-300 transition-colors"
+                                        disabled={currentPage <= 1}
+                                        onClick={() => {
+                                            const params = new URLSearchParams(window.location.search);
+                                            params.set('page', String(currentPage - 1));
+                                            router.push(`?${params.toString()}`);
+                                        }}
+                                    >
                                         <ChevronLeft size={16} /> Previous
                                     </button>
-                                    <button className="text-sm font-bold text-slate-300 flex items-center gap-1" disabled>
+                                    <button 
+                                        className="text-sm font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1 disabled:text-slate-300 disabled:hover:text-slate-300 transition-colors"
+                                        disabled={currentPage >= totalPages}
+                                        onClick={() => {
+                                            const params = new URLSearchParams(window.location.search);
+                                            params.set('page', String(currentPage + 1));
+                                            router.push(`?${params.toString()}`);
+                                        }}
+                                    >
                                         Next <ChevronRight size={16} />
                                     </button>
                                 </div>

@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
 import InvitationCode from '@/models/InvitationCode';
+import Subscriber from '@/models/Subscriber';
 import { z } from 'zod';
 import { sendWelcomeEmail, sendAdminNewUserAlert } from '@/lib/email';
 import { verifyTurnstileToken } from '@/lib/turnstile';
@@ -110,6 +111,18 @@ export async function POST(req: Request) {
             usedInvitationCode.usedBy = user._id;
             await usedInvitationCode.save();
         }
+
+        // Automatically add to newsletter
+        try {
+            await Subscriber.updateOne(
+                { email: user.email },
+                { $setOnInsert: { email: user.email } },
+                { upsert: true }
+            );
+        } catch (subErr) {
+            console.error("Failed to add new user to newsletter", subErr);
+        }
+
 
         if (accountStatus === 'active') {
             // Send welcome email (non-blocking)

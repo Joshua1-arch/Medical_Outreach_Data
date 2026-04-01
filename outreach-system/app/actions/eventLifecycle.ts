@@ -2,7 +2,7 @@
 
 import { requireServerActionAuth } from "@/lib/withAuth";
 import Event from "@/models/Event";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import dbConnect from "@/lib/db";
 
 export async function markEventCompleted(eventId: string) {
@@ -29,6 +29,7 @@ export async function markEventCompleted(eventId: string) {
         revalidatePath(`/dashboard/event/${eventId}`);
         revalidatePath(`/e/${eventId}`);
         revalidatePath(`/dashboard/my-events`); // ✅ Revalidate overview card list
+        revalidateTag('event-stats');
 
 
         return { success: true, message: "Event marked as completed" };

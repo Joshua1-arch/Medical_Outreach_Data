@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import dbConnect from "@/lib/db";
 import Subscriber from "@/models/Subscriber";
+import User from "@/models/User";
 import AdminNewsletterClient from "./AdminNewsletterClient";
 import { LayoutDashboard } from "lucide-react";
 import Link from "next/link";
@@ -13,6 +14,22 @@ export default async function AdminNewsletterPage() {
     }
 
     await dbConnect();
+
+    // Auto-sync all registered users into the Newsletter list
+    const users = await User.find({}, 'email').lean();
+    const userEmails = users.map((u: any) => u.email).filter(Boolean);
+    
+    if (userEmails.length > 0) {
+        const bulkOps = userEmails.map(email => ({
+            updateOne: {
+                filter: { email },
+                update: { $setOnInsert: { email } },
+                upsert: true
+            }
+        }));
+        await Subscriber.bulkWrite(bulkOps, { ordered: false }).catch(() => {});
+    }
+
     const subscribersResult = await Subscriber.find().sort({ subscribedAt: -1 }).lean();
     const subscribers = subscribersResult.map((sub: any) => ({
         id: sub._id.toString(),

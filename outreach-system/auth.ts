@@ -3,6 +3,7 @@ import Credentials from "next-auth/providers/credentials"
 import Google from "next-auth/providers/google"
 import dbConnect from "@/lib/db"
 import User from "@/models/User"
+import Subscriber from "@/models/Subscriber"
 import bcrypt from "bcryptjs"
 import { z } from "zod"
 import { authConfig } from "./auth.config"
@@ -44,6 +45,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                             role: 'user',
                             profileImage: user.image
                         });
+
+                        // Automatically add to newsletter
+                        try {
+                            if (user.email) {
+                                await Subscriber.updateOne(
+                                    { email: user.email },
+                                    { $setOnInsert: { email: user.email } },
+                                    { upsert: true }
+                                );
+                            }
+                        } catch (subErr) {
+                            console.error("Failed to add Google user to newsletter", subErr);
+                        }
 
                         // Notify admin about pending Google user (non-blocking)
                         sendAdminNewUserAlert(user.email!, user.name!, 'Google').catch(() => { });
