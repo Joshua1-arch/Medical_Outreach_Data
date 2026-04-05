@@ -4,7 +4,6 @@ import Message from "@/models/Message";
 import Event from "@/models/Event";
 import User from "@/models/User";
 import Notification from "@/models/Notification";
-import Pusher from "pusher";
 import { auth } from "@/auth";
 import { isValidObjectId, stripMongoOperators, ensureString } from "@/lib/nosql-sanitize";
 
@@ -19,13 +18,7 @@ function sanitizeChatMessage(input: string | null | undefined, maxLength = 2000)
   return cleaned.length > maxLength ? cleaned.slice(0, maxLength) : cleaned;
 }
 
-const pusher = new Pusher({
-  appId: process.env.PUSHER_APP_ID!,
-  key: process.env.NEXT_PUBLIC_PUSHER_KEY!,
-  secret: process.env.PUSHER_SECRET!,
-  cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
-  useTLS: true,
-});
+import { triggerRealtimeEvent } from "@/lib/broadcastService";
 
 export async function GET(
   req: NextRequest,
@@ -100,7 +93,7 @@ export async function POST(
     });
 
     // Trigger pusher event to private channel
-    await pusher.trigger(`private-event-${eventId}`, "message", {
+    await triggerRealtimeEvent(`private-event-${eventId}`, "message", {
       _id: newMessage._id,
       eventId: newMessage.eventId,
       text: newMessage.text,
@@ -123,7 +116,7 @@ export async function POST(
               message: `You have a new message from ${senderName}.`,
               eventId: eventId,
             });
-            await pusher.trigger(`private-user-${event.createdBy.toString()}`, 'new-notification', {});
+            await triggerRealtimeEvent(`private-user-${event.createdBy.toString()}`, 'new-notification', {});
           }
         } else {
           // Volunteer sent a message.
@@ -136,7 +129,7 @@ export async function POST(
             message: `You have a new message from ${senderName}.`,
             eventId: eventId,
           });
-          await pusher.trigger(`private-user-${creatorId}`, 'new-notification', {});
+          await triggerRealtimeEvent(`private-user-${creatorId}`, 'new-notification', {});
 
           // 2. Notify admins (excluding the creator if they happen to be an admin)
           const admins = await User.find({ role: 'admin' }).select('_id');
@@ -154,7 +147,7 @@ export async function POST(
 
             // Trigger pusher for all other admins
             for (const admin of otherAdmins) {
-              await pusher.trigger(`private-user-${admin._id.toString()}`, 'new-notification', {});
+              await triggerRealtimeEvent(`private-user-${admin._id.toString()}`, 'new-notification', {});
             }
           }
         }

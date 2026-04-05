@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Pusher from 'pusher-js';
+import * as Ably from 'ably';
 import { Bell, CheckCheck, X, Calendar, TrendingUp, AlertCircle, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 
@@ -74,9 +75,24 @@ export default function NotificationBell({ userId }: { userId: string }) {
                 .catch(console.error);
         });
 
+        // ── Ably fallback subscription simultaneously ────────────────────────
+        const ably = new Ably.Realtime({ key: process.env.NEXT_PUBLIC_ABLY_CLIENT_KEY || '' });
+        const ablyChannel = ably.channels.get(`private-user-${userId}`);
+        ablyChannel.subscribe('new-notification', () => {
+            fetch('/api/notifications')
+                .then(r => r.json())
+                .then(data => {
+                    setNotifications(data.notifications ?? []);
+                    setUnreadCount(data.unreadCount ?? 0);
+                })
+                .catch(console.error);
+        });
+
         return () => {
             pusher.unsubscribe(`private-user-${userId}`);
             pusher.disconnect();
+            ablyChannel.unsubscribe('new-notification');
+            ably.close();
         };
     }, [userId]);
 

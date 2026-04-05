@@ -43,7 +43,7 @@ const DonationSchema = new Schema({
     },
     isFitToDonate: { type: Boolean, default: false },
     compatibleRecipients: { type: [String], default: [] }
-}, { timestamps: true });
+}, { timestamps: true, strict: true });
 
 DonationSchema.pre('save', async function () {
     if (!this.donorVitals || !this.serology) {

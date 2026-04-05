@@ -81,7 +81,8 @@ const SiteConfigSchema: Schema<ISiteConfig> = new Schema({
         default: false
     }
 }, {
-    timestamps: true
+    timestamps: true,
+    strict: true,
 });
 
 SiteConfigSchema.statics.getSingleton = async function () {

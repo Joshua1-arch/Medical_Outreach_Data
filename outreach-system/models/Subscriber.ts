@@ -17,6 +17,6 @@ const SubscriberSchema = new Schema({
     type: Date,
     default: Date.now,
   },
-});
+}, { strict: true });
 
 export default mongoose.models.Subscriber || mongoose.model<ISubscriber>("Subscriber", SubscriberSchema);

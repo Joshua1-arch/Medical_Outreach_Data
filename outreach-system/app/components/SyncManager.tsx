@@ -139,12 +139,6 @@ export default function SyncManager() {
         );
     }
 
-    // Default: Online & Synced (Green Cloud) - Maybe hide after a few seconds? 
-    // Or keep it small.
-    return (
-        <div className="fixed bottom-4 left-4 z-50 flex items-center gap-2 px-4 py-3 bg-green-50 text-green-700 rounded-full shadow-lg border border-green-200 opacity-75 hover:opacity-100 transition-opacity">
-            <Cloud size={20} />
-            <span className="font-bold text-sm">Online</span>
-        </div>
-    );
+    // Default: Online & Synced - Hide the indicator entirely.
+    return null;
 }

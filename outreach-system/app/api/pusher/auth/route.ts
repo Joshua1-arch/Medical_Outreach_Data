@@ -30,6 +30,22 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // ── Security: private-event-* channels require an authenticated user
+    if (channelName.startsWith("private-event-")) {
+      if (!session?.user?.id) {
+        return new NextResponse("Forbidden", { status: 403 });
+      }
+    }
+
+    // ── Presence Channels: for virtual waiting room
+    if (channelName.startsWith("presence-event-")) {
+      const presenceData = {
+        user_id: crypto.randomUUID(), // Unique ID for each tab/device
+      };
+      const authResponse = pusher.authorizeChannel(socketId, channelName, presenceData);
+      return NextResponse.json(authResponse);
+    }
+
     const authResponse = pusher.authorizeChannel(socketId, channelName);
     return NextResponse.json(authResponse);
   } catch (error) {

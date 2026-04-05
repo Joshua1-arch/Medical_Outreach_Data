@@ -7,17 +7,10 @@ import Notification from "@/models/Notification";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import crypto from "crypto";
-import Pusher from "pusher";
 import Event from "@/models/Event";
 import { submissionRateLimit, getIP } from "@/lib/rate-limit";
 
-const pusher = new Pusher({
-    appId: process.env.PUSHER_APP_ID!,
-    key: process.env.NEXT_PUBLIC_PUSHER_KEY!,
-    secret: process.env.PUSHER_SECRET!,
-    cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
-    useTLS: true,
-});
+import { triggerRealtimeEvent } from "@/lib/broadcastService";
 
 function generateRetrievalCode() {
     return crypto.randomBytes(3).toString('hex').toUpperCase();
@@ -154,7 +147,7 @@ export async function submitRecord(eventId: string, data: Record<string, unknown
                         eventId,
                     });
 
-                    pusher.trigger(`private-user-${ownerId}`, 'new-notification', {
+                    triggerRealtimeEvent(`private-user-${ownerId}`, 'new-notification', {
                         title: notifTitle,
                         message: notifMsg,
                     }).catch(() => { });
@@ -269,15 +262,11 @@ export async function getRecordByCode(query: string, eventId?: string) {
         await dbConnect();
 
         const trimmedQuery = query.trim();
+        if (!trimmedQuery) return { success: false, message: 'Query is empty' };
 
-        const normalizePhone = (str: string) => str.replace(/\D/g, '');
-        const normalizedQuery = normalizePhone(trimmedQuery);
-
-        const escapedQuery = trimmedQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
+        // 1. TRY EXACT RETRIEVAL CODE MATCH (Case-Insensitive)
         const codeQuery: any = {
-            // Lightweight HTML Sanitizer to strip tags and prevent XSS
-            retrievalCode: { $regex: new RegExp(`^${escapedQuery.replace(/(<([^>]+)>)/gi, "").trim()}$`, 'i') }
+            retrievalCode: trimmedQuery.toUpperCase() // retrievalCode is saved as uppercase
         };
         if (eventId) {
             codeQuery.eventId = eventId;
@@ -285,45 +274,22 @@ export async function getRecordByCode(query: string, eventId?: string) {
 
         let record = await Record.findOne(codeQuery);
 
-        // PHONE NUMBER SEARCH FALLBACK
-        if (!record && normalizedQuery.length >= 5) {
-            const filter: any = {};
-            if (eventId) {
-                filter.eventId = eventId;
-            }
+        // 2. PHONE NUMBER SEARCH FALLBACK (DB-side)
+        if (!record) {
+            const normalizePhone = (str: string) => str.replace(/\D/g, '');
+            const normalizedQuery = normalizePhone(trimmedQuery);
 
-            const allRecords = await Record.find(filter).lean();
-
-            let foundRecordId = null;
-
-            for (const rec of allRecords) {
-                const data = rec.data || {};
-
-                for (const [key, value] of Object.entries(data)) {
-                    const lowerKey = key.toLowerCase();
-
-                    if (lowerKey.includes('phone') ||
-                        lowerKey.includes('mobile') ||
-                        lowerKey.includes('telephone') ||
-                        lowerKey.includes('contact')) {
-
-                        const normalizedValue = normalizePhone(String(value || ''));
-
-                        if (normalizedValue === normalizedQuery ||
-                            normalizedValue.endsWith(normalizedQuery) ||
-                            normalizedQuery.endsWith(normalizedValue)) {
-                            foundRecordId = rec._id;
-
-                            break;
-                        }
-                    }
+            if (normalizedQuery.length >= 5) {
+                // To avoid fetching all records, we use the patientPhone stored field
+                // which is already normalized during submission (extractPatientPhone)
+                const phoneFilter: any = {
+                    patientPhone: { $regex: new RegExp(normalizedQuery + '$') }
+                };
+                if (eventId) {
+                    phoneFilter.eventId = eventId;
                 }
 
-                if (foundRecordId) break;
-            }
-
-            if (foundRecordId) {
-                record = await Record.findById(foundRecordId);
+                record = await Record.findOne(phoneFilter);
             }
         }
 
@@ -351,7 +317,7 @@ export async function updateRecordByCode(code: string, data: Record<string, unkn
 
         await dbConnect();
 
-        const query: any = { retrievalCode: sanitizeHtml(code) };
+        const query: any = { retrievalCode: code.trim().toUpperCase() };
         if (eventId) query.eventId = eventId;
 
         const record = await Record.findOne(query);
@@ -494,6 +460,12 @@ export async function sendResultEmail(recordId: string) {
 export async function verifyEventAccess(eventId: string, accessCode: string) {
     try {
         if (typeof eventId !== 'string' || typeof accessCode !== 'string') return { success: false, message: 'Invalid format' };
+
+        const ip = await getIP();
+        const { success: rateLimitSuccess } = await submissionRateLimit.limit(ip + "_event_access");
+        if (!rateLimitSuccess) {
+            return { success: false, message: 'Too many attempts. Please wait a minute.' };
+        }
 
         await dbConnect();
 

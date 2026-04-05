@@ -194,8 +194,7 @@ export default function LoginPage() {
                             </Link>
                         </div>
 
-                        {/* Cloudflare Turnstile */}
-                        <div className="flex justify-center my-2">
+                        <div className="flex flex-col items-center justify-center my-2">
                             <Turnstile 
                                 siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
                                 onSuccess={(token) => setTurnstileToken(token)}

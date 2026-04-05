@@ -129,7 +129,14 @@ export async function updateEventSchema(eventId: string, formFields: any[]) {
             return { success: false, message: 'Unauthorized' };
         }
 
-        event.formFields = formFields;
+        // Sanitize field labels and placeholders to prevent stored XSS
+        const sanitizeHtml = (str: string) => str ? str.replace(/(<([^>]+)>)/gi, "").trim() : '';
+        const sanitizedFields = formFields.map((f: any) => ({
+            ...f,
+            label: sanitizeHtml(f.label || ''),
+            placeholder: sanitizeHtml(f.placeholder || ''),
+        }));
+        event.formFields = sanitizedFields;
         await event.save();
 
         revalidatePath(`/dashboard/events/${eventId}/builder`);
@@ -141,7 +148,7 @@ export async function updateEventSchema(eventId: string, formFields: any[]) {
     }
 }
 
-export async function updateEventSettings(eventId: string, isPublic: boolean, accessCode: string) {
+export async function updateEventSettings(eventId: string, isPublic: boolean, accessCode: string, maxConcurrentUsers?: number) {
     try {
         if (typeof eventId !== 'string' || typeof accessCode !== 'string') return { success: false, message: 'Invalid format' };
 
@@ -160,7 +167,13 @@ export async function updateEventSettings(eventId: string, isPublic: boolean, ac
 
         event.isPublic = isPublic;
         event.accessCode = accessCode;
+        if (maxConcurrentUsers !== undefined) {
+             event.maxConcurrentUsers = maxConcurrentUsers;
+        }
         await event.save();
+
+        revalidatePath(`/dashboard/events/${eventId}/settings`);
+        revalidatePath(`/e/${eventId}`);
 
         return { success: true, message: 'Settings updated successfully' };
     } catch (error) {

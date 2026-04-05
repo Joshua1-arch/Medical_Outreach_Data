@@ -26,7 +26,7 @@ const InvitationCodeSchema = new Schema({
         type: Date,
         default: null
     }
-}, { timestamps: true });
+}, { timestamps: true, strict: true });
 
 InvitationCodeSchema.index({ code: 1, isUsed: 1 });
 

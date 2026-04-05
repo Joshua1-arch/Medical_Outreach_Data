@@ -12,6 +12,10 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, message: "Invalid or missing token and password" }, { status: 400 });
         }
 
+        if (newPassword.length < 6) {
+            return NextResponse.json({ success: false, message: "Password must be at least 6 characters" }, { status: 400 });
+        }
+
         const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "127.0.0.1";
         const { submissionRateLimit } = require('@/lib/rate-limit');
         if (submissionRateLimit) {

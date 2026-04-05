@@ -126,6 +126,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         }
 
         const { id } = await params;
+        const { isValidObjectId } = require('@/lib/nosql-sanitize');
+        if (!id || !isValidObjectId(id)) {
+            return NextResponse.json({ success: false, message: 'Invalid Event ID' }, { status: 400 });
+        }
         
         const data = await getCachedAnalytics(id);
         

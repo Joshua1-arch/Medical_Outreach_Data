@@ -1,6 +1,7 @@
 import dbConnect from "@/lib/db";
 import Event from "@/models/Event";
 import PublicEventClient from "./PublicEventClient";
+import EventGatekeeper from "@/components/EventGatekeeper";
 import { notFound } from "next/navigation";
 import { Lock } from "lucide-react";
 
@@ -38,5 +39,9 @@ export default async function PublicEventPage({ params }: { params: Promise<{ id
         delete clientEvent.accessCode;
     }
 
-    return <PublicEventClient event={clientEvent} />
+    return (
+        <EventGatekeeper eventId={clientEvent._id} maxConcurrentUsers={clientEvent.maxConcurrentUsers}>
+            <PublicEventClient event={clientEvent} />
+        </EventGatekeeper>
+    );
 }

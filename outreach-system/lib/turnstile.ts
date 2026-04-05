@@ -15,9 +15,12 @@ export async function verifyTurnstileToken(token: string) {
     });
 
     const data = await res.json();
+    if (!data.success) {
+      console.warn("[Turnstile] Verification failed:", data['error-codes'] || "Unknown error");
+    }
     return data.success;
   } catch (err) {
-    console.error("Turnstile verification error:", err);
+    console.error("[Turnstile] Network error:", err);
     return false;
   }
 }

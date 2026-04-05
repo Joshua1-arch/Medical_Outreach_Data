@@ -9,6 +9,7 @@ import Link from 'next/link';
 export default function SettingsClient({ event }: { event: any }) {
     const [isPublic, setIsPublic] = useState(event.isPublic || false);
     const [accessCode, setAccessCode] = useState(event.accessCode || '');
+    const [maxConcurrentUsers, setMaxConcurrentUsers] = useState(event.maxConcurrentUsers || 0);
     const [isSaving, setIsSaving] = useState(false);
     const [saved, setSaved] = useState(false);
 
@@ -18,7 +19,7 @@ export default function SettingsClient({ event }: { event: any }) {
 
     const saveSettings = async () => {
         setIsSaving(true);
-        const result = await updateEventSettings(event._id, isPublic, accessCode);
+        const result = await updateEventSettings(event._id, isPublic, accessCode, maxConcurrentUsers);
         setIsSaving(false);
         setSaved(true);
         alert(result.message);
@@ -108,6 +109,23 @@ export default function SettingsClient({ event }: { event: any }) {
                             </p>
                         )}
                     </div>
+                </div>
+            </div>
+
+            {/* Concurrency Limit card */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mt-6">
+                <div className="px-6 py-5 border-b border-slate-100">
+                    <h2 className="font-bold text-slate-900">Virtual Waiting Room Limit</h2>
+                    <p className="text-sm text-slate-500 mt-0.5">Set the maximum number of people allowed on the public form at the exact same time. Set to 0 for unlimited.</p>
+                </div>
+                <div className="p-6">
+                    <input
+                        type="number"
+                        min="0"
+                        value={maxConcurrentUsers}
+                        onChange={(e) => setMaxConcurrentUsers(parseInt(e.target.value) || 0)}
+                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#fbc037]/30 focus:border-[#fbc037] outline-none transition-all bg-slate-50 focus:bg-white text-sm"
+                    />
                 </div>
             </div>
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Pusher from "pusher-js";
+import * as Ably from "ably";
 import { MessageCircle, X, Send } from "lucide-react";
 
 type Message = {
@@ -60,9 +61,19 @@ export default function VolunteerChatWidget({ eventId, volunteerName }: { eventI
       setUnreadCount((prev) => (isOpen ? 0 : prev + 1));
     });
 
+    // 3. Subscribe to Ably channel simultaneously
+    const ably = new Ably.Realtime({ key: process.env.NEXT_PUBLIC_ABLY_CLIENT_KEY || '' });
+    const ablyChannel = ably.channels.get(`private-event-${eventId}`);
+    ablyChannel.subscribe("message", (message: Ably.Message) => {
+      setMessages((prev) => [...prev, message.data as Message]);
+      setUnreadCount((prev) => (isOpen ? 0 : prev + 1));
+    });
+
     return () => {
       pusher.unsubscribe(`private-event-${eventId}`);
       pusher.disconnect();
+      ablyChannel.unsubscribe("message");
+      ably.close();
     };
   }, [eventId, isOpen]);
 

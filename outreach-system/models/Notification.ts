@@ -20,7 +20,7 @@ const NotificationSchema = new Schema<INotification>(
         eventId: { type: String },
         isRead: { type: Boolean, default: false },
     },
-    { timestamps: true }
+    { timestamps: true, strict: true }
 );
 
 // Compound index for fetching user's unread notifications sorted by date

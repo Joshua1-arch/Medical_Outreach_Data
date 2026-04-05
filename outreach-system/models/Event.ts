@@ -39,6 +39,7 @@ const EventSchema = new Schema({
     isPublic: { type: Boolean, default: false },
     accessCode: { type: String },
     code: { type: String, unique: true, index: true },
+    maxConcurrentUsers: { type: Number, default: 0 },
 }, {
     timestamps: true,
     strict: true, // OWASP: reject any fields not defined in this schema

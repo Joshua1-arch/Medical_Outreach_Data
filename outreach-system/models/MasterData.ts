@@ -23,7 +23,8 @@ const MasterDataSchema: Schema<IMasterData> = new Schema({
         default: true
     }
 }, {
-    timestamps: true
+    timestamps: true,
+    strict: true,
 });
 
 const MasterData: Model<IMasterData> = mongoose.models.MasterData || mongoose.model<IMasterData>('MasterData', MasterDataSchema);

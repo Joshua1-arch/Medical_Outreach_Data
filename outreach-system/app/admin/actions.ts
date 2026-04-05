@@ -9,16 +9,9 @@ import InvitationCode from "@/models/InvitationCode";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import crypto from "crypto";
-import Pusher from "pusher";
 import { sendUserApprovalEmail, sendEventApprovalEmail, sendUserRejectionEmail, sendEventRejectionEmail } from "@/lib/email";
 
-const pusher = new Pusher({
-    appId: process.env.PUSHER_APP_ID!,
-    key: process.env.NEXT_PUBLIC_PUSHER_KEY!,
-    secret: process.env.PUSHER_SECRET!,
-    cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
-    useTLS: true,
-});
+import { triggerRealtimeEvent } from "@/lib/broadcastService";
 
 // Helper for audit logging
 async function logAudit(action: string, targetResource: string, details: any) {
@@ -183,7 +176,7 @@ export async function approveEvent(eventId: string) {
             });
 
             // Push real-time update to owner's private channel
-            pusher.trigger(`private-user-${ownerId}`, 'new-notification', {
+            triggerRealtimeEvent(`private-user-${ownerId}`, 'new-notification', {
                 title: '🎉 Event Approved!',
                 message: `Your outreach event "${event.title}" has been approved and is now live.`,
             }).catch(() => { }); // non-blocking, fire-and-forget
@@ -236,7 +229,7 @@ export async function rejectEvent(eventId: string) {
                 eventId: eventId,
             });
 
-            pusher.trigger(`private-user-${ownerId}`, 'new-notification', {
+            triggerRealtimeEvent(`private-user-${ownerId}`, 'new-notification', {
                 title: '❌ Event Not Approved',
                 message: `Your outreach event "${event.title}" was not approved.`,
             }).catch(() => { });

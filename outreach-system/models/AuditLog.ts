@@ -29,6 +29,7 @@ const AuditLogSchema: Schema = new Schema({
     },
 }, {
     timestamps: true, // This adds createdAt and updatedAt
+    strict: true,
 });
 
 // Indexes for admin audit trail
